@@ -15,7 +15,7 @@
     //$_SESSION - Variável criada pelo usuário no PHP
 
     include("conexao.php");
-    $sql = "SELECT * FROM usuarios "
+    $sql = "SELECT * FROM funcionario "
             ." WHERE login = '$email' "
             ." AND senha = md5('$senha');";
     $resultLogin = mysqli_query($conn,$sql);
