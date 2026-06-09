@@ -3,49 +3,41 @@
         session_start();
     }
 
-    $idUsuario = $_SESSION['idUsuario'];
+    // Adaptado para puxar da session que é gerada no validaLogin
+    $idUsuario = $_SESSION['idLogin']; 
     $nome      = $_POST['nNome'];
 
     include('funcoes.php');
 
-    //Foto do perfil
     $diretorioImg = '';
     
     if($_FILES['Foto']['tmp_name'] != ''){
         
-        //Pega extensão e monta o novo nome do arquivo
         $ext       = pathinfo($_FILES['Foto']["name"], PATHINFO_EXTENSION);
         $novo_nome = "foto-".$idUsuario.'.'.$ext;
     
-        //Verifica se existe o diretório (ou cria)
         if(is_dir('../dist/img/usuarios/')){ 
             $diretorio = '../dist/img/usuarios/';
         }else{
             $diretorio = mkdir('../dist/img/usuarios/');
         }
       
-        //Grava o arquivo no diretório
         move_uploaded_file($_FILES['Foto']['tmp_name'], $diretorio.$novo_nome);
     
-        //Salva o diretório para colocar na tabela do BD
         $diretorioImg = 'dist/img/usuarios/'.$novo_nome;
 
-        //Gravação no BD
         include('conexao.php');
-        $sql = "UPDATE usuarios "
+        $sql = "UPDATE funcionario "
                 ." SET Foto = '".$diretorioImg."' "
-                ." WHERE idUsuario = ".$idUsuario.";";                                 
+                ." WHERE idFuncionario = ".$idUsuario.";";                                 
         $result = mysqli_query($conn,$sql);
         mysqli_close($conn);
-
     }
     
-
-    //Gravação no BD
     include('conexao.php');
-    $sql = "UPDATE usuarios "
+    $sql = "UPDATE funcionario "
             ." SET Nome = '".$nome."' "
-            ." WHERE idUsuario = ".$idUsuario.";";                                 
+            ." WHERE idFuncionario = ".$idUsuario.";";                                 
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
