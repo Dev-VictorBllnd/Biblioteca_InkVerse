@@ -86,7 +86,7 @@ function montaMenu($n1,$n2){
 
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="./painel.php" class="nav-link '.$opcPainel.'">
+                        <a href="./dashboard.php" class="nav-link '.$opcPainel.'">
                         <i class="ion ion-pie-graph nav-icon"></i>
                         <p>Dashboard</p>
                         </a>
@@ -141,7 +141,7 @@ function montaMenu($n1,$n2){
             </li>
             
             <li class="nav-item '.$menuForms.'">
-                <a href="#" class="nav-link '.$acaoForm.'">
+                <a href="#" class="nav-link '.$acaoForms.'">
                 <i class="nav-icon fas fa-edit"></i>
                 <p>
                     Forms
