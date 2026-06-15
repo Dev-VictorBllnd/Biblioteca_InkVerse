@@ -29,7 +29,7 @@
             $_SESSION['FotoLogin']     = $coluna['Foto'];
             $_SESSION['AtivoLogin']    = 'S'; // Forçado para 'S' pois FlgAtivo não existe no DB
 
-            header('location: ../painel.php');
+            header('location: ../usuarios.php');
         }        
     }else{
         header('location: ../');
