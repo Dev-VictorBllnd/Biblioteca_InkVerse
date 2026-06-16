@@ -95,24 +95,6 @@ function montaMenu($n1,$n2){
 
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="./painel-simples.php" class="nav-link '.$opcPainelSimples.'">
-                        <i class="ion ion-pie-graph nav-icon"></i>
-                        <p>Dashboard Simples</p>
-                        </a>
-                    </li>              
-                </ul>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="./painel-filtro.php" class="nav-link '.$opcPainelFiltro.'">
-                        <i class="ion ion-pie-graph nav-icon"></i>
-                        <p>Dashboard Filtro</p>
-                        </a>
-                    </li>              
-                </ul>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
                         <a href="./usuarios.php" class="nav-link '.$opcUsuarios.'">
                         <i class="far fa-user nav-icon"></i>
                         <p>Usuários</p>
