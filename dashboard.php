@@ -164,19 +164,31 @@ $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
             <!-- TABELA -->
 
-            <div class="row">
+            <div class="card-header">
 
-                <div class="col-12">
+    <div class="row">
 
-                    <div class="card">
+        <div class="col-6">
+            <h3 class="card-title">
+                Últimos Empréstimos
+            </h3>
+        </div>
 
-                        <div class="card-header">
+        <div class="col-6 text-right">
 
-                            <h3 class="card-title">
-                                Últimos Empréstimos
-                            </h3>
+            <a href="exportar_dashboard.php"
+               class="btn btn-success">
 
-                        </div>
+                <i class="fas fa-file-excel"></i>
+                Exportar Excel
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
 
                         <div class="card-body table-responsive p-0">
 
