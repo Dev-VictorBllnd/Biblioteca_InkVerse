@@ -11,11 +11,13 @@
     $senha = stripslashes($_POST["nSenha"]);
 
     include("conexao.php");
-    // Adaptado para usar a tabela funcionario
+    
+    // Consulta correta apontando para a tabela funcionário do InkVerse
     $sql = "SELECT * FROM funcionario "
             ." WHERE Email = '$email' "
             ." AND Senha = md5('$senha');";
-    $resultLogin = mysqli_query($conn,$sql);
+            
+    $resultLogin = mysqli_query($conn, $sql);
     mysqli_close($conn);
 
     if (mysqli_num_rows($resultLogin) > 0) {  
@@ -24,14 +26,14 @@
                         
             $_SESSION['idCargo']       = $coluna['idCargo'];
             $_SESSION['logado']        = 1;
-            $_SESSION['idLogin']       = $coluna['idFuncionario']; // Adaptado de idUsuario
+            $_SESSION['idLogin']       = $coluna['idFuncionario']; 
             $_SESSION['NomeLogin']     = $coluna['Nome'];
             $_SESSION['FotoLogin']     = $coluna['Foto'];
-            $_SESSION['AtivoLogin']    = 'S'; // Forçado para 'S' pois FlgAtivo não existe no DB
+            // Linha do FlgAtivo removida por completo para limpar o código
 
             header('location: ../usuarios.php');
         }        
-    }else{
+    } else {
         header('location: ../');
     } 
 ?>

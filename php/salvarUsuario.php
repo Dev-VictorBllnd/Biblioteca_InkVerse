@@ -1,78 +1,99 @@
 <?php
-
     include('funcoes.php');
 
-    $tipoUsuario = $_POST["nTipoUsuario"]; // Agora reflete idCargo
-    $nome        = $_POST["nNome"];
-    $login       = $_POST["nLogin"]; // Agora reflete Email
-    $senha       = $_POST["nSenha"];
-    $funcao      = $_GET["funcao"];
-    $idUsuario   = $_GET["codigo"]; // Trata-se do idFuncionario
+    // Captura os comandos da URL
+    $funcao      = $_GET["funcao"] ?? '';
+    $idUsuario   = $_GET["codigo"] ?? 0; // idFuncionario
+
+    // Captura os dados do POST de forma segura (evita erro quando é apenas Delete)
+    $tipoUsuario = $_POST["nTipoUsuario"] ?? null; 
+    $nome        = $_POST["nNome"] ?? '';
+    $login       = $_POST["nLogin"] ?? '';       
+    $senha       = $_POST["nSenha"] ?? '';
+    
+    // CAMPOS DO INKVERSE:
+    $cpf         = $_POST["nCpf"] ?? '';
+    $datanasc    = $_POST["nDatanasc"] ?? '';
+    $telefone    = $_POST["nTelefone"] ?? '';
+    $ativo       = $_POST["nAtivo"] ?? 'S'; // Se não vier nada, cadastra como 'S' (Ativo)
 
     include("conexao.php");
 
     if($funcao == "I"){
+        // INSERÇÃO COM O CAMPO ATIVO
+        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone, Ativo) "
+              ." VALUES ("
+              ."$tipoUsuario, "
+              ."'$nome', "
+              ."'$login', "
+              ."md5('$senha'), "
+              ."'$cpf', "
+              ."'$datanasc', "
+              ."'$telefone', "
+              ."'$ativo');";
+              
+        $result = mysqli_query($conn, $sql);
+        
+        // CORREÇÃO CRÍTICA: Pega o ID que o banco de dados acabou de gerar para esse novo funcionário
+        // Precisamos disso para que o código da foto (lá embaixo) saiba em qual ID salvar a imagem!
+        $idUsuario = mysqli_insert_id($conn);
 
-        // O idFuncionario é AUTO_INCREMENT no BD novo, não precisamos passar ele.
-        // Cpf, Datanasc e Telefone receberão valores fictícios temporários para não dar erro.
-        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone) "
-                ." VALUES ("
-                .$tipoUsuario.", "
-                ."'$nome', "
-                ."'$login', "
-                ."md5('$senha'), "
-                ."'00000000000', " // Valor obrigatório BD
-                ."'2000-01-01', "  // Valor obrigatório BD
-                ."'0000000000');"; // Valor obrigatório BD
-
-    }elseif($funcao == "A"){
+    } elseif($funcao == "A") {
         if($senha == ''){ 
             $setSenha = ''; 
-        }else{ 
+        } else { 
             $setSenha = " Senha = md5('".$senha."'), ";
         }
 
-        // Removida a atualização do FlgAtivo
+        // ATUALIZAÇÃO COM O CAMPO ATIVO
         $sql = "UPDATE funcionario "
-                ." SET idCargo = $tipoUsuario, "
-                    ." Nome = '$nome', "
-                    ." Email = '$login', "
-                    .$setSenha 
-                    ." idFuncionario = idFuncionario " // Manobra para manter a vírgula do $setSenha correta
-                ." WHERE idFuncionario = $idUsuario;";
+              ." SET idCargo = $tipoUsuario, "
+              ." Nome = '$nome', "
+              ." Email = '$login', "
+              ." Cpf = '$cpf', "
+              ." Datanasc = '$datanasc', "
+              ." Telefone = '$telefone', "
+              ." Ativo = '$ativo', "
+              .$setSenha 
+              ." idFuncionario = idFuncionario " // Truque técnico para gerir a vírgula
+              ." WHERE idFuncionario = $idUsuario;";
+              
+        $result = mysqli_query($conn, $sql);
 
-    }elseif($funcao == "D"){
-        $sql = "DELETE FROM funcionario "
-                ." WHERE idFuncionario = $idUsuario;";
+    } elseif($funcao == "D") {
+        // EXCLUSÃO
+        $sql = "DELETE FROM funcionario WHERE idFuncionario = $idUsuario;";
+        $result = mysqli_query($conn, $sql);
     }
 
-    $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
-    //VERIFICA SE TEM IMAGEM NO INPUT
-    if($_FILES['Foto']['tmp_name'] != ""){
+    // ==========================================
+    // UPLOAD DA FOTO
+    // ==========================================
+    if(isset($_FILES['Foto']) && $_FILES['Foto']['tmp_name'] != ""){
 
         $extensao = pathinfo($_FILES['Foto']['name'], PATHINFO_EXTENSION);
-        $novoNome = md5($_FILES['Foto']['name']).'.'.$extensao;        
+        // Coloquei a função time() no nome para evitar que fotos com o mesmo nome se substituam
+        $novoNome = md5(time().$_FILES['Foto']['name']).'.'.$extensao;        
         
-        if(is_dir('../dist/img/')){
-            $diretorio = '../dist/img/';
-        }else{
-            $diretorio = mkdir('../dist/img/');
+        // Recomendo salvar as fotos numa subpasta específica para ficar organizado
+        if(!is_dir('../dist/img/usuarios/')){
+            mkdir('../dist/img/usuarios/', 0777, true);
         }
+        $diretorio = '../dist/img/usuarios/';
 
         move_uploaded_file($_FILES['Foto']['tmp_name'], $diretorio.$novoNome);
-        $dirImagem = 'dist/img/'.$novoNome;
+        $dirImagem = 'dist/img/usuarios/'.$novoNome;
 
         include("conexao.php");
         
         $sql = "UPDATE funcionario "
-                ." SET Foto = '$dirImagem' "
-                ." WHERE idFuncionario = $idUsuario;";
+              ." SET Foto = '$dirImagem' "
+              ." WHERE idFuncionario = $idUsuario;";
         $result = mysqli_query($conn,$sql);
         mysqli_close($conn);
     }
 
     header("location: ../usuarios.php");
-
 ?>

@@ -17,8 +17,12 @@ function listaUsuario(){
         foreach ($result as $coluna) {
 
             // Como não há FlgAtivo na tabela funcionario, assumimos sempre ativo para manter o layout
-            $ativo = 'checked';
-            $icone = '<h6><i class="fas fa-check-circle text-success"></i></h6>'; 
+            // Agora lê se está 'S' (Sim) ou 'N' (Não) no banco de dados
+            if ($coluna["Ativo"] == 'S') {
+                $icone = '<h5><span class="badge badge-success"><i class="fas fa-check"></i> Ativo</span></h5>';
+            } else {
+                $icone = '<h5><span class="badge badge-danger"><i class="fas fa-ban"></i> Inativo</span></h5>';
+            } 
             
             $lista .= 
             '<tr>'

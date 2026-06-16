@@ -10,35 +10,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Projeto Modelo - Usuários</title>
 
-  <!-- CSS -->
   <?php include('partes/css.php'); ?>
-  <!-- Fim CSS -->
-
-</head>
+  </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <!-- Navbar -->
   <?php include('partes/navbar.php'); ?>
-  <!-- Fim Navbar -->
-
-  <!-- Sidebar -->
   <?php 
     $_SESSION['menu-n1'] = 'administrador';
     $_SESSION['menu-n2'] = 'usuarios';
     include('partes/sidebar.php'); 
   ?>
-  <!-- Fim Sidebar -->
-
-  <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <div class="content-header">
-      <!-- Espaço -->
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
+      </div>
     <section class="content">
       <div class="container-fluid">
         <div class="row">
@@ -48,7 +33,7 @@
                 <div class="row">
                   
                   <div class="col-9">
-                    <h3 class="card-title">Usuários</h3>
+                    <h3 class="card-title">Usuários (Funcionários)</h3>
                   </div>
                   
                   <div class="col-3" align="right">
@@ -60,9 +45,6 @@
                 </div>
               </div>
 
-              
-
-              <!-- /.card-header -->
               <div class="card-body">
                 <table id="tabela" class="table table-bordered table-hover">
                   <thead>
@@ -70,7 +52,7 @@
                       <th>ID</th>
                       <th>Tipo de Usuário</th>
                       <th>Nome</th>
-                      <th>Login</th>
+                      <th>Login (E-mail)</th>
                       <th>Ativo</th>                
                       <th>Ações</th>
                   </tr>
@@ -83,17 +65,10 @@
                   
                 </table>
               </div>
-              <!-- /.card-body -->
+              </div>
             </div>
-            <!-- /.card -->
-            
           </div>
-          <!-- /.col -->
         </div>
-        <!-- /.row -->
-      </div>
-      <!-- /.container-fluid -->
-
       <div class="modal fade" id="novoUsuarioModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
@@ -110,14 +85,14 @@
                   <div class="col-8">
                     <div class="form-group">
                       <label for="iNome">Nome:</label>
-                      <input type="text" class="form-control" id="iNome" name="nNome" maxlength="50">
+                      <input type="text" class="form-control" id="iNome" name="nNome" maxlength="100" required>
                     </div>
                   </div>
 
                   <div class="col-4">
                     <div class="form-group">
-                      <label for="iNome">Tipo de Usuário:</label>
-                      <select name="nTipoUsuario" class="form-control" required>
+                      <label for="iTipoUsuario">Tipo de Usuário:</label>
+                      <select name="nTipoUsuario" id="iTipoUsuario" class="form-control" required>
                         <option value="">Selecione...</option>
                         <?php echo optionTipoUsuario();?>
                       </select>
@@ -126,84 +101,58 @@
 
                   <div class="col-8">
                     <div class="form-group">
-                      <label for="iLogin">Login:</label>
-                      <input type="email" class="form-control" id="iLogin" name="nLogin" maxlength="50">
+                      <label for="iLogin">E-mail (Login):</label>
+                      <input type="email" class="form-control" id="iLogin" name="nLogin" maxlength="100" required>
                     </div>
                   </div>
 
                   <div class="col-4">
                     <div class="form-group">
                       <label for="iSenha">Senha:</label>
-                      <input type="text" class="form-control" id="iSenha" name="nSenha" maxlength="6">
+                      <input type="password" class="form-control" id="iSenha" name="nSenha" maxlength="50" required>
                     </div>
                   </div>
-                
-                  <div class="col-12">
+
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iCpf">CPF:</label>
+                      <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="Apenas números" maxlength="11" required>
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iTelefone">Telefone:</label>
+                      <input type="text" class="form-control" id="iTelefone" name="nTelefone" placeholder="(00) 00000-0000" maxlength="15" required>
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iDatanasc">Data de Nascimento:</label>
+                      <input type="date" class="form-control" id="iDatanasc" name="nDatanasc" required>
+                    </div>
+                  </div>
+                  <div class="col-8">
                     <div class="form-group">
                       <label for="iFoto">Foto:</label>
                       <input type="file" class="form-control" id="iFoto" name="Foto" accept="image/*">
                     </div>
                   </div>
                 
-                  <div class="col-12">
-                    <div class="form-group">
-                      <input type="checkbox" id="iAtivo" name="nAtivo">
-                      <label for="iAtivo">Usuário Ativo</label>
-                    </div>
-                  </div>
-
-                  <div class="col-3">
-                    <div class="form-group">
-                      <label>CEP</label>
-                      <input required name="CEP" type="text" class="form-control cep">
-                    </div>
-                  </div>
-                  
-                  <div class="col-9">
-                    <div class="form-group">
-                      <label>Endereço</label>
-                      <input required name="Endereco" type="text" class="form-control">
-                    </div>
-                  </div>
-
-                  <div class="col-3">
-                    <div class="form-group">
-                      <label>Número</label>
-                      <input required name="Numero" type="text" maxlength="8" class="form-control">
-                    </div>
-                  </div>
-
-                  <div class="col-9">
-                    <div class="form-group">
-                      <label>Complemento</label>
-                      <input name="Complemento" type="text" maxlength="50" class="form-control">
-                    </div>
-                  </div>
-
-                  <div class="col-5">
-                    <div class="form-group">
-                      <label>Bairro</label>
-                      <input required name="Bairro" type="text" class="form-control">
-                    </div>
-                  </div>
-                  
-                  <div class="col-5">
-                    <div class="form-group">
-                      <label>Cidade</label>
-                      <input required name="Cidade" type="text" class="form-control">
-                    </div>
-                  </div>
-
-                  <div class="col-2">
-                    <div class="form-group">
-                      <label>UF</label>
-                      <input required name="UF" type="text" class="form-control">
-                    </div>
+                  <div class="col-4">
+                      <div class="form-group">
+                          <label>Situação do Usuário:</label>
+                          <select name="nAtivo" class="form-control" required>
+                              <option value="S" selected>Ativo (Acesso Permitido)</option>
+                              <option value="N">Inativo (Acesso Bloqueado)</option>
+                          </select>
+                      </div>
                   </div>
 
                 </div>
 
-                <div class="modal-footer">
+                <div class="modal-footer mt-3">
                   <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
                   <button type="submit" class="btn btn-success">Salvar</button>
                 </div>
@@ -213,28 +162,15 @@
             </div>
             
           </div>
-          <!-- /.modal-content -->
+          </div>
         </div>
-        <!-- /.modal-dialog -->
-      </div>
-      <!-- /.modal -->
+      </section>
+    </div>
 
-    </section>
-    <!-- /.content -->
-  </div>
-
-  <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
-</div>
-<!-- ./wrapper -->
-
-<!-- JS -->
+    </aside>
+  </div>
 <?php include('partes/js.php'); ?>
-<!-- Fim JS -->
-
 <script>
   $(function () {
     $('#tabela').DataTable({

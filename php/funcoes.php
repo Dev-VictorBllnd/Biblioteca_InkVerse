@@ -1,14 +1,17 @@
-<?PHP
+<?php
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
-include("funcaoCategoria.php");
+// Ficheiros corretos e necessários para o InkVerse
 include("funcaoMenu.php");
-include("funcaoProduto.php");
-include("funcaoTipoUsuario.php");
 include("funcaoUsuario.php");
     
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
+
+// ... o resto das funções (proximoID, enviarEmail) permanecem iguais abaixo desta linha
 
 function proximoID($tabela, $id){
     $prox = 0;
