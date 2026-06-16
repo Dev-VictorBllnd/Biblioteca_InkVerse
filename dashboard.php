@@ -176,7 +176,7 @@ $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
         <div class="col-6 text-right">
 
-            <a href="exportar_dashboard.php"
+            <a href="php/exportar_dashboard.php"
                class="btn btn-success">
 
                 <i class="fas fa-file-excel"></i>
