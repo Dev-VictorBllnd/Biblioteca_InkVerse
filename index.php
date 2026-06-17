@@ -6,61 +6,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Biblioteca</title>
 
-    <link rel="stylesheet" href="Login.css">
+    <link rel="stylesheet" href="dist/css/login.css">
 
 </head>
 
 <body class="tela-login">
 
-    <div class="login-box">
+    <!-- Lado esquerdo -->
+    <div class="lado-esquerdo">
 
-        <h2>Login</h2>
+        <h2>Seja Bem-vindo!</h2>
 
-        <form method="POST" action="php/validaLogin.php">
+        <p>Faça login para acessar a biblioteca.</p>
 
-            <p>
-                <label for="iEmail">E-mail</label>
-                <input
-                    type="email"
-                    id="iEmail"
-                    name="nEmail"
-                    placeholder="Digite seu e-mail"
-                    required>
+        <div class="logo-area">
+            <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
+        </div>
+
+        <h1>InkVerse</h1>
+
+    </div>
+
+    <!-- Lado direito -->
+    <div class="lado-direito">
+
+        <div class="login-box">
+
+            <h2>Login</h2>
+
+            <p class="subtitulo">
+                Entre com seu usuário e senha para acessar o sistema.
             </p>
 
-            <p>
-                <label for="iSenha">Senha</label>
-                <input
-                    type="password"
-                    id="iSenha"
-                    name="nSenha"
-                    placeholder="Digite sua senha"
-                    required>
-            </p>
+            <form method="POST" action="php/validaLogin.php">
 
-            <p class="mostrar-senha">
-                <input
-                    type="checkbox"
-                    id="mostrarSenha">
+                <div class="campo">
+                    <label for="iEmail">Usuário</label>
 
-                <label for="mostrarSenha">
-                    Mostrar senha
-                </label>
-            </p>
+                    <input
+                        type="email"
+                        id="iEmail"
+                        name="nEmail"
+                        placeholder="Digite seu usuário"
+                        required>
+                </div>
 
-            <p class="esqueci-senha">
-                <a href="esqueci-senha.php">
-                    Esqueci minha senha
+                <div class="campo">
+                    <label for="iSenha">Senha</label>
+
+                    <input
+                        type="password"
+                        id="iSenha"
+                        name="nSenha"
+                        placeholder="Digite sua senha"
+                        required>
+                </div>
+
+                <div class="mostrar-senha">
+                    <input type="checkbox" id="mostrarSenha">
+                    <label for="mostrarSenha">Mostrar senha</label>
+                </div>
+
+                <div class="opcoes">
+                    <a href="esqueci-senha.php">
+                        Esqueci minha senha
+                    </a>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Entrar
+                </button>
+
+                <a href="livros.php" class="btn-login">
+                    Visualizar Livros
                 </a>
-            </p>
 
-            <button
-                type="submit"
-                class="btn-login">
-                Entrar
-            </button>
+            </form>
 
-        </form>
+        </div>
 
     </div>
 
