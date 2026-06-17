@@ -1,58 +1,20 @@
-<?php
-session_start();
-
-if(isset($_POST['codigo'])){
-
-    $codigoDigitado = $_POST['codigo'];
-
-    if($codigoDigitado == $_SESSION['codigo_recuperacao']){
-
-        header("Location: nova-senha.php");
-        exit();
-
-    }else{
-
-        $erro = "Código inválido.";
-
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Verificar Código</title>
+    <meta charset="UTF-8">
+    <title>Verificar Código</title>
 </head>
 <body>
 
-<h2>Verificação</h2>
+<h2>Digite o código recebido por e-mail</h2>
 
-<p>
-Código para teste:
-<strong>
-<?php echo $_SESSION['codigo_recuperacao']; ?>
-</strong>
-</p>
-
-<?php
-if(isset($erro)){
-    echo "<p style='color:red'>$erro</p>";
-}
-?>
-
-<form method="POST">
-
-    <label>Digite o código</label>
-    <br><br>
+<form action="validaCodigo.php" method="POST">
 
     <input
         type="text"
         name="codigo"
-        maxlength="6"
+        placeholder="Código de verificação"
         required>
-
-    <br><br>
 
     <button type="submit">
         Verificar
