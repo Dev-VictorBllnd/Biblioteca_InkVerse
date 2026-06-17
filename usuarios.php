@@ -11,7 +11,7 @@
   <title>Projeto Modelo - Usuários</title>
 
   <?php include('partes/css.php'); ?>
-  </head>
+</head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
@@ -23,7 +23,8 @@
   ?>
   <div class="content-wrapper">
     <div class="content-header">
-      </div>
+    </div>
+    
     <section class="content">
       <div class="container-fluid">
         <div class="row">
@@ -65,10 +66,11 @@
                   
                 </table>
               </div>
-              </div>
             </div>
           </div>
         </div>
+      </div>
+
       <div class="modal fade" id="novoUsuarioModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
@@ -94,7 +96,7 @@
                       <label for="iTipoUsuario">Tipo de Usuário:</label>
                       <select name="nTipoUsuario" id="iTipoUsuario" class="form-control" required>
                         <option value="">Selecione...</option>
-                        <?php echo optionTipoUsuario();?>
+                        <?php echo optionCargo(); ?>
                       </select>
                     </div>
                   </div>
@@ -133,6 +135,7 @@
                       <input type="date" class="form-control" id="iDatanasc" name="nDatanasc" required>
                     </div>
                   </div>
+                  
                   <div class="col-8">
                     <div class="form-group">
                       <label for="iFoto">Foto:</label>
@@ -158,19 +161,19 @@
                 </div>
                 
               </form>
-
             </div>
-            
-          </div>
           </div>
         </div>
+      </div>
       </section>
-    </div>
+  </div>
 
   <aside class="control-sidebar control-sidebar-dark">
-    </aside>
-  </div>
+  </aside>
+</div>
+
 <?php include('partes/js.php'); ?>
+
 <script>
   $(function () {
     $('#tabela').DataTable({

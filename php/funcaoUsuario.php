@@ -1,5 +1,5 @@
 <?php
-//Função para listar todos os usuários (agora funcionários)
+// Função para listar todos os usuários e gerar os Modais de Edição e Exclusão
 function listaUsuario(){
 
     include("conexao.php");
@@ -9,27 +9,25 @@ function listaUsuario(){
     mysqli_close($conn);
 
     $lista = '';
-    $ativo = '';
     $icone = '';
 
-    if (mysqli_num_rows($result) > 0) {
+    // O SEGREDINHO AQUI: O "$result &&" previne o Erro Fatal!
+    if ($result && mysqli_num_rows($result) > 0) {
         
         foreach ($result as $coluna) {
 
-            // Como não há FlgAtivo na tabela funcionario, assumimos sempre ativo para manter o layout
-            // Agora lê se está 'S' (Sim) ou 'N' (Não) no banco de dados
             if ($coluna["Ativo"] == 'S') {
                 $icone = '<h5><span class="badge badge-success"><i class="fas fa-check"></i> Ativo</span></h5>';
             } else {
                 $icone = '<h5><span class="badge badge-danger"><i class="fas fa-ban"></i> Inativo</span></h5>';
             } 
-            
+                
             $lista .= 
             '<tr>'
                 .'<td align="center">'.$coluna["idFuncionario"].'</td>'
-                .'<td align="center">'.descrTipoUsuario($coluna["idCargo"]).'</td>'
+                .'<td align="center">'.descrCargo($coluna["idCargo"]).'</td>'
                 .'<td>'.$coluna["Nome"].'</td>'
-                .'<td>'.$coluna["Email"].'</td>' // Login agora é Email
+                .'<td>'.$coluna["Email"].'</td>'
                 .'<td align="center">'.$icone.'</td>'
                 .'<td>'
                     .'<div class="row" align="center">'
@@ -48,6 +46,7 @@ function listaUsuario(){
                 .'</td>'
             .'</tr>'
             
+            // MODAL DE EDIÇÃO
             .'<div class="modal fade" id="modalEditUsuario'.$coluna["idFuncionario"].'">'
                 .'<div class="modal-dialog modal-lg">'
                     .'<div class="modal-content">'
@@ -58,231 +57,207 @@ function listaUsuario(){
                             .'</button>'
                         .'</div>'
                         .'<div class="modal-body">'
-
                             .'<form method="POST" action="php/salvarUsuario.php?funcao=A&codigo='.$coluna["idFuncionario"].'" enctype="multipart/form-data">'              
-                
                                 .'<div class="row">'
                                     .'<div class="col-8">'
                                         .'<div class="form-group">'
-                                            .'<label for="iNome">Nome:</label>'
-                                            .'<input type="text" value="'.$coluna["Nome"].'" class="form-control" id="iNome" name="nNome" maxlength="50">'
+                                            .'<label>Nome:</label>'
+                                            .'<input type="text" value="'.$coluna["Nome"].'" class="form-control" name="nNome" maxlength="100" required>'
                                         .'</div>'
                                     .'</div>'
-                    
                                     .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<label for="iNome">Tipo de Usuário (Cargo):</label>'
+                                            .'<label>Tipo de Usuário:</label>'
                                             .'<select name="nTipoUsuario" class="form-control" required>'
-                                                .'<option value="'.$coluna["idCargo"].'">'.descrTipoUsuario($coluna["idCargo"]).'</option>'
-                                                .optionTipoUsuario()
+                                                .'<option value="'.$coluna["idCargo"].'">'.descrCargo($coluna["idCargo"]).'</option>'
+                                                . optionCargo() 
                                             .'</select>'
                                         .'</div>'
                                     .'</div>'
-                    
                                     .'<div class="col-8">'
                                         .'<div class="form-group">'
-                                            .'<label for="iLogin">Login (E-mail):</label>'
-                                            .'<input type="email" value="'.$coluna["Email"].'" class="form-control" id="iLogin" name="nLogin" maxlength="50">'
+                                            .'<label>E-mail (Login):</label>'
+                                            .'<input type="email" value="'.$coluna["Email"].'" class="form-control" name="nLogin" maxlength="100" required>'
                                         .'</div>'
                                     .'</div>'
-                    
                                     .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<label for="iSenha">Senha:</label>'
-                                            .'<input type="text" value="" class="form-control" id="iSenha" name="nSenha" maxlength="6">'
+                                            .'<label>Senha: (Deixe em branco para não alterar)</label>'
+                                            .'<input type="password" class="form-control" name="nSenha" maxlength="50">'
                                         .'</div>'
                                     .'</div>'
-                                    
-                                    .'<div class="col-12">'
+                                    .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<label for="iFoto">Foto:</label>'
-                                            .'<input type="file" class="form-control" id="iFoto" name="Foto" accept="image/*">'
+                                            .'<label>CPF:</label>'
+                                            .'<input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>'
                                         .'</div>'
                                     .'</div>'
-                                    
-                                    .'<div class="col-12">'
+                                    .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<input type="checkbox" id="iAtivo" name="nAtivo" '.$ativo.' disabled>'
-                                            .'<label for="iAtivo">Usuário Ativo</label>'
+                                            .'<label>Telefone:</label>'
+                                            .'<input type="text" value="'.$coluna["Telefone"].'" class="form-control" name="nTelefone" maxlength="15" required>'
                                         .'</div>'
                                     .'</div>'
-                
+                                    .'<div class="col-4">'
+                                        .'<div class="form-group">'
+                                            .'<label>Data de Nascimento:</label>'
+                                            .'<input type="date" value="'.$coluna["Datanasc"].'" class="form-control" name="nDatanasc" required>'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-8">'
+                                        .'<div class="form-group">'
+                                            .'<label>Nova Foto:</label>'
+                                            .'<input type="file" class="form-control" name="Foto" accept="image/*">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-4">'
+                                        .'<div class="form-group">'
+                                            .'<label>Situação do Usuário:</label>'
+                                            .'<select name="nAtivo" class="form-control" required>'
+                                                .'<option value="S" '.($coluna["Ativo"] == 'S' ? 'selected' : '').'>Ativo (Acesso Permitido)</option>'
+                                                .'<option value="N" '.($coluna["Ativo"] == 'N' ? 'selected' : '').'>Inativo (Acesso Bloqueado)</option>'
+                                            .'</select>'
+                                        .'</div>'
+                                    .'</div>'
                                 .'</div>'
-                
-                                .'<div class="modal-footer">'
-                                    .'<button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>'
-                                    .'<button type="submit" class="btn btn-success">Salvar</button>'
+                                .'<div class="modal-footer mt-3">'
+                                    .'<button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>'
+                                    .'<button type="submit" class="btn btn-success">Salvar Alterações</button>'
                                 .'</div>'
-                                
                             .'</form>'
-                            
                         .'</div>'
                     .'</div>'
                 .'</div>'
-            .'</div>'
+            .'</div>' // Fim modal edição
             
+            // MODAL DE EXCLUSÃO
             .'<div class="modal fade" id="modalDeleteUsuario'.$coluna["idFuncionario"].'">'
                 .'<div class="modal-dialog">'
-                    .'<div class="modal-content">'
-                        .'<div class="modal-header bg-danger">'
-                            .'<h4 class="modal-title">Excluir Usuário: '.$coluna["idFuncionario"].'</h4>'
+                    .'<div class="modal-content bg-danger">'
+                        .'<div class="modal-header">'
+                            .'<h4 class="modal-title">Excluir Usuário</h4>'
                             .'<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">'
                                 .'<span aria-hidden="true">&times;</span>'
                             .'</button>'
                         .'</div>'
                         .'<div class="modal-body">'
-
-                            .'<form method="POST" action="php/salvarUsuario.php?funcao=D&codigo='.$coluna["idFuncionario"].'" enctype="multipart/form-data">'              
-
-                                .'<div class="row">'
-                                    .'<div class="col-12">'
-                                        .'<h5>Deseja EXCLUIR o usuário '.$coluna["Nome"].'?</h5>'
-                                    .'</div>'
-                                .'</div>'
-                                
-                                .'<div class="modal-footer">'
-                                    .'<button type="button" class="btn btn-danger" data-dismiss="modal">Não</button>'
-                                    .'<button type="submit" class="btn btn-success">Sim</button>'
-                                .'</div>'
-                                
-                            .'</form>'
-                            
+                            .'<p>Deseja realmente excluir o usuário <strong>'.$coluna["Nome"].'</strong>?</p>'
+                        .'</div>'
+                        .'<div class="modal-footer justify-content-between">'
+                            .'<button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancelar</button>'
+                            .'<a href="php/salvarUsuario.php?funcao=D&codigo='.$coluna["idFuncionario"].'" class="btn btn-outline-light">Excluir</a>'
                         .'</div>'
                     .'</div>'
                 .'</div>'
-            .'</div>';            
-        }    
+            .'</div>'; // Fim modal exclusão
+            
+        } 
+    } else {
+        // Se der erro na leitura ou a tabela não existir, mostra esta mensagem na tabela em vez de travar o PHP inteiro!
+        $lista = '<tr><td colspan="6" align="center">Nenhum funcionário cadastrado ou tabela não encontrada.</td></tr>';
     }
     
     return $lista;
 }
 
-function proxIdUsuario(){
-    $id = "";
-    include("conexao.php");
-    $sql = "SELECT MAX(idFuncionario) AS Maior FROM funcionario;";        
-    $result = mysqli_query($conn,$sql);
-    mysqli_close($conn);
-
-    if (mysqli_num_rows($result) > 0) {
-        $array = array();
-        while ($linha = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-            array_push($array,$linha);
-        }
-        foreach ($array as $coluna) {            
-            $id = $coluna["Maior"] + 1;
-        }        
-    } 
-    return $id;
-}
-
-function tipoAcessoUsuario($id){
-    $resp = "";
-    include("conexao.php");
-    $sql = "SELECT idCargo FROM funcionario WHERE idFuncionario = $id;";        
-    $result = mysqli_query($conn,$sql);
-    mysqli_close($conn);
-
-    if (mysqli_num_rows($result) > 0) {
-        $array = array();
-        while ($linha = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-            array_push($array,$linha);
-        }
-        foreach ($array as $coluna) {            
-            if($coluna["idCargo"] == 1){
-                $resp = '<option value="1">Admin</option>'
-                        .'<option value="2">Empresa</option>'
-                        .'<option value="3">Comum</option>';
-            }else if($coluna["idCargo"] == 2){
-                $resp = '<option value="2">Empresa</option>'
-                        .'<option value="1">Admin</option>'
-                        .'<option value="3">Comum</option>';
-            }else{
-                $resp = '<option value="3">Comum</option>'
-                        .'<option value="1">Admin</option>'
-                        .'<option value="2">Empresa</option>';
-            }
-        }        
-    } 
-    return $resp;
-}
-
-function fotoUsuario($id){
-    $resp = "";
-    include("conexao.php");
-    $sql = "SELECT Foto FROM funcionario WHERE idFuncionario = $id;";        
-    $result = mysqli_query($conn,$sql);
-    mysqli_close($conn);
-
-    if (mysqli_num_rows($result) > 0) {
-        $array = array();
-        while ($linha = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-            array_push($array,$linha);
-        }
-        foreach ($array as $coluna) {            
-            $resp = $coluna["Foto"];
-        }        
-    } 
-    return $resp;
-}
+// =========================================================
+// Funções de Perfil (Agora seguras contra Variáveis Vazias)
+// =========================================================
 
 function nomeUsuario($id){
+    if(empty($id)) return "Visitante"; // Previne erro de sintaxe SQL se o ID sumir
     $resp = "";
     include("conexao.php");
     $sql = "SELECT Nome FROM funcionario WHERE idFuncionario = $id;";        
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
-    if (mysqli_num_rows($result) > 0) {
-        $array = array();
-        while ($linha = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-            array_push($array,$linha);
-        }
-        foreach ($array as $coluna) {            
+    if ($result && mysqli_num_rows($result) > 0) {
+        foreach ($result as $coluna) {            
             $resp = $coluna["Nome"];
         }        
     } 
     return $resp;
 }
 
+function fotoUsuario($id){
+    if(empty($id)) return "dist/img/avatar.png"; 
+    $resp = "";
+    include("conexao.php");
+    $sql = "SELECT Foto FROM funcionario WHERE idFuncionario = $id;";        
+    $result = mysqli_query($conn,$sql);
+    mysqli_close($conn);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        foreach ($result as $coluna) {            
+            $resp = $coluna["Foto"];
+        }        
+    }
+    if($resp == "") { $resp = "dist/img/avatar.png"; }
+    return $resp;
+}
+
 function loginUsuario($id){
+    if(empty($id)) return "";
     $resp = "";
     include("conexao.php");
     $sql = "SELECT Email FROM funcionario WHERE idFuncionario = $id;";        
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
-    if (mysqli_num_rows($result) > 0) {
-        $array = array();
-        while ($linha = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
-            array_push($array,$linha);
-        }
-        foreach ($array as $coluna) {            
+    if ($result && mysqli_num_rows($result) > 0) {
+        foreach ($result as $coluna) {            
             $resp = $coluna["Email"];
         }        
     } 
     return $resp;
 }
 
-function ativoUsuario($id){
-    // Removida a lógica do banco pois não existe FlgAtivo
-    return 'checked';
-}
-
 function qtdUsuariosAtivos(){
     $qtd = 0;
     include("conexao.php");
-    // Conta todos pois não existe FlgAtivo para filtrar
-    $sql = "SELECT COUNT(*) AS Qtd FROM funcionario;";
-
+    $sql = "SELECT * FROM funcionario WHERE Ativo = 'S';";        
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
-    if (mysqli_num_rows($result) > 0) {
-        foreach ($result as $coluna) {            
-            $qtd = $coluna['Qtd'];
-        }        
+    if ($result && mysqli_num_rows($result) > 0) {
+        $qtd = mysqli_num_rows($result);
     }
     return $qtd;
+}
+
+// =========================================================
+// Funções de Cargos
+// =========================================================
+
+function optionCargo(){
+    include("conexao.php");
+    $sql = "SELECT * FROM cargo ORDER BY Descricao;";
+    $result = mysqli_query($conn, $sql);
+    mysqli_close($conn);
+    
+    $opcoes = '';
+    if ($result && mysqli_num_rows($result) > 0) {
+        foreach ($result as $coluna) {
+            $opcoes .= '<option value="'.$coluna["idCargo"].'">'.$coluna["Descricao"].'</option>';
+        }
+    }
+    return $opcoes;
+}
+
+function descrCargo($id){
+    if(empty($id)) return ""; // Previne erro SQL se passar cargo em branco
+    include("conexao.php");
+    $sql = "SELECT Descricao FROM cargo WHERE idCargo = $id;";
+    $result = mysqli_query($conn, $sql);
+    mysqli_close($conn);
+    
+    $resp = "";
+    if ($result && mysqli_num_rows($result) > 0) {
+        foreach ($result as $coluna) {
+            $resp = $coluna["Descricao"];
+        }
+    }
+    return $resp;
 }
 ?>
