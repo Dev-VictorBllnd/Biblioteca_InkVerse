@@ -3,38 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Esqueci Minha Senha</title>
+<title>Recuperar Senha</title>
 
-<link rel="stylesheet" href="dist/css/esqueciSenha.css">
+<link rel="stylesheet" href="dist/css/esqueci-Senha.css">
 
 </head>
-<body class="tela-login">
+<body>
 
-<div class="login-box">
+<div class="tela-login">
 
-    <h2>Recuperar Senha</h2>
+    <div class="lado-esquerdo">
 
-    <form action="enviarCodigo.php" method="POST">
+        <h1>Biblioteca</h1>
+
+        <h2>Recuperação de Senha</h2>
 
         <p>
-            <label for="email">E-mail</label>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="Digite seu e-mail"
-                required>
+            Informe seu e-mail para receber o código de verificação.
         </p>
 
-        <button type="submit" class="btn-login">
-            Enviar Código
-        </button>
+        <div class="logo-area">
+            <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
+        </div>
 
-    </form>
+    </div>
 
-    <a href="index.php" class="voltar">
-        Voltar ao Login
-    </a>
+    <div class="lado-direito">
+
+        <div class="login-box">
+
+            <h2>Recuperar Senha</h2>
+
+            <p class="subtitulo">
+                Digite seu e-mail para receber o código de recuperação.
+            </p>
+
+            <form action="enviarCodigo.php" method="POST">
+
+                <div class="campo">
+                    <label for="email">E-mail</label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Digite seu e-mail"
+                        required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Enviar Código
+                </button>
+
+            </form>
+
+            <div class="cadastro">
+                <a href="index.php">Voltar ao Login</a>
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
