@@ -48,7 +48,7 @@
 
           <li class="nav-item mb-1">
             <a href="emprestimo.php" class="nav-link text-light">
-              <i class="nav-icon fas fa-book-open"></i>
+              <i class="nav-icon fas fa-exchange-alt"></i>
               <p>Empréstimo</p>
             </a>
           </li>

@@ -34,7 +34,7 @@
                 <div class="row">
                   
                   <div class="col-9">
-                    <h3 class="card-title">Usuários (Funcionários)</h3>
+                    <h3 class="card-title">Funcionários</h3>
                   </div>
                   
                   <div class="col-3" align="right">
