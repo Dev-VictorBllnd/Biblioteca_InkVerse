@@ -11,35 +11,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InkVerse - Empréstimos</title>
 
-  <!-- CSS -->
   <?php include('partes/css.php'); ?>
-  <!-- Fim CSS -->
-
-</head>
+  </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <!-- Navbar -->
   <?php include('partes/navbar.php'); ?>
-  <!-- Fim Navbar -->
-
-  <!-- Sidebar -->
   <?php 
-    $_SESSION['menu-n1'] = 'biblioteca'; // Ajustado para manter o menu da biblioteca aberto[cite: 10]
+    $_SESSION['menu-n1'] = 'biblioteca'; // Ajustado para manter o menu da biblioteca aberto
     $_SESSION['menu-n2'] = 'emprestimos';
     include('partes/sidebar.php'); 
   ?>
-  <!-- Fim Sidebar -->
-
-  <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
     <div class="content-header">
-      <!-- Espaço -->
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
+      </div>
     <section class="content">
       <div class="container-fluid">
         <div class="row">
@@ -61,7 +46,6 @@
                 </div>
               </div>
 
-              <!-- /.card-header -->
               <div class="card-body">
                 <table id="tabela" class="table table-bordered table-hover text-nowrap">
                   <thead>
@@ -78,7 +62,7 @@
                   <tbody>
 
                   <?php
-                  // Consulta baseada no dashboard para listar os empréstimos[cite: 10]
+                  // Consulta baseada no dashboard para listar os empréstimos
                   $sql = mysqli_query($conn,"
                   SELECT
                       e.idEmprestimo,
@@ -95,7 +79,7 @@
                   ");
 
                   while($dados = mysqli_fetch_assoc($sql)){
-                      // Verifica se já foi devolvido para gerar o status visual[cite: 10]
+                      // Verifica se já foi devolvido para gerar o status visual
                       if(empty($dados['Data_devolucao'])){
                           $status = '<span class="badge badge-warning">Emprestado</span>';
                           $dataDevolucao = '-';
@@ -112,29 +96,70 @@
                       <td><?php echo $dataDevolucao; ?></td>
                       <td><?php echo $status; ?></td>
                       <td>
-                        <button class="btn btn-sm btn-primary" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-primary" title="Editar" data-toggle="modal" data-target="#editarEmprestimoModal<?php echo $dados['idEmprestimo']; ?>">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        
                         <?php if(empty($dados['Data_devolucao'])) { ?>
-                            <button class="btn btn-sm btn-success" title="Registrar Devolução"><i class="fas fa-check"></i></button>
+                            <a href="php/salvarEmprestimo.php?funcao=devolver&id=<?php echo $dados['idEmprestimo']; ?>" 
+                               class="btn btn-sm btn-success" 
+                               title="Registrar Devolução"
+                               onclick="return confirm('Tem certeza que deseja registrar a devolução deste livro?');">
+                                <i class="fas fa-check"></i>
+                            </a>
                         <?php } ?>
                       </td>
                   </tr>
+
+                  <div class="modal fade" id="editarEmprestimoModal<?php echo $dados['idEmprestimo']; ?>">
+                    <div class="modal-dialog modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header bg-primary">
+                          <h4 class="modal-title">Editar Empréstimo #<?php echo $dados['idEmprestimo']; ?></h4>
+                          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <form method="POST" action="php/salvarEmprestimo.php?funcao=U">              
+                            <input type="hidden" name="idEmprestimo" value="<?php echo $dados['idEmprestimo']; ?>">
+
+                            <div class="row">
+                              <div class="col-12">
+                                <p><strong>Cliente:</strong> <?php echo $dados['Cliente']; ?></p>
+                                <p><strong>Livro:</strong> <?php echo $dados['Livro']; ?></p>
+                              </div>
+                              <div class="col-6">
+                                <div class="form-group">
+                                  <label>Data do Empréstimo:</label>
+                                  <input type="date" class="form-control" name="nDataEmprestimo" value="<?php echo date('Y-m-d', strtotime($dados['Data_emprestimo'])); ?>" required>
+                                </div>
+                              </div>
+                              <div class="col-6">
+                                <div class="form-group">
+                                  <label>Data de Devolução (Deixe em branco se não devolvido):</label>
+                                  <input type="date" class="form-control" name="nDataDevolucao" value="<?php echo !empty($dados['Data_devolucao']) ? date('Y-m-d', strtotime($dados['Data_devolucao'])) : ''; ?>">
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer mt-3">
+                              <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <?php } ?>
                   
                   </tbody>
                 </table>
               </div>
-              <!-- /.card-body -->
+              </div>
             </div>
-            <!-- /.card -->
-            
           </div>
-          <!-- /.col -->
         </div>
-        <!-- /.row -->
-      </div>
-      <!-- /.container-fluid -->
-
-      <!-- Modal Novo Empréstimo -->
       <div class="modal fade" id="novoEmprestimoModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
@@ -153,7 +178,6 @@
                       <label for="iCliente">Cliente:</label>
                       <select name="nCliente" id="iCliente" class="form-control" required>
                         <option value="">Selecione o Cliente...</option>
-                        <!-- Aqui você pode usar uma função do PHP para listar clientes como feito nos usuários[cite: 14] -->
                       </select>
                     </div>
                   </div>
@@ -163,7 +187,6 @@
                       <label for="iExemplar">Livro/Exemplar:</label>
                       <select name="nExemplar" id="iExemplar" class="form-control" required>
                         <option value="">Selecione o Livro...</option>
-                        <!-- Listar exemplares disponíveis -->
                       </select>
                     </div>
                   </div>
@@ -200,30 +223,17 @@
 
             </div>
           </div>
-          <!-- /.modal-content -->
+          </div>
         </div>
-        <!-- /.modal-dialog -->
-      </div>
-      <!-- /.modal -->
+      </section>
+    </div>
 
-    </section>
-    <!-- /.content -->
-  </div>
-
-  <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
-</div>
-<!-- ./wrapper -->
-
-<!-- JS -->
+    </aside>
+  </div>
 <?php include('partes/js.php'); ?>
-<!-- Fim JS -->
-
 <script>
-  // Inicialização padrão do DataTable com pesquisa e paginação[cite: 14]
+  // Inicialização padrão do DataTable com pesquisa e paginação
   $(function () {
     $('#tabela').DataTable({
       "paging": true,
@@ -233,7 +243,7 @@
       "info": true,
       "autoWidth": false,
       "responsive": true,
-      "language": { // Opcional: para traduzir o datatable caso queira
+      "language": {
             "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json"
       }
     });
