@@ -6,6 +6,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // Ficheiros corretos e necessários para o InkVerse
 include("funcaoMenu.php");
 include("funcaoUsuario.php");
+include("funcaoCliente.php");
     
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
