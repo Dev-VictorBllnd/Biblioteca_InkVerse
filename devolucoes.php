@@ -1,7 +1,69 @@
 <?php 
   session_start();
-  include('php/conexao.php'); 
-  include('php/funcoes.php');
+  include('php/conexao.php');
+  
+  if(file_exists('php/funcoes.php')) {
+      include('php/funcoes.php');
+  }
+
+  // =========================================================================
+  // 1. LÓGICA DE DEVOLUÇÃO EM LOTE (Vários livros ao mesmo tempo)
+  // =========================================================================
+  if (isset($_GET['funcao']) && $_GET['funcao'] == 'devolver_lote') {
+      $idCliente = $_POST['idCliente'];
+      
+      // Verifica se o usuário marcou alguma caixinha
+      if(!empty($_POST['livros_devolver'])) {
+          foreach($_POST['livros_devolver'] as $info) {
+              // O value do checkbox traz o id do Emprestimo e o id do Exemplar separados por um underline "_"
+              list($idEmp, $idExe) = explode('_', $info);
+
+              // Registra a devolução
+              $sqlDevolver = "UPDATE emprestimo_has_exemplar 
+                              SET Data_devolucao = NOW() 
+                              WHERE idEmprestimo = '$idEmp' AND idExemplar = '$idExe'";
+              mysqli_query($conn, $sqlDevolver);
+
+              // Libera o livro para a estante
+              $sqlLiberarLivro = "UPDATE exemplar 
+                                  SET Emprestado = 'nao' 
+                                  WHERE idExemplar = '$idExe'";
+              mysqli_query($conn, $sqlLiberarLivro);
+          }
+          header("Location: devolucoes.php?cliente=$idCliente&sucesso=1");
+          exit;
+      } else {
+          // Se clicou no botão sem marcar nada
+          header("Location: devolucoes.php?cliente=$idCliente&erro=vazio");
+          exit;
+      }
+  }
+
+  // =========================================================================
+  // 2. CARREGAMENTO DA TELA (Busca pelo Cliente)
+  // =========================================================================
+  if (!isset($_GET['cliente'])) {
+      header("Location: emprestimo.php");
+      exit;
+  }
+
+  $idCliente = $_GET['cliente'];
+
+  // Busca o nome do cliente para o cabeçalho
+  $sqlNome = mysqli_query($conn, "SELECT Nome FROM cliente WHERE idCliente = '$idCliente'");
+  $nomeCliente = mysqli_fetch_assoc($sqlNome)['Nome'];
+
+  // Busca TODOS os livros pendentes desse cliente (mesmo que sejam de empréstimos diferentes)
+  $sql = "SELECT e.idEmprestimo, ehe.idExemplar, l.Titulo, ehe.Data_emprestimo, ehe.data_prevista 
+          FROM emprestimo_has_exemplar ehe
+          JOIN emprestimo e ON e.idEmprestimo = ehe.idEmprestimo
+          JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+          JOIN livro l ON ex.idLivro = l.idLivro
+          WHERE e.idCliente = '$idCliente' AND ehe.Data_devolucao IS NULL
+          ORDER BY ehe.Data_emprestimo ASC";
+
+  $resultado = mysqli_query($conn, $sql);
+  $qtd_livros = mysqli_num_rows($resultado);
 ?>
 
 <!DOCTYPE html>
@@ -9,121 +71,115 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>InkVerse - Registrar Devoluções</title>
-
+  <title>InkVerse - Devolução em Lote</title>
   <?php include('partes/css.php'); ?>
-  </head>
+</head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
   <?php include('partes/navbar.php'); ?>
   <?php 
     $_SESSION['menu-n1'] = 'biblioteca'; 
-    $_SESSION['menu-n2'] = 'devolucoes'; // Destaque no menu para a nova tela
+    $_SESSION['menu-n2'] = 'emprestimos';
     include('partes/sidebar.php'); 
   ?>
+
   <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0 text-dark">Registrar Devoluções</h1>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="content-header"></div>
+    
     <section class="content">
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
             
-            <div class="card card-outline card-success">
+            <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Livros Pendentes de Devolução</h3>
+                <div class="row">
+                  <div class="col-9">
+                    <h3 class="card-title">Devolução de Livros - Cliente: <strong><?php echo $nomeCliente; ?></strong></h3>
+                  </div>
+                  <div class="col-3" align="right">
+                    <a href="emprestimo.php" class="btn btn-default">
+                      <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                  </div>
+                </div>
               </div>
 
               <div class="card-body">
-                <table id="tabela" class="table table-bordered table-striped text-nowrap">
-                  <thead>
-                  <tr>
-                      <th>ID</th>
-                      <th>Cliente</th>
-                      <th>Livro</th>
-                      <th>Data Empréstimo</th>
-                      <th>Status</th>                
-                      <th class="text-center">Ação</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-
-                  <?php
-                  // Consulta filtrando APENAS empréstimos sem data de devolução (Ativos)
-                  $sql = mysqli_query($conn,"
-                  SELECT
-                      e.idEmprestimo,
-                      c.Nome AS Cliente,
-                      l.Titulo AS Livro,
-                      ehe.Data_emprestimo,
-                      ehe.Data_devolucao
-                  FROM emprestimo_has_exemplar ehe
-                  INNER JOIN emprestimo e ON e.idEmprestimo = ehe.idEmprestimo
-                  INNER JOIN cliente c ON c.idCliente = e.idCliente
-                  INNER JOIN exemplar ex ON ex.idExemplar = ehe.idExemplar
-                  INNER JOIN livro l ON l.idLivro = ex.idLivro
-                  WHERE ehe.Data_devolucao IS NULL OR ehe.Data_devolucao = '0000-00-00'
-                  ORDER BY ehe.Data_emprestimo ASC
-                  ");
-
-                  while($dados = mysqli_fetch_assoc($sql)){
-                  ?>
-                  <tr>
-                      <td><?php echo $dados['idEmprestimo']; ?></td>
-                      <td><?php echo $dados['Cliente']; ?></td>
-                      <td><?php echo $dados['Livro']; ?></td>
-                      <td><?php echo date('d/m/Y', strtotime($dados['Data_emprestimo'])); ?></td>
-                      <td><span class="badge badge-warning">Aguardando Devolução</span></td>
-                      <td class="text-center">
-                        <a href="php/salvarEmprestimo.php?funcao=devolver&id=<?php echo $dados['idEmprestimo']; ?>&origem=devolucoes" 
-                           class="btn btn-md btn-success" 
-                           title="Registrar Devolução"
-                           onclick="return confirm('Confirmar o recebimento do livro: <?php echo addslashes($dados['Livro']); ?>?');">
-                            <i class="fas fa-undo-alt"></i> Receber Livro
-                        </a>
-                      </td>
-                  </tr>
-                  <?php } ?>
                   
-                  </tbody>
-                </table>
-              </div>
+                  <?php if (isset($_GET['sucesso'])): ?>
+                      <div class="alert alert-success alert-dismissible">
+                          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                          <h5><i class="icon fas fa-check"></i> Devolução Registrada!</h5>
+                          Os livros selecionados foram devolvidos e estão disponíveis na prateleira.
+                      </div>
+                  <?php endif; ?>
+
+                  <?php if (isset($_GET['erro'])): ?>
+                      <div class="alert alert-danger alert-dismissible">
+                          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                          <h5><i class="icon fas fa-exclamation-triangle"></i> Atenção!</h5>
+                          Você precisa selecionar pelo menos um livro para devolver.
+                      </div>
+                  <?php endif; ?>
+
+                  <?php if ($qtd_livros > 0): ?>
+                      <p>Selecione nas caixinhas os livros que o cliente está entregando agora:</p>
+                      
+                      <form method="POST" action="devolucoes.php?funcao=devolver_lote">
+                          <input type="hidden" name="idCliente" value="<?php echo $idCliente; ?>">
+                          
+                          <table class="table table-bordered table-hover text-nowrap">
+                              <thead class="bg-light">
+                                  <tr>
+                                      <th style="width: 50px; text-align: center;"><i class="fas fa-check-square"></i></th>
+                                      <th>Título do Livro</th>
+                                      <th>Cód. Exemplar</th>
+                                      <th>Data que Pegou</th>
+                                      <th>Data Prevista</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <?php while ($row = mysqli_fetch_assoc($resultado)): ?>
+                                      <tr>
+                                          <td align="center">
+                                              <input type="checkbox" name="livros_devolver[]" value="<?php echo $row['idEmprestimo'].'_'.$row['idExemplar']; ?>" style="width: 20px; height: 20px;">
+                                          </td>
+                                          <td><strong><?php echo $row['Titulo']; ?></strong></td>
+                                          <td><?php echo $row['idExemplar']; ?></td>
+                                          <td><?php echo date('d/m/Y', strtotime($row['Data_emprestimo'])); ?></td>
+                                          <td><?php echo date('d/m/Y', strtotime($row['data_prevista'])); ?></td>
+                                      </tr>
+                                  <?php endwhile; ?>
+                              </tbody>
+                          </table>
+                          
+                          <button type="submit" class="btn btn-success mt-3" onclick="return confirm('Confirmar a devolução dos livros selecionados?');">
+                              <i class="fas fa-check-double"></i> Concluir Devolução
+                          </button>
+                      </form>
+
+                  <?php else: ?>
+                      <div class="alert alert-info text-center mt-3">
+                          <h5>Tudo certo!</h5>
+                          <p>O cliente <strong><?php echo $nomeCliente; ?></strong> não tem nenhum livro pendente no momento.</p>
+                          <a href="emprestimo.php" class="btn btn-primary mt-2">Voltar aos Empréstimos</a>
+                      </div>
+                  <?php endif; ?>
+
               </div>
             </div>
+
           </div>
         </div>
-      </section>
-    </div>
-
-  <aside class="control-sidebar control-sidebar-dark">
-  </aside>
+      </div>
+    </section>
   </div>
-<?php include('partes/js.php'); ?>
-<script>
-  // Inicialização padrão do DataTable
-  $(function () {
-    $('#tabela').DataTable({
-      "paging": true,
-      "lengthChange": true,
-      "searching": true,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
-      "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json"
-      }
-    });
-  });
-</script>
 
+  <aside class="control-sidebar control-sidebar-dark"></aside>
+</div>
+
+<?php include('partes/js.php'); ?>
 </body>
 </html>
