@@ -95,7 +95,7 @@
                   <div class="col-8">
                     <div class="form-group">
                       <label for="iLogin">E-mail:</label>
-                      <input type="email" class="form-control" id="iLogin" name="nLogin" maxlength="100" required>
+                      <input type="email" class="form-control" id="iLogin" name="nEmail" maxlength="100" required>
                     </div>
                   </div>
 

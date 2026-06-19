@@ -42,7 +42,6 @@
               ." Datanasc = '$datanasc', "
               ." Telefone = '$telefone', "
               ." Ativo = '$ativo', "
-              .$setSenha 
               ." idCliente = idCliente " // Truque técnico para gerir a vírgula
               ." WHERE idCliente = $idCliente;";
               

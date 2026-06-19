@@ -27,6 +27,8 @@ function listaClientes(){
                 .'<td align="center">'.$coluna["idCliente"].'</td>'
                 .'<td>'.$coluna["Nome"].'</td>'
                 .'<td>'.$coluna["Email"].'</td>'
+                .'<td>'.$coluna["Cpf"].'</td>'
+                .'<td>'.$coluna["Telefone"].'</td>'
                 .'<td align="center">'.$icone.'</td>'
                 .'<td>'
                     .'<div class="row" align="center">'
@@ -67,7 +69,7 @@ function listaClientes(){
                                     .'<div class="col-8">'
                                         .'<div class="form-group">'
                                             .'<label>E-mail:</label>'
-                                            .'<input type="email" value="'.$coluna["Email"].'" class="form-control" name="nLogin" maxlength="100" required>'
+                                            .'<input type="email" value="'.$coluna["Email"].'" class="form-control" name="nEmail" maxlength="100" required>'
                                         .'</div>'
                                     .'</div>'
                                     .'<div class="col-4">'
@@ -138,7 +140,7 @@ function listaClientes(){
         } 
     } else {
         // Se der erro na leitura ou a tabela não existir, mostra esta mensagem na tabela em vez de travar o PHP inteiro!
-        $lista = '<tr><td colspan="6" align="center">Nenhum cliente cadastrado ou tabela não encontrada.</td></tr>';
+        $lista = '<tr><td colspan="7" align="center">Nenhum cliente cadastrado ou tabela não encontrada.</td></tr>';
     }
     
     return $lista;
