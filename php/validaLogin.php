@@ -31,7 +31,7 @@
             $_SESSION['FotoLogin']     = $coluna['Foto'];
             // Linha do FlgAtivo removida por completo para limpar o código
 
-            header('location: ../usuarios.php');
+            header('location: ../dashboard.php');
         }        
     } else {
         header('location: ../');

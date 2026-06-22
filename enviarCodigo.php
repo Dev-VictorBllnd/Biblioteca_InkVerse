@@ -18,7 +18,7 @@
     <p>Faça login para acessar a biblioteca.</p>
 
     <div class="logo-area">
-        <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
+        <img src="dist/img/logo.png" alt="Logo Biblioteca">
     </div>
 
 <h1>InkVerse</h1>

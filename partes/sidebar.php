@@ -33,14 +33,14 @@
           </li>
 
           <li class="nav-item mb-1">
-            <a href="usuarios.php" class="nav-link text-white <?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'active' : ''; ?>" style="<?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'background-color: #2563eb; border-radius: 10px;' : ''; ?>">
+            <a href="usuarios.php" class="nav-link text-white <?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'active' : '';   ?>" style="<?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'background-color: #2563eb; border-radius: 10px;' : ''; ?>">
               <i class="nav-icon fas fa-user"></i>
               <p>Funcionários</p>
             </a>
           </li>
 
           <li class="nav-item mb-1">
-            <a href="#" class="nav-link text-light">
+            <a href="clientes.php" class="nav-link text-light">
               <i class="nav-icon fas fa-user-friends"></i>
               <p>Clientes</p>
             </a>

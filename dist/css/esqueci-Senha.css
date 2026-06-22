@@ -14,7 +14,7 @@
 
 .lado-esquerdo{
     width:40%;
-    background:#0c34ad;
+    background:#0b1a2c;
     color:white;
     padding:50px;
 
@@ -106,7 +106,7 @@
 }
 
 .btn-login:hover{
-    background:#1c43d8;
+    background:#0b1a2c;
 }
 
 .cadastro{
@@ -115,7 +115,7 @@
 }
 
 .cadastro a{
-    color:#2952f3;
+    color:#0b1a2c;
     text-decoration:none;
     font-weight:bold;
 }
