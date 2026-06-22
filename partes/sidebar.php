@@ -11,7 +11,7 @@
           <img src="<?php echo fotoUsuario($_SESSION['idLogin']); ?>" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block text-white"><?php echo nomeUsuario($_SESSION['idLogin']); ?></a>
+          <a href="perfil.php" class="d-block text-white"><?php echo nomeUsuario($_SESSION['idLogin']); ?></a>
         </div>
       </div>
 

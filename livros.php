@@ -1,6 +1,10 @@
 <?php 
   session_start();
   include('php/funcoes.php');
+  include('php/funcaoLivro.php');
+  
+  // Executa a função e obtém as duas strings separadas
+  $dadosLivro = listaLivro();
 ?>
 
 <!DOCTYPE html>
@@ -9,85 +13,87 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Projeto Modelo - Livros</title>
-
   <?php include('partes/css.php'); ?>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
   <?php include('partes/navbar.php'); ?>
-  
   <?php 
-    // Ajuste as variáveis de sessão conforme a estrutura do seu menu no sidebar.php
     $_SESSION['menu-n1'] = 'biblioteca'; 
     $_SESSION['menu-n2'] = 'livros';
     include('partes/sidebar.php'); 
   ?>
   
   <div class="content-wrapper">
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">Livros</h1>
-            <p class="text-muted">Gerencie o acervo da biblioteca</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    
+    <div class="content-header"></div>
     <section class="content">
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
-            <div class="card shadow-sm rounded">
+            
+            <div class="card">
               <div class="card-header">
-                <div class="row align-items-center">
-                  
+                <div class="row">
                   <div class="col-9">
-                    <h3 class="card-title"><i class="fas fa-book-open mr-2"></i> Acervo de Livros</h3>
+                    <h3 class="card-title">Gestão de Exemplares do Acervo</h3>
                   </div>
-                  
                   <div class="col-3" align="right">
-                    <a href="cadastro_livro.php" class="btn btn-primary">
-                      <i class="fas fa-plus"></i> Novo Livro
-                    </a>
+                    <button type="button" class="btn btn-success" onclick="window.location.href='cadastro_livro.php'">
+                      <i class="fas fa-plus"></i> Cadastrar Livro
+                    </button>
                   </div>
-
                 </div>
               </div>
-
               <div class="card-body">
-                <table id="tabela" class="table table-bordered table-striped table-hover align-middle">
+                <table id="tabela" class="table table-bordered table-striped w-100">
                   <thead>
-                  <tr>
-                      <th width="5%">ID</th>
-                      <th width="20%">Título</th>
-                      <th width="15%">Autor</th>
-                      <th width="15%">Gênero</th>
-                      <th width="15%">Editora</th>
-                      <th width="15%">ISBN</th>
-                      <th width="5%">Ano</th>                
-                      <th width="10%" class="text-center">Ações</th>
-                  </tr>
+                    <tr>
+                      <th style="width: 8%;">ID Cópia</th>
+                      <th>Título</th>
+                      <th>Autor</th>
+                      <th>Gênero</th>
+                      <th>Editora</th>
+                      <th style="width: 8%;">Ano</th>
+                      <th>ISBN</th>
+                      <th style="width: 12%;">Situação</th>
+                      <th style="width: 10%;">Ações</th>
+                    </tr>
                   </thead>
                   <tbody>
-
-                  <?php echo listaLivros(); ?>
-                  
+                    <?php echo $dadosLivro['linhas']; ?>
                   </tbody>
-                  
                 </table>
               </div>
             </div>
+
           </div>
         </div>
       </div>
     </section>
   </div>
 
-  <aside class="control-sidebar control-sidebar-dark">
-  </aside>
+  <aside class="control-sidebar control-sidebar-dark"></aside>
+</div>
+
+<?php echo $dadosLivro['modals']; ?>
+
+<div class="modal fade" id="modalFalhaInativar" data-backdrop="static" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content bg-warning">
+      <div class="modal-header">
+        <h4 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Não foi possível excluir!</h4>
+      </div>
+      <div class="modal-body text-dark">
+        <p>Este exemplar não pode ser excluído permanentemente porque possui históricos de empréstimos vinculados a ele.</p>
+        <p><strong>Deseja inativar este livro?</strong> Ao inativar, ele e os seus exemplares deixarão de aparecer nas listagens do sistema.</p>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <a href="livros.php" class="btn btn-outline-dark">Cancelar</a>
+        <a href="" id="linkInativarConfirmado" class="btn btn-danger font-weight-bold">Sim, Inativar Livro</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <?php include('partes/js.php'); ?>
@@ -102,23 +108,18 @@
       "info": true,
       "autoWidth": false,
       "responsive": true,
-      "language": {
-          "search": "Pesquisar:",
-          "lengthMenu": "Mostrar _MENU_ livros por página",
-          "zeroRecords": "Nenhum livro encontrado",
-          "info": "Mostrando página _PAGE_ de _PAGES_",
-          "infoEmpty": "Nenhum registro disponível",
-          "infoFiltered": "(filtrado de _MAX_ registros no total)",
-          "paginate": {
-              "first": "Primeiro",
-              "last": "Último",
-              "next": "Próximo",
-              "previous": "Anterior"
-          }
-      }
     });
+
+    // Código Inteligente para capturar falha de exclusão vinda do back-end
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('erro_excluir') && urlParams.has('idLivro')) {
+        const idLivro = urlParams.get('idLivro');
+        // Define o link correto apontando para a função de inativação
+        $('#linkInativarConfirmado').attr('href', 'php/salvarExemplar.php?funcao=I&idLivro=' + idLivro);
+        // Dispara o modal de confirmação de inativação
+        $('#modalFalhaInativar').modal('show');
+    }
   });
 </script>
-
 </body>
 </html>
