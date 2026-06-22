@@ -10,23 +10,21 @@
 </head>
 <body>
 
-<div class="tela-login">
+    <div class="tela-login">
 
     <div class="lado-esquerdo">
 
-        <h1>Biblioteca</h1>
+    <h2>Seja Bem-vindo!</h2>
 
-        <h2>Recuperação de Senha</h2>
+    <p>Faça login para acessar a biblioteca.</p>
 
-        <p>
-            Informe seu e-mail para receber o código de verificação.
-        </p>
-
-        <div class="logo-area">
-            <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
-        </div>
-
+    <div class="logo-area">
+        <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
     </div>
+
+<h1>InkVerse</h1>
+
+</div>
 
     <div class="lado-direito">
 

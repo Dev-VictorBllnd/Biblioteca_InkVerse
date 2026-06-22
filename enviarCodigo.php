@@ -1,61 +1,56 @@
-<?php
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar Senha/codigo</title>
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+<link rel="stylesheet" href="dist/css/enviar-Codigo.css">
 
+</head>
+<body> 
+    <div class="tela-codigo">
 
-session_start();
+    <div class="lado-esquerdo">
 
-include("php/conexao.php");
+    <h2>Seja Bem-vindo!</h2>
 
-if (!isset($_POST['email'])) {
-    die("E-mail não informado.");
-}
+    <p>Faça login para acessar a biblioteca.</p>
 
-$email = $_POST['email'];
+    <div class="logo-area">
+        <img src="dist/img/logo.1.png" alt="Logo Biblioteca">
+    </div>
 
-$sql = "SELECT * FROM funcionario WHERE email = ?";
+<h1>InkVerse</h1>
 
-$stmt = $conn->prepare($sql);
+</div>
 
-if (!$stmt) {
-    die("Erro SQL: " . $conn->error);
-}
+    <div class="lado-direito">
 
-$stmt->bind_param("s", $email);
-$stmt->execute();
+        <div class="codigo-box">
 
-$resultado = $stmt->get_result();
+            <h2>Verificar Código</h2>
 
-if ($resultado->num_rows > 0) {
+            <p class="subtitulo">
+                Informe o código recebido para continuar.
+            </p>
 
-    $codigo = rand(100000, 999999);
+            <form method="POST">
 
-    $_SESSION['email_recuperacao'] = $email;
+                <div class="campo">
+                    <label>Código</label>
+                    <input type="text" name="codigo" maxlength="6" required placeholder="digite o código de recuperação">
+                </div>
 
-    $sql = "UPDATE funcionario
-            SET codigo_recuperacao = ?
-            WHERE email = ?";
+                <button type="submit" class="btn-verificar">
+                    Verificar
+                </button>
 
-    $stmt = $conn->prepare($sql);
+            </form>
 
-    if (!$stmt) {
-        die("Erro SQL: " . $conn->error);
-    }
+        </div>
 
-    $stmt->bind_param("is", $codigo, $email);
-    $stmt->execute();
+    </div>
 
-    // Futuramente aqui entra o PHPMailer
-    // para enviar o código ao e-mail.
-
-    header("Location: verificar-codigo.php");
-    exit();
-
-} else {
-
-    echo "E-mail não encontrado.";
-
-}
-
-?>
+</div>
+</body>
