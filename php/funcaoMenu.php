@@ -10,7 +10,6 @@ function montaMenu($n1, $n2) {
     $clsFuncionarios = 'text-light'; $styFuncionarios = '';
     $clsClientes     = 'text-light'; $styClientes     = '';
     $clsEmprestimos  = 'text-light'; $styEmprestimos  = '';
-    //$clsDevolucoes   = 'text-light'; $styDevolucoes   = '';
     $clsPerfil       = 'text-light'; $styPerfil       = '';
     
     $activeClass = 'text-white active';
@@ -39,10 +38,6 @@ function montaMenu($n1, $n2) {
             $clsEmprestimos = $activeClass;
             $styEmprestimos = $activeStyle;
             break;
-        //case 'devolucoes':
-        //    $clsDevolucoes = $activeClass;
-        //    $styDevolucoes = $activeStyle;
-        //    break;
         case 'perfil':
             $clsPerfil = $activeClass;
             $styPerfil = $activeStyle;
@@ -87,13 +82,6 @@ function montaMenu($n1, $n2) {
                     <p>Empréstimo</p>
                 </a>
             </li>
-
-            <!--<li class="nav-item mb-1">
-                <a href="devolucoes.php" class="nav-link '.$clsDevolucoes.'" style="'.$styDevolucoes.'">
-                    <i class="nav-icon fas fa-undo"></i>
-                    <p>Devoluções</p>
-                </a>
-            </li>-->
 
             <li class="nav-item mt-4">
                 <a href="#" class="nav-link text-danger" data-toggle="modal" data-target="#modalLogout">

@@ -81,7 +81,7 @@
               </button>
             </div>
             <div class="modal-body">
-              <form method="POST" action="php/salvarUsuario.php?funcao=I" enctype="multipart/form-data">              
+              <form method="POST" action="php/salvarFuncionario.php?funcao=I" enctype="multipart/form-data">              
                 
                 <div class="row">
                   <div class="col-8">

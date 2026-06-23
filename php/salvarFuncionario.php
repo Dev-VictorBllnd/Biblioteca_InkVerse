@@ -13,7 +13,7 @@
     
     // CAMPOS DO INKVERSE:
     $cpf         = $_POST["nCpf"] ?? '';
-    $datanasc    = $_POST["nDatanasc"] ?? '';
+    $datanasc    = $_POST["nDatanasc"]      ?? '';
     $telefone    = $_POST["nTelefone"] ?? '';
     $ativo       = $_POST["nAtivo"] ?? 'S'; // Se não vier nada, cadastra como 'S' (Ativo)
 
