@@ -77,7 +77,7 @@
                     Entrar
                 </button>
 
-                <a href="livros.php" class="btn-login">
+                <a href="acervo.php" class="btn-login">
                     Visualizar Livros
                 </a>
 
