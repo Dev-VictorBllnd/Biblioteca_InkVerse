@@ -1,9 +1,8 @@
-<?php 
+<?php
   session_start();
   include('php/funcoes.php');
   include('php/funcaoLivro.php');
-  
-  // Executa a função e obtém as duas strings separadas
+
   $dadosLivro = listaLivro();
 ?>
 
@@ -19,19 +18,26 @@
 <div class="wrapper">
 
   <?php include('partes/navbar.php'); ?>
-  <?php 
-    $_SESSION['menu-n1'] = 'biblioteca'; 
+  <?php
+    $_SESSION['menu-n1'] = 'biblioteca';
     $_SESSION['menu-n2'] = 'livros';
-    include('partes/sidebar.php'); 
+    include('partes/sidebar.php');
   ?>
-  
+
   <div class="content-wrapper">
     <div class="content-header"></div>
     <section class="content">
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
-            
+
+            <?php if(isset($_GET['sucesso_cad'])): ?>
+              <div class="alert alert-success alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <i class="fas fa-check-circle"></i> Livro cadastrado com sucesso!
+              </div>
+            <?php endif; ?>
+
             <div class="card">
               <div class="card-header">
                 <div class="row">
@@ -39,7 +45,7 @@
                     <h3 class="card-title">Gestão de Exemplares do Acervo</h3>
                   </div>
                   <div class="col-3" align="right">
-                    <button type="button" class="btn btn-success" onclick="window.location.href='cadastro_livro.php'">
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novoLivroModal">
                       <i class="fas fa-plus"></i> Cadastrar Livro
                     </button>
                   </div>
@@ -70,6 +76,83 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal Cadastro de Livro -->
+      <div class="modal fade" id="novoLivroModal">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header bg-success">
+              <h4 class="modal-title">Novo Livro</h4>
+              <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form method="POST" action="php/salvarLivro.php?funcao=I">
+
+                <div class="form-group">
+                  <label for="iTitulo">Título:</label>
+                  <input type="text" class="form-control" id="iTitulo" name="nTitulo" maxlength="200" placeholder="Título completo do livro" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="iAutor">Autor:</label>
+                  <input type="text" class="form-control" id="iAutor" name="nAutor" maxlength="150" placeholder="Nome do autor" required>
+                </div>
+
+                <div class="row">
+                  <div class="col-6">
+                    <div class="form-group">
+                      <label for="iGenero">Gênero:</label>
+                      <select name="nGenero" id="iGenero" class="form-control" required>
+                        <option value="">Selecione...</option>
+                        <?php echo optionGenero(); ?>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-group">
+                      <label for="iEditora">Editora:</label>
+                      <select name="nEditora" id="iEditora" class="form-control" required>
+                        <option value="">Selecione...</option>
+                        <?php echo optionEditora(); ?>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iAno">Ano de Publicação:</label>
+                      <input type="number" class="form-control" id="iAno" name="nAno" min="1000" max="<?php echo date('Y'); ?>" placeholder="<?php echo date('Y'); ?>" required>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iIsbn">ISBN:</label>
+                      <input type="text" class="form-control" id="iIsbn" name="nIsbn" maxlength="20" placeholder="Ex: 978-85-333-0227-3" required>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="form-group">
+                      <label for="iQtd">Qtd. de Exemplares:</label>
+                      <input type="number" class="form-control" id="iQtd" name="nQtd" min="1" max="99" value="1" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer mt-3">
+                  <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+                  <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </section>
   </div>
 
@@ -110,13 +193,10 @@
       "responsive": true,
     });
 
-    // Código Inteligente para capturar falha de exclusão vinda do back-end
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('erro_excluir') && urlParams.has('idLivro')) {
         const idLivro = urlParams.get('idLivro');
-        // Define o link correto apontando para a função de inativação
         $('#linkInativarConfirmado').attr('href', 'php/salvarExemplar.php?funcao=I&idLivro=' + idLivro);
-        // Dispara o modal de confirmação de inativação
         $('#modalFalhaInativar').modal('show');
     }
   });
