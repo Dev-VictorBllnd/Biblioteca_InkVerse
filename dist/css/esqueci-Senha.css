@@ -91,12 +91,13 @@
     border:1px solid #d4d4d4;
     border-radius:10px;
     font-size:16px;
+    
 }
 
 .btn-login{
     width:100%;
     border:none;
-    background:#2952f3;
+    background:#0b1a2c;
     color:white;
     padding:15px;
     border-radius:10px;
@@ -106,7 +107,9 @@
 }
 
 .btn-login:hover{
-    background:#0b1a2c;
+    transition: 1s;
+    transform: scale(1.1);
+    
 }
 
 .cadastro{

@@ -152,7 +152,8 @@ body{
 }
 
 .btn-login:hover{
-    background:#0b1a2c;
+    transition: 1s;
+    transform: scale(1.1);
 }
 
 /* RESPONSIVO */
