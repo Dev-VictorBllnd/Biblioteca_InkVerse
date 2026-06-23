@@ -1,0 +1,32 @@
+/* CAMPOS NOVA SENHA */
+
+.campo-senha{
+    position:relative;
+}
+
+.campo-senha input{
+    width:100%;
+    padding:14px;
+    border:1px solid #d4d4d4;
+    border-radius:10px;
+    font-size:14px;
+}
+
+/* MENSAGEM DE ERRO OU SUCESSO */
+
+.mensagem{
+    margin-bottom:20px;
+    padding:12px;
+    border-radius:8px;
+    font-size:14px;
+}
+
+.mensagem.erro{
+    background:#ffe5e5;
+    color:#c62828;
+}
+
+.mensagem.sucesso{
+    background:#e8f5e9;
+    color:#2e7d32;
+}

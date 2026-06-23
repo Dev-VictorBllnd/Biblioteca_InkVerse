@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Recuperar Senha/codigo</title>
 
-<link rel="stylesheet" href="dist/css/enviar-Codigo.css">
+<link rel="stylesheet" href="dist/css/Enviar-Codigo.css">
 
 </head>
 <body> 

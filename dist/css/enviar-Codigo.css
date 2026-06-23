@@ -18,8 +18,8 @@ body{
 /* LADO ESQUERDO */
 
 .lado-esquerdo{
-    width:40%;
-    background:#0c34ad;
+    width:55%;
+    background:#0b1a2c;
     color:white;
     padding:50px;
 
@@ -31,67 +31,69 @@ body{
 }
 
 .logo-area img{
-    width:320px;
+    width:300px;
     max-width:100%;
 }
 
 .lado-esquerdo h1{
-    font-size:38px;
+    font-size:50px;
     margin-top:20px;
 }
+
 .lado-esquerdo h2{
-    font-size:50px;
-    margin-bottom:20px;
-    font-weight:400;
+    font-size:60px;
+    margin-bottom:30px;
+    font-weight:500;
 }
 
-
 .lado-esquerdo p{
-    font-size:24px;
+    font-size:30px;
     margin-bottom:50px;
 }
 
 /* LADO DIREITO */
 
 .lado-direito{
-    width:60%;
+    width:45%;
     display:flex;
     justify-content:center;
     align-items:center;
+    background:#f5f5f5;
 }
 
 .codigo-box{
-    width:500px;
+    width:450px;
 }
 
 .codigo-box h2{
-    font-size:55px;
+    font-size:54px;
     color:#0f172a;
     margin-bottom:10px;
 }
 
 .subtitulo{
     color:#666;
-    margin-bottom:40px;
-    font-size:16px;
+    margin-bottom:36px;
+    font-size:14px;
 }
 
 .campo{
-    margin-bottom:25px;
+    margin-bottom:22px;
 }
 
 .campo label{
     display:block;
     margin-bottom:8px;
     font-weight:bold;
+    font-size:14px;
 }
 
 .campo input{
     width:100%;
-    padding:15px;
+    padding:14px;
     border:1px solid #d4d4d4;
     border-radius:10px;
-    font-size:16px;
+    font-size:14px;
 }
 
 /* BOTÃO */
@@ -99,20 +101,19 @@ body{
 .btn-verificar{
     width:100%;
     border:none;
-    background:#2952f3;
+    background:#0b1a2c;
     color:white;
-    padding:15px;
+    padding:14px;
     border-radius:10px;
-    font-size:22px;
+    font-size:20px;
     font-weight:bold;
     cursor:pointer;
-    transition:0.3s;
+    transition:transform 0.3s ease;
 }
 
 .btn-verificar:hover{
-    background:#1c43d8;
+    transform:scale(1.05);
 }
-
 
 /* RESPONSIVO */
 
@@ -130,6 +131,18 @@ body{
     .codigo-box{
         width:90%;
         padding:40px 0;
+    }
+
+    .lado-esquerdo h1{
+        font-size:28px;
+    }
+
+    .lado-esquerdo h2{
+        font-size:38px;
+    }
+
+    .lado-esquerdo p{
+        font-size:18px;
     }
 
     .codigo-box h2{
