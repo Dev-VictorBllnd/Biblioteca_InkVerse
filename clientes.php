@@ -17,9 +17,9 @@
 
   <?php include('partes/navbar.php'); ?>
   <?php 
-    $_SESSION['menu-n1'] = 'administrador';
-    $_SESSION['menu-n2'] = 'usuarios';
-    include('partes/sidebar.php'); 
+  $_SESSION['menu-n1'] = 'administrador'; 
+  $_SESSION['menu-n2'] = 'clientes';      
+  include('partes/sidebar.php'); 
   ?>
   <div class="content-wrapper">
     <div class="content-header">

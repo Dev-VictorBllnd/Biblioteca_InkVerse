@@ -12,7 +12,6 @@
 
     include("conexao.php");
     
-    // Consulta correta apontando para a tabela funcionário do InkVerse
     $sql = "SELECT * FROM funcionario "
             ." WHERE Email = '$email' "
             ." AND Senha = md5('$senha');";
@@ -29,8 +28,6 @@
             $_SESSION['idLogin']       = $coluna['idFuncionario']; 
             $_SESSION['NomeLogin']     = $coluna['Nome'];
             $_SESSION['FotoLogin']     = $coluna['Foto'];
-            // Linha do FlgAtivo removida por completo para limpar o código
-
             header('location: ../dashboard.php');
         }        
     } else {

@@ -8,7 +8,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Projeto Modelo - Usuários</title>
+  <title>Projeto Modelo - Funcionários</title>
 
   <?php include('partes/css.php'); ?>
 </head>
@@ -18,7 +18,7 @@
   <?php include('partes/navbar.php'); ?>
   <?php 
     $_SESSION['menu-n1'] = 'administrador';
-    $_SESSION['menu-n2'] = 'usuarios';
+    $_SESSION['menu-n2'] = 'funcionarios';
     include('partes/sidebar.php'); 
   ?>
   <div class="content-wrapper">
@@ -39,7 +39,7 @@
                   
                   <div class="col-3" align="right">
                     <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novoUsuarioModal">
-                      Novo Usuário
+                      Novo Funcionário
                     </button>
                   </div>
 
@@ -51,7 +51,7 @@
                   <thead>
                   <tr>
                       <th>ID</th>
-                      <th>Tipo de Usuário</th>
+                      <th>Tipo de Funcionário</th>
                       <th>Nome</th>
                       <th>Login (E-mail)</th>
                       <th>Ativo</th>                
@@ -145,7 +145,7 @@
                 
                   <div class="col-4">
                       <div class="form-group">
-                          <label>Situação do Usuário:</label>
+                          <label>Situação do Funcionário:</label>
                           <select name="nAtivo" class="form-control" required>
                               <option value="S" selected>Ativo (Acesso Permitido)</option>
                               <option value="N">Inativo (Acesso Bloqueado)</option>

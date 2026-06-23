@@ -3,172 +3,108 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-function montaMenu($n1,$n2){
+function montaMenu($n1, $n2) {
     
-    $menuAdmin = '';
-    $acaoAdmin = '';
-    $menuForms = '';
-    $acaoForms = '';
-
-    $opcPainel        = '';
-    $opcPainelSimples = '';
-    $opcPainelFiltro  = '';
-    $opcUsuarios      = '';
-    $opcProdutos      = '';
-    $opcCategorias    = '';
-    $opcPerfil        = '';
+    $clsDashboard    = 'text-light'; $styDashboard    = '';
+    $clsLivros       = 'text-light'; $styLivros       = '';
+    $clsFuncionarios = 'text-light'; $styFuncionarios = '';
+    $clsClientes     = 'text-light'; $styClientes     = '';
+    $clsEmprestimos  = 'text-light'; $styEmprestimos  = '';
+    //$clsDevolucoes   = 'text-light'; $styDevolucoes   = '';
+    $clsPerfil       = 'text-light'; $styPerfil       = '';
     
-    //Primeiro nível do menu
-    switch ($n1) {
-        case 'administrador':
-            $menuAdmin = 'menu-open';
-            $acaoAdmin = 'active';
-            break;        
-            
-        case 'forms':
-            $menuForms = 'menu-open';
-            $acaoForms = 'active';
-            break;
-        
-        default:
-            # code...
-            break;
-    }
+    $activeClass = 'text-white active';
+    $activeStyle = 'background-color: #2563eb; border-radius: 10px;';
 
-    //Segundo nível do menu
     switch ($n2) {
-        case 'painel':
-            $opcPainel = 'active';
+        case 'dashboard':
+            $clsDashboard = $activeClass;
+            $styDashboard = $activeStyle;
             break;
-            
-        case 'painel-simples':
-            $opcPainelSimples = 'active';
+        case 'usuarios':      
+        case 'funcionarios':  
+            $clsFuncionarios = $activeClass;
+            $styFuncionarios = $activeStyle;
             break;
-            
-        case 'painel-filtro':
-            $opcPainelFiltro = 'active';
+        case 'clientes':
+            $clsClientes = $activeClass;
+            $styClientes = $activeStyle;
             break;
-
-        case 'usuarios':
-            $opcUsuarios = 'active';
-            break;        
-        
-        case 'produtos':
-            $opcProdutos = 'active';
-            break;       
-        
+        case 'livros':
+            $clsLivros = $activeClass;
+            $styLivros = $activeStyle;
+            break;
+        case 'emprestimos':
+        case 'emprestimo':
+            $clsEmprestimos = $activeClass;
+            $styEmprestimos = $activeStyle;
+            break;
+        //case 'devolucoes':
+        //    $clsDevolucoes = $activeClass;
+        //    $styDevolucoes = $activeStyle;
+        //    break;
         case 'perfil':
-            $opcPerfil = 'active';
-            break;       
-        
-        case 'categorias':
-            $opcCategorias = 'active';
-            break;
-        
-        default:
-            # code...
+            $clsPerfil = $activeClass;
+            $styPerfil = $activeStyle;
             break;
     }
-    
-    $html = 
-    '<nav class="mt-2">
+
+    $html = '
+    <nav class="mt-4">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-            <!-- Add icons to the links using the .nav-icon class
-                with font-awesome or any other icon font library -->
-            <li class="nav-item '.$menuAdmin.'">
-                <a href="#" class="nav-link '.$acaoAdmin.'">
-                    <i class="nav-icon fas fa-tachometer-alt"></i>
-                    <p>
-                        Administrador
-                        <i class="right fas fa-angle-left"></i>
-                    </p>
-                </a>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="./dashboard.php" class="nav-link '.$opcPainel.'">
-                        <i class="ion ion-pie-graph nav-icon"></i>
-                        <p>Dashboard</p>
-                        </a>
-                    </li>              
-                </ul>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="./usuarios.php" class="nav-link '.$opcUsuarios.'">
-                        <i class="far fa-user nav-icon"></i>
-                        <p>Usuários</p>
-                        </a>
-                    </li>              
-                </ul>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="./produtos.php" class="nav-link '.$opcProdutos.'">
-                        <i class="ion ion-bag nav-icon"></i>
-                        <p>Produtos</p>
-                        </a>
-                    </li>              
-                </ul>
-
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="./categorias.php" class="nav-link '.$opcCategorias.'">
-                        <i class="fas fa-users nav-icon"></i>
-                        <p>Categorias</p>
-                        </a>
-                    </li>              
-                </ul>
-
-            </li>
             
-            <li class="nav-item '.$menuForms.'">
-                <a href="#" class="nav-link '.$acaoForms.'">
-                <i class="nav-icon fas fa-edit"></i>
-                <p>
-                    Forms
-                    <i class="fas fa-angle-left right"></i>
-                </p>
+            <li class="nav-item mb-1">
+                <a href="dashboard.php" class="nav-link '.$clsDashboard.'" style="'.$styDashboard.'">
+                    <i class="nav-icon fas fa-home"></i>
+                    <p>Dashboard</p>
                 </a>
-                <ul class="nav nav-treeview">
-                <li class="nav-item">
-                    <a href="pages/forms/general.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>General Elements</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="pages/forms/advanced.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Advanced Elements</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="pages/forms/editors.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Editors</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="pages/forms/validation.html" class="nav-link">
-                    <i class="far fa-circle nav-icon"></i>
-                    <p>Validation</p>
-                    </a>
-                </li>
-                </ul>
             </li>
 
-            <li class="nav-item">
-                <a href="./perfil.php" class="nav-link '.$opcPerfil.'">
-                <i class="nav-icon fas fa-user"></i>
-                <p>Meu Perfil</p>
+            <li class="nav-item mb-1">
+                <a href="livros.php" class="nav-link '.$clsLivros.'" style="'.$styLivros.'">
+                    <i class="nav-icon fas fa-book-open"></i>
+                    <p>Livros</p>
                 </a>
             </li>
-        
+
+            <li class="nav-item mb-1">
+                <a href="funcionarios.php" class="nav-link '.$clsFuncionarios.'" style="'.$styFuncionarios.'">
+                    <i class="nav-icon fas fa-user"></i>
+                    <p>Funcionários</p>
+                </a>
+            </li>
+
+            <li class="nav-item mb-1">
+                <a href="clientes.php" class="nav-link '.$clsClientes.'" style="'.$styClientes.'">
+                    <i class="nav-icon fas fa-user-friends"></i>
+                    <p>Clientes</p>
+                </a>
+            </li>
+
+            <li class="nav-item mb-1">
+                <a href="emprestimo.php" class="nav-link '.$clsEmprestimos.'" style="'.$styEmprestimos.'">
+                    <i class="nav-icon fas fa-exchange-alt"></i>
+                    <p>Empréstimo</p>
+                </a>
+            </li>
+
+            <!--<li class="nav-item mb-1">
+                <a href="devolucoes.php" class="nav-link '.$clsDevolucoes.'" style="'.$styDevolucoes.'">
+                    <i class="nav-icon fas fa-undo"></i>
+                    <p>Devoluções</p>
+                </a>
+            </li>-->
+
+            <li class="nav-item mt-4">
+                <a href="#" class="nav-link text-danger" data-toggle="modal" data-target="#modalLogout">
+                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                    <p>Sair do Sistema</p>
+                </a>
+            </li>
+
         </ul>
     </nav>';
 
     return $html;
 }
-
 ?>

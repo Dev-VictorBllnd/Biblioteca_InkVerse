@@ -36,7 +36,7 @@
   <?php include('partes/navbar.php'); ?>
   
   <?php 
-    $_SESSION['menu-n1'] = '';
+    $_SESSION['menu-n1'] = 'administrador';
     $_SESSION['menu-n2'] = 'perfil';
     include('partes/sidebar.php'); 
   ?>

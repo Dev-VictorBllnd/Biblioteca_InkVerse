@@ -1,59 +1,65 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #0b1a2c;">
-    <a href="index.php" class="brand-link" style="border-bottom: none; padding: 20px 0.5rem;">
-      <i class="fas fa-book ml-3 mr-2 text-white"></i>
-      <span class="brand-text font-weight-bold text-white" style="font-size: 1.3rem;">Biblioteca</span>
-    </a>
+    <div class="brand-link text-left" style="border-bottom: none; padding: 20px 0.5rem;">
+    <img src="/BIBLIOTECA_InkVerse/dist/img/logo.png"
+     alt="Logo Biblioteca"
+     width="60">
+     <span class="brand-text font-weight-bold">
+        Biblioteca
+    </span>
+    </div>
 
     <div class="sidebar">
       
-      <div class="user-panel mt-3 pb-3 mb-3 d-flex" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <?php
+        // Verifica se a tela atual é a do perfil para aplicar o estilo azul
+        $isPerfil = (isset($_SESSION['menu-n2']) && $_SESSION['menu-n2'] == 'perfil');
+        
+        // Se for o perfil, fundo azul arredondado. Se não, apenas a linha divisória transparente
+        $estiloPerfil = $isPerfil 
+            ? 'background-color: #2563eb; border-radius: 10px; padding: 10px; margin-top: 10px;' 
+            : 'border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-top: 10px;';
+      ?>
+
+      <!-- Painel do Usuário (Foto e Nome) -->
+      <div class="user-panel mb-3 d-flex" style="<?php echo $estiloPerfil; ?> align-items: center;">
         <div class="image">
           <img src="<?php echo fotoUsuario($_SESSION['idLogin']); ?>" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="perfil.php" class="d-block text-white"><?php echo nomeUsuario($_SESSION['idLogin']); ?></a>
+          <a href="perfil.php" class="d-block text-white" style="<?php echo $isPerfil ? 'font-weight: bold;' : ''; ?>">
+            <?php echo nomeUsuario($_SESSION['idLogin']); ?>
+          </a>
         </div>
       </div>
 
-      <nav class="mt-4">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          
-          <li class="nav-item mb-1">
-            <a href="dashboard.php" class="nav-link text-light">
-              <i class="nav-icon fas fa-home"></i>
-              <p>Dashboard</p>
-            </a>
-          </li>
+      <!-- Aqui chamamos a função que monta o menu abaixo do perfil -->
+      <?php echo montaMenu($_SESSION['menu-n1'], $_SESSION['menu-n2']); ?>
 
-          <li class="nav-item mb-1">
-            <a href="livros.php" class="nav-link text-light">
-              <i class="nav-icon fas fa-book-open"></i>
-              <p>Livros</p>
-            </a>
-          </li>
+    </div>
+</aside>
 
-          <li class="nav-item mb-1">
-            <a href="usuarios.php" class="nav-link text-white <?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'active' : '';   ?>" style="<?php echo ($_SESSION['menu-n2'] == 'usuarios') ? 'background-color: #2563eb; border-radius: 10px;' : ''; ?>">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Funcionários</p>
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a href="clientes.php" class="nav-link text-light">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>Clientes</p>
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a href="emprestimo.php" class="nav-link text-light">
-              <i class="nav-icon fas fa-exchange-alt"></i>
-              <p>Empréstimo</p>
-            </a>
-          </li>
-
-        </ul>
-      </nav>
+<div class="modal fade" id="modalLogout" tabindex="-1" role="dialog" aria-labelledby="modalLogoutLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="modalLogoutLabel">
+            <i class="fas fa-sign-out-alt"></i> Confirmar Saída
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-    </aside>
+      
+      <div class="modal-body text-dark" style="white-space: normal;">
+        <p>Tem a certeza de que deseja terminar a sessão e sair do InkVerse?</p>
+      </div>
+      
+      <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancelar</button>
+        <a href="php/validaLogoff.php" class="btn btn-danger font-weight-bold">Sim, Quero Sair</a>
+      </div>
+      
+    </div>
+  </div>
+</div>
