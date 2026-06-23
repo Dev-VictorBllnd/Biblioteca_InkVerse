@@ -3,28 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recuperar Senha/codigo</title>
+<title>Recuperar Senha - Código</title>
 
 <link rel="stylesheet" href="dist/css/Enviar-Codigo.css">
 
 </head>
-<body> 
-    <div class="tela-codigo">
+<body>
 
+<div class="tela-codigo">
+
+    <!-- Lado esquerdo -->
     <div class="lado-esquerdo">
 
-    <h2>Seja Bem-vindo!</h2>
+        <h2>Seja Bem-vindo!</h2>
 
-    <p>Faça login para acessar a biblioteca.</p>
+        <p>Faça login para acessar a biblioteca.</p>
 
-    <div class="logo-area">
-        <img src="dist/img/logo.png" alt="Logo Biblioteca">
+        <div class="logo-area">
+            <img src="dist/img/logo.png" alt="Logo Biblioteca">
+        </div>
+
+        <h1>InkVerse</h1>
+
     </div>
 
-<h1>InkVerse</h1>
-
-</div>
-
+    <!-- Lado direito -->
     <div class="lado-direito">
 
         <div class="codigo-box">
@@ -35,11 +38,18 @@
                 Informe o código recebido para continuar.
             </p>
 
-            <form method="POST">
+            <form method="POST" action="nova-senha.php">
 
                 <div class="campo">
-                    <label>Código</label>
-                    <input type="text" name="codigo" maxlength="6" required placeholder="digite o código de recuperação">
+                    <label for="codigo">Código</label>
+
+                    <input
+                        type="text"
+                        id="codigo"
+                        name="codigo"
+                        maxlength="6"
+                        required
+                        placeholder="Digite o código de recuperação">
                 </div>
 
                 <button type="submit" class="btn-verificar">
@@ -53,4 +63,6 @@
     </div>
 
 </div>
+
 </body>
+</html>

@@ -1,0 +1,174 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+    }
+    
+    body{
+    min-height:100vh;
+    }
+    
+    .tela-login{
+    display:flex;
+    min-height:100vh;
+    }
+    
+    .lado-esquerdo{
+    width:55%;
+    background:#0b1a2c;
+    color:white;
+    padding:50px;
+    
+    
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    
+    
+    }
+    
+    .lado-esquerdo h1{
+    font-size:50px;
+    margin-top:20px;
+    }
+    
+    .lado-esquerdo h2{
+    font-size:60px;
+    margin-bottom:30px;
+    font-weight:500;
+    }
+    
+    .lado-esquerdo p{
+    font-size:30px;
+    margin-bottom:50px;
+    }
+    
+    .logo-area{
+    text-align:center;
+    }
+    
+    .logo-area img{
+    width:300px;
+    max-width:100%;
+    }
+    
+    .lado-direito{
+    width:45%;
+    background:#f5f5f5;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    }
+    
+    .login-box{
+    width:450px;
+    }
+    
+    .login-box h2{
+    font-size:54px;
+    color:#0f172a;
+    margin-bottom:10px;
+    }
+    
+    .subtitulo{
+    color:#666;
+    margin-bottom:36px;
+    font-size:14px;
+    }
+    
+    .campo{
+    margin-bottom:22px;
+    }
+    
+    .campo label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    font-size:14px;
+    }
+    
+    .campo input{
+    width:100%;
+    padding:14px;
+    border:1px solid #d4d4d4;
+    border-radius:10px;
+    font-size:14px;
+    }
+    
+    .mostrar-senha{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:20px;
+    }
+    
+    .mostrar-senha input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    cursor:pointer;
+    }
+    
+    .mostrar-senha label{
+    margin:0;
+    color:#444;
+    font-size:14px;
+    font-weight:normal;
+    cursor:pointer;
+    }
+    
+    .btn-login{
+    width:100%;
+    border:none;
+    background:#0b1a2c;
+    color:white;
+    padding:14px;
+    border-radius:10px;
+    font-size:20px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:transform 0.3s ease;
+    }
+    
+    .btn-login:hover{
+    transform:scale(1.05);
+    }
+    
+    @media(max-width:900px){
+    
+
+    .tela-login{
+        flex-direction:column;
+    }
+    
+    .lado-esquerdo,
+    .lado-direito{
+        width:100%;
+    }
+    
+    .login-box{
+        width:90%;
+        padding:40px 0;
+    }
+    
+    .lado-esquerdo h1{
+        font-size:28px;
+    }
+    
+    .lado-esquerdo h2{
+        font-size:38px;
+    }
+    
+    .lado-esquerdo p{
+        font-size:18px;
+    }
+    
+    .login-box h2{
+        font-size:42px;
+    }
+    
+    
+    }
+    
