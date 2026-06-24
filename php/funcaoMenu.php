@@ -19,8 +19,7 @@ function montaMenu($n1, $n2) {
         case 'dashboard':
             $clsDashboard = $activeClass;
             $styDashboard = $activeStyle;
-            break;
-        case 'usuarios':      
+            break;     
         case 'funcionarios':  
             $clsFuncionarios = $activeClass;
             $styFuncionarios = $activeStyle;

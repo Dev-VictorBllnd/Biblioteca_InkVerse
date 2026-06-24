@@ -16,15 +16,15 @@
         $ext       = pathinfo($_FILES['Foto']["name"], PATHINFO_EXTENSION);
         $novo_nome = "foto-".$idUsuario.'.'.$ext;
     
-        if(is_dir('../dist/img/usuarios/')){ 
-            $diretorio = '../dist/img/usuarios/';
+        if(is_dir('../dist/img/')){ 
+            $diretorio = '../dist/img/';
         }else{
-            $diretorio = mkdir('../dist/img/usuarios/');
+            $diretorio = mkdir('../dist/img/');
         }
       
         move_uploaded_file($_FILES['Foto']['tmp_name'], $diretorio.$novo_nome);
     
-        $diretorioImg = 'dist/img/usuarios/'.$novo_nome;
+        $diretorioImg = 'dist/img/'.$novo_nome;
 
         include('conexao.php');
         $sql = "UPDATE funcionario "

@@ -18,6 +18,7 @@
         $estiloPerfil = $isPerfil 
             ? 'background-color: #2563eb; border-radius: 10px; padding: 10px; margin-top: 10px;' 
             : 'border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-top: 10px;';
+
       ?>
 
       <!-- Painel do Usuário (Foto e Nome) -->

@@ -5,7 +5,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 // Ficheiros corretos e necessários para o InkVerse
 include("funcaoMenu.php");
-include("funcaoUsuario.php");
+include("funcaoFuncionario.php");
 include("funcaoCliente.php");
     
 use PHPMailer\PHPMailer\PHPMailer;
@@ -63,7 +63,7 @@ function enviarEmail($email,$msg,$assunto,$nome){
         $mail->addAddress($email, $nome);                   
 
         // Content
-        $mail->isHTML(true);                                        // Set email format to HTML
+        $mail->isHTML(true);                                      
         $mail->Subject = $assunto;
         $mail->Body    = $msg;
         $mail->AltBody = 'SA';

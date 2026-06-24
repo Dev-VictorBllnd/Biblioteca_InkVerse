@@ -78,13 +78,13 @@
         $novoNome = md5(time().$_FILES['Foto']['name']).'.'.$extensao;        
         
         // Recomendo salvar as fotos numa subpasta específica para ficar organizado
-        if(!is_dir('../dist/img/usuarios/')){
-            mkdir('../dist/img/usuarios/', 0777, true);
+        if(!is_dir('../dist/img/')){
+            mkdir('../dist/img/', 0777, true);
         }
-        $diretorio = '../dist/img/usuarios/';
+        $diretorio = '../dist/img/';
 
         move_uploaded_file($_FILES['Foto']['tmp_name'], $diretorio.$novoNome);
-        $dirImagem = 'dist/img/usuarios/'.$novoNome;
+        $dirImagem = 'dist/img/'.$novoNome;
 
         include("conexao.php");
         
@@ -95,5 +95,5 @@
         mysqli_close($conn);
     }
 
-    header("location: ../usuarios.php");
+    header("location: ../funcionarios.php");
 ?>

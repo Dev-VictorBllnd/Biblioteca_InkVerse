@@ -2,7 +2,7 @@
 session_start();
 
 include('php/conexao.php');
-include('php/funcaoUsuario.php');
+include('php/funcaoFuncionario.php');
 include('php/funcaoMenu.php');
 
 $_SESSION['menu-n1'] = 'biblioteca';
