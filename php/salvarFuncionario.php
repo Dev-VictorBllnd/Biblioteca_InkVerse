@@ -20,8 +20,8 @@
     include("conexao.php");
 
     if($funcao == "I"){
-        // INSERÇÃO COM O CAMPO ATIVO
-        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone, Ativo) "
+        // INSERÇÃO COM O CAMPO ATIVO E FOTO PADRÃO
+        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone, Ativo, Foto) "
               ." VALUES ("
               ."$tipoUsuario, "
               ."'$nome', "
@@ -30,7 +30,8 @@
               ."'$cpf', "
               ."'$datanasc', "
               ."'$telefone', "
-              ."'$ativo');";
+              ."'$ativo', "
+              ."'dist/img/fotoperfil.png');";
               
         $result = mysqli_query($conn, $sql);
         

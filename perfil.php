@@ -54,7 +54,7 @@
               </div>
 
               <div class="card-body">
-                <form method="POST" action="php/salvaPerfil.php" enctype="multipart/form-data">
+                <form method="POST" action="php/salvarPerfil.php" enctype="multipart/form-data">
                   <div class="card-body">
                       <div class="row"> 
                           
@@ -148,5 +148,16 @@
 </div>
 
 <?php include('partes/js.php'); ?>
+<script>
+  document.querySelector('input[name="Foto"]').addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        document.querySelector('.foto-perfil img').src = e.target.result;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+</script>
 </body>
 </html>

@@ -167,19 +167,19 @@ function nomeCliente($id){
 }
 
 function fotoCliente($id){
-    if(empty($id)) return "dist/img/avatar.png"; 
+    if(empty($id)) return "dist/img/fotoperfil.png";
     $resp = "";
     include("conexao.php");
-    $sql = "SELECT Foto FROM cliente WHERE idCliente = $id;";        
+    $sql = "SELECT Foto FROM cliente WHERE idCliente = $id;";
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
     if ($result && mysqli_num_rows($result) > 0) {
-        foreach ($result as $coluna) {            
+        foreach ($result as $coluna) {
             $resp = $coluna["Foto"];
-        }        
+        }
     }
-    if($resp == "") { $resp = "dist/img/avatar.png"; }
+    if($resp == "") { $resp = "dist/img/fotoperfil.png"; }
     return $resp;
 }
 

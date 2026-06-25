@@ -181,7 +181,7 @@ function nomeUsuario($id){
 }
 
 function fotoUsuario($id){
-    if(empty($id)) return "dist/img/avatar.png"; 
+    if(empty($id)) return "dist/img/fotoperfil.png"; 
     $resp = "";
     include("conexao.php");
     $sql = "SELECT Foto FROM funcionario WHERE idFuncionario = $id;";        
@@ -193,7 +193,7 @@ function fotoUsuario($id){
             $resp = $coluna["Foto"];
         }        
     }
-    if($resp == "") { $resp = "dist/img/avatar.png"; }
+    if($resp == "") { $resp = "dist/img/fotoperfil.png"; }
     return $resp;
 }
 

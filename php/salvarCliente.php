@@ -18,15 +18,16 @@
     include("conexao.php");
 
     if($funcao == "I"){
-        // INSERÇÃO COM O CAMPO ATIVO
-        $sql = "INSERT INTO cliente (Nome, Email, Cpf, Datanasc, Telefone, Ativo) "
+        // INSERÇÃO COM O CAMPO ATIVO E FOTO PADRÃO
+        $sql = "INSERT INTO cliente (Nome, Email, Cpf, Datanasc, Telefone, Ativo, Foto) "
               ." VALUES ("
               ."'$nome', "
               ."'$email', "
               ."'$cpf', "
               ."'$datanasc', "
               ."'$telefone', "
-              ."'$ativo');";
+              ."'$ativo', "
+              ."'dist/img/fotoperfil.png');";
         $result = mysqli_query($conn, $sql);    
         
         // CORREÇÃO CRÍTICA: Pega o ID que o banco de dados acabou de gerar para esse novo funcionário
