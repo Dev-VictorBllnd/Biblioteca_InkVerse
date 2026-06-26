@@ -39,7 +39,7 @@ function listaLivro(){
         foreach ($result as $coluna) {
             
             $emprestado = strtoupper((string)$coluna["Emprestado"]);
-            if($emprestado == 'S' || $emprestado == '1' || $emprestado == 'EMPRESTADO') {
+            if($emprestado == 'S' || $emprestado == 'SIM' || $emprestado == '1' || $emprestado == 'EMPRESTADO') {
                 $badgeStatus = '<h5><span class="badge badge-warning text-dark">Emprestado</span></h5>';
             } else {
                 $badgeStatus = '<h5><span class="badge badge-success">Disponível</span></h5>';

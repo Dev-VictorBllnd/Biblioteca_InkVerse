@@ -35,7 +35,7 @@ if ($funcao == "I") {
     $idLivro = mysqli_insert_id($conn);
 
     for ($i = 0; $i < $qtd; $i++) {
-        mysqli_query($conn, "INSERT INTO exemplar (idLivro, Emprestado) VALUES ($idLivro, 'N');");
+        $sqlEx = "INSERT INTO exemplar (idLivro, Emprestado) VALUES ($idLivro, 'nao');";
     }
 
     mysqli_close($conn);
