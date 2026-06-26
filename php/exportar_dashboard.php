@@ -26,6 +26,10 @@ $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 $qExemplares = mysqli_query($conn, "SELECT COUNT(*) total FROM exemplar WHERE Emprestado='Sim'");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
+// Nova Consulta para o Excel: Conta empréstimos ativos com o prazo de devolução vencido
+$qAtrasos = mysqli_query($conn, "SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL AND data_prevista < NOW()");
+$totalAtrasos = mysqli_fetch_assoc($qAtrasos)['total'];
+
 echo "
 <table border='1'>
 <tr>
@@ -46,8 +50,12 @@ echo "
     <td>$totalEmprestimos</td>
 </tr>
 <tr>
-    <td>Exemplares Emprestados</td>
+    <td>Exemplares Fora (Emprestados)</td>
     <td>$totalExemplares</td>
+</tr>
+<tr style='background-color: #fce8e6; color: #a51d24;'>
+    <td><strong>Em Empréstimos em Atraso</strong></td>
+    <td><strong>$totalAtrasos</strong></td>
 </tr>
 </table>
 

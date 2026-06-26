@@ -8,7 +8,7 @@ include('php/funcaoMenu.php');
 $_SESSION['menu-n1'] = 'biblioteca';
 $_SESSION['menu-n2'] = 'dashboard';
 
-/* CARDS */
+/* CARDS INDICADORES */
 $qLivros = mysqli_query($conn,"SELECT COUNT(*) total FROM livro");
 $totalLivros = mysqli_fetch_assoc($qLivros)['total'];
 
@@ -20,6 +20,10 @@ $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
 $qExemplares = mysqli_query($conn,"SELECT COUNT(*) total FROM exemplar WHERE Emprestado='Sim'");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
+
+// Nova Consulta: Conta empréstimos onde a data prevista já passou e não foi devolvido
+$qAtrasos = mysqli_query($conn, "SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL AND data_prevista < NOW()");
+$totalAtrasos = mysqli_fetch_assoc($qAtrasos)['total'];
 
 
 /* DADOS PARA OS GRÁFICOS */
@@ -67,6 +71,10 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         .card-sistema h3 { font-size: 2.2rem; font-weight: 700; margin: 0 0 5px 0; }
         .card-sistema p { font-size: 1rem; margin-bottom: 0; opacity: 0.8; }
         .card-sistema .icon { position: absolute; top: 15px; right: 20px; font-size: 40px; color: rgba(58, 137, 222, 0.25); }
+        
+        /* Cor de destaque avermelhada e suave para o card de atraso mantendo a identidade visual */
+        .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
+        .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -91,17 +99,20 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
             <div class="container-fluid">
 
                 <div class="row">
-                    <div class="col-lg-3 col-6">
+                    <div class="col-lg-2 col-md-4 col-6">
                         <div class="card-sistema"><div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div><div class="icon"><i class="fas fa-book"></i></div></div>
                     </div>
-                    <div class="col-lg-3 col-6">
+                    <div class="col-lg-2 col-md-4 col-6">
                         <div class="card-sistema"><div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div><div class="icon"><i class="fas fa-users"></i></div></div>
                     </div>
-                    <div class="col-lg-3 col-6">
+                    <div class="col-lg-3 col-md-4 col-6">
                         <div class="card-sistema"><div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div><div class="icon"><i class="fas fa-exchange-alt"></i></div></div>
                     </div>
-                    <div class="col-lg-3 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Emprestados</p></div><div class="icon"><i class="fas fa-book-reader"></i></div></div>
+                    <div class="col-lg-3 col-md-6 col-6">
+                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div><div class="icon"><i class="fas fa-book-reader"></i></div></div>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-12">
+                        <div class="card-sistema card-atraso"><div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div></div>
                     </div>
                 </div>
 
@@ -151,8 +162,8 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 <div class="card-tools">
                                     <a href="php/exportar_dashboard.php" class="btn btn-success btn-sm" style="font-weight: 500;">
                                         <i class="fas fa-file-excel mr-1"></i> Exportar para Excel
-                                </a>
-                            </div>
+                                    </a>
+                                </div>
                             </div>
                             <div class="card-body table-responsive p-0">
                                 <table class="table table-hover text-nowrap table-striped">
