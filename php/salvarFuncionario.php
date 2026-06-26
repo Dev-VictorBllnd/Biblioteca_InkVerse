@@ -19,9 +19,33 @@
 
     include("conexao.php");
 
+    // ==========================================
+    // VERIFICAÇÃO DE CPF DUPLICADO
+    // ==========================================
+    if($funcao == "I" || $funcao == "A"){
+        
+        // Se for atualização ("A"), precisamos ignorar o CPF do próprio usuário que está sendo editado
+        $filtroProprioUsuario = "";
+        if($funcao == "A") {
+            $filtroProprioUsuario = " AND idFuncionario != $idUsuario";
+        }
+
+        $sqlVerificaCpf = "SELECT idFuncionario FROM funcionario WHERE Cpf = '$cpf' $filtroProprioUsuario;";
+        $resultadoCpf = mysqli_query($conn, $sqlVerificaCpf);
+
+        // Se encontrou algum registro, o CPF já está em uso
+        if(mysqli_num_rows($resultadoCpf) > 0){
+            mysqli_close($conn);
+            // Redireciona de volta com um parâmetro de erro na URL e encerra a execução
+            header("location: ../funcionarios.php?erro=cpf_existe");
+            exit; 
+        }
+    }
+    // ==========================================
+
     if($funcao == "I"){
-        // INSERÇÃO COM O CAMPO ATIVO E FOTO PADRÃO
-        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone, Ativo, Foto) "
+        // INSERÇÃO COM O CAMPO ATIVO
+        $sql = "INSERT INTO funcionario (idCargo, Nome, Email, Senha, Cpf, Datanasc, Telefone, Ativo) "
               ." VALUES ("
               ."$tipoUsuario, "
               ."'$nome', "
@@ -30,8 +54,7 @@
               ."'$cpf', "
               ."'$datanasc', "
               ."'$telefone', "
-              ."'$ativo', "
-              ."'dist/img/fotoperfil.png');";
+              ."'$ativo');";
               
         $result = mysqli_query($conn, $sql);
         
@@ -96,5 +119,6 @@
         mysqli_close($conn);
     }
 
-    header("location: ../funcionarios.php");
+    // Se tudo correr bem, redireciona com sucesso
+    header("location: ../funcionarios.php?sucesso=1");
 ?>

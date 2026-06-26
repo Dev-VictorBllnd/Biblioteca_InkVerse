@@ -29,6 +29,14 @@
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
+            
+            <?php if(isset($_GET['erro']) && $_GET['erro'] == 'cpf_existe'): ?>
+            <div class="alert alert-danger alert-dismissible">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+              <h5><i class="icon fas fa-ban"></i> Atenção!</h5>
+              O CPF informado já está cadastrado no sistema. Por favor, verifique os dados.
+            </div>
+            <?php endif; ?>
             <div class="card">
               <div class="card-header">
                 <div class="row">
@@ -38,8 +46,8 @@
                   </div>
                   
                   <div class="col-3" align="right">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novoUsuarioModal">
-                      Novo Funcionário
+                    <button type="button" class="btn text-white" style="background-color: #2563eb;" data-toggle="modal" data-target="#novoUsuarioModal">
+                    <i class="fas fa-plus"></i> Novo Funcionário
                     </button>
                   </div>
 
@@ -74,7 +82,7 @@
       <div class="modal fade" id="novoUsuarioModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header bg-success">
+            <div class="modal-header text-white" style="background-color: #0b1a2c;">
               <h4 class="modal-title">Novo Usuário</h4>
               <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -157,7 +165,7 @@
 
                 <div class="modal-footer mt-3">
                   <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
-                  <button type="submit" class="btn btn-success">Salvar</button>
+                  <button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar</button>
                 </div>
                 
               </form>

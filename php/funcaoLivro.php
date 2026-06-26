@@ -42,7 +42,7 @@ function listaLivro(){
             if($emprestado == 'S' || $emprestado == 'SIM' || $emprestado == '1' || $emprestado == 'EMPRESTADO') {
                 $badgeStatus = '<h5><span class="badge badge-warning text-dark">Emprestado</span></h5>';
             } else {
-                $badgeStatus = '<h5><span class="badge badge-success">Disponível</span></h5>';
+                $badgeStatus = '<h5><span class="badge text-white" style="background-color: #2563eb;">Disponível</span></h5>';
             }
 
             $nomeGenero = $coluna["Genero"] ? $coluna["Genero"] : 'Sem Gênero';
@@ -78,7 +78,7 @@ function listaLivro(){
             '<div class="modal fade" id="modalEditExemplar'.$coluna["idExemplar"].'">'
                 .'<div class="modal-dialog modal-lg">'
                     .'<div class="modal-content">'
-                        .'<div class="modal-header bg-info">'
+                        .'<div class="modal-header text-white" style="background-color: #0b1a2c;">'
                             .'<h4 class="modal-title">Editar Dados da Obra (Afeta todos os exemplares)</h4>'
                             .'<button type="button" class="close text-white" data-dismiss="modal">&times;</button>'
                         .'</div>'
@@ -127,7 +127,7 @@ function listaLivro(){
                                 .'</div>'
                                 .'<div class="modal-footer mt-3">'
                                     .'<button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>'
-                                    .'<button type="submit" class="btn btn-success">Atualizar Obra</button>'
+                                    .'<button type="submit" class="btn text-white" style="background-color: #2563eb;">Atualizar Obra</button>'
                                 .'</div>'
                             .'</form>'
                         .'</div>'

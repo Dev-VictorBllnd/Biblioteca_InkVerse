@@ -38,8 +38,8 @@
                   </div>
                   
                   <div class="col-3" align="right">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novoClienteModal">
-                      Novo Cliente
+                    <button type="button" class="btn text-white" style="background-color: #2563eb;" data-toggle="modal" data-target="#novoClienteModal">
+                    <i class="fas fa-plus"></i> Novo Cliente
                     </button>
                   </div>
 
@@ -75,7 +75,7 @@
       <div class="modal fade" id="novoClienteModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header bg-success">
+            <div class="modal-header text-white" style="background-color: #0b1a2c;">
               <h4 class="modal-title">Novo Cliente</h4>
               <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -141,7 +141,7 @@
 
                 <div class="modal-footer mt-3">
                   <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
-                  <button type="submit" class="btn btn-success">Salvar</button>
+                  <button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar</button>
                 </div>
                 
               </form>
