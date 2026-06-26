@@ -17,7 +17,7 @@ function listaClientes(){
         foreach ($result as $coluna) {
 
             if ($coluna["Ativo"] == 'S') {
-                $icone = '<h5><span class="badge text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Ativo</span></h5>';
+                $icone = '<h5><span class="badge badge-success"><i class="fas fa-check"></i> Ativo</span></h5>';
             } else {
                 $icone = '<h5><span class="badge badge-danger"><i class="fas fa-ban"></i> Inativo</span></h5>';
             } 
@@ -51,7 +51,7 @@ function listaClientes(){
             .'<div class="modal fade" id="modalEditCliente'.$coluna["idCliente"].'">'
                 .'<div class="modal-dialog modal-lg">'
                     .'<div class="modal-content">'
-                        .'<div class="modal-header text-white" style="background-color: #0b1a2c;">'
+                        .'<div class="modal-header bg-info">'
                             .'<h4 class="modal-title">Alterar Cliente</h4>'
                             .'<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">'
                                 .'<span aria-hidden="true">&times;</span>'
@@ -66,6 +66,12 @@ function listaClientes(){
                                             .'<input type="text" value="'.$coluna["Nome"].'" class="form-control" name="nNome" maxlength="100" required>'
                                         .'</div>'
                                     .'</div>'
+                                    .'<div class="col-4">'
+                                        .'<div class="form-group">'
+                                            .'<label>CPF:</label>'
+                                            .'<input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>'
+                                        .'</div>'
+                                    .'</div>'
                                     .'<div class="col-8">'
                                         .'<div class="form-group">'
                                             .'<label>E-mail:</label>'
@@ -74,25 +80,69 @@ function listaClientes(){
                                     .'</div>'
                                     .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<label>CPF:</label>'
-                                            .'<input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
                                             .'<label>Telefone:</label>'
                                             .'<input type="text" value="'.$coluna["Telefone"].'" class="form-control" name="nTelefone" maxlength="15" required>'
                                         .'</div>'
                                     .'</div>'
+
+                                    // ==========================================
+                                    // INÍCIO DOS NOVOS CAMPOS DE ENDEREÇO
+                                    // ==========================================
+                                    .'<div class="col-3">'
+                                        .'<div class="form-group">'
+                                            .'<label>CEP:</label>'
+                                            .'<input type="text" value="'.$coluna["Cep"].'" class="form-control" name="CEP" maxlength="10">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-7">'
+                                        .'<div class="form-group">'
+                                            .'<label>Endereço (Rua):</label>'
+                                            .'<input type="text" value="'.$coluna["Endereco"].'" class="form-control" name="Endereco" maxlength="150">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-2">'
+                                        .'<div class="form-group">'
+                                            .'<label>Nº:</label>'
+                                            .'<input type="text" value="'.$coluna["Numero"].'" class="form-control" name="Numero">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-4">'
+                                        .'<div class="form-group">'
+                                            .'<label>Complemento:</label>'
+                                            .'<input type="text" value="'.$coluna["Complemento"].'" class="form-control" name="Complemento" maxlength="50">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-4">'
+                                        .'<div class="form-group">'
+                                            .'<label>Bairro:</label>'
+                                            .'<input type="text" value="'.$coluna["Bairro"].'" class="form-control" name="Bairro" maxlength="50">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-2">'
+                                        .'<div class="form-group">'
+                                            .'<label>Cidade:</label>'
+                                            .'<input type="text" value="'.$coluna["Cidade"].'" class="form-control" name="Cidade" maxlength="50">'
+                                        .'</div>'
+                                    .'</div>'
+                                    .'<div class="col-2">'
+                                        .'<div class="form-group">'
+                                            .'<label>UF:</label>'
+                                            .'<input type="text" value="'.$coluna["UF"].'" class="form-control" name="UF" maxlength="2">'
+                                        .'</div>'
+                                    .'</div>'
+                                    // ==========================================
+                                    // FIM DOS CAMPOS DE ENDEREÇO
+                                    // ==========================================
+
                                     .'<div class="col-4">'
                                         .'<div class="form-group">'
                                             .'<label>Data de Nascimento:</label>'
                                             .'<input type="date" value="'.$coluna["Datanasc"].'" class="form-control" name="nDatanasc" required>'
                                         .'</div>'
                                     .'</div>'
-                                    .'<div class="col-8">'
+                                    .'<div class="col-4">'
                                         .'<div class="form-group">'
-                                            .'<label>Nova Foto:</label>'
+                                            .'<label>Nova Foto (Opcional):</label>'
                                             .'<input type="file" class="form-control" name="Foto" accept="image/*">'
                                         .'</div>'
                                     .'</div>'
@@ -108,7 +158,7 @@ function listaClientes(){
                                 .'</div>'
                                 .'<div class="modal-footer mt-3">'
                                     .'<button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>'
-                                    .'<button type="submit" class="btn text-white" style="background-color: #2563eb;">alvar Alterações</button>'
+                                    .'<button type="submit" class="btn btn-success">Salvar Alterações</button>'
                                 .'</div>'
                             .'</form>'
                         .'</div>'
@@ -167,19 +217,19 @@ function nomeCliente($id){
 }
 
 function fotoCliente($id){
-    if(empty($id)) return "dist/img/fotoperfil.png";
+    if(empty($id)) return "dist/img/avatar.png"; 
     $resp = "";
     include("conexao.php");
-    $sql = "SELECT Foto FROM cliente WHERE idCliente = $id;";
+    $sql = "SELECT Foto FROM cliente WHERE idCliente = $id;";        
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
 
     if ($result && mysqli_num_rows($result) > 0) {
-        foreach ($result as $coluna) {
+        foreach ($result as $coluna) {            
             $resp = $coluna["Foto"];
-        }
+        }        
     }
-    if($resp == "") { $resp = "dist/img/fotoperfil.png"; }
+    if($resp == "") { $resp = "dist/img/avatar.png"; }
     return $resp;
 }
 

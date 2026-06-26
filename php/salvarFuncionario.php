@@ -24,7 +24,7 @@
     // ==========================================
     if($funcao == "I" || $funcao == "A"){
         
-        // Se for atualização ("A"), precisamos ignorar o CPF do próprio usuário que está sendo editado
+        // Se for atualização ("A"), precisamos ignorar o CPF do próprio usuário que está sendo editado ARRUMADO
         $filtroProprioUsuario = "";
         if($funcao == "A") {
             $filtroProprioUsuario = " AND idFuncionario != $idUsuario";

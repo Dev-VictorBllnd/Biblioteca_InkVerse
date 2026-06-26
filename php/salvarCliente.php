@@ -15,11 +15,41 @@
     $telefone    = $_POST["nTelefone"] ?? '';
     $ativo       = $_POST["nAtivo"] ?? 'S'; // Se não vier nada, cadastra como 'S' (Ativo)
 
+    //Novos campos
+    $cep         = $_POST["CEP"] ?? '';
+    $endereco    = $_POST["Endereco"] ?? '';
+    $numero      = $_POST["Numero"] ?? '';
+    $complemento = $_POST["Complemento"] ?? '';
+    $bairro      = $_POST["Bairro"] ?? '';
+    $cidade      = $_POST["Cidade"] ?? '';
+    $uf          = $_POST["UF"] ?? '';
+
     include("conexao.php");
 
+    if($funcao == "I" || $funcao == "A"){
+        
+        // Se for atualização ("A"), precisamos ignorar o CPF do próprio usuário que está sendo editado
+        $filtroProprioUsuario = "";
+        if($funcao == "A") {
+            $filtroProprioUsuario = " AND idCliente != $idCliente";
+        }
+
+        $sqlVerificaCpf = "SELECT idCliente FROM cliente WHERE Cpf = '$cpf' $filtroProprioUsuario;";
+        $resultadoCpf = mysqli_query($conn, $sqlVerificaCpf);
+
+        // Se encontrou algum registro, o CPF já está em uso
+        if(mysqli_num_rows($resultadoCpf) > 0){
+            mysqli_close($conn);
+            // Redireciona de volta com um parâmetro de erro na URL e encerra a execução
+            header("location: ../clientes.php?erro=cpf_existe");
+            exit; 
+        }
+    }
+
+
     if($funcao == "I"){
-        // INSERÇÃO COM O CAMPO ATIVO E FOTO PADRÃO
-        $sql = "INSERT INTO cliente (Nome, Email, Cpf, Datanasc, Telefone, Ativo, Foto) "
+        // CORREÇÃO AQUI: Note que agora listamos todas as 13 colunas na primeira linha
+        $sql = "INSERT INTO cliente (Nome, Email, Cpf, Datanasc, Telefone, Ativo, Cep, Endereco, Numero, Complemento, Bairro, Cidade, UF) "
               ." VALUES ("
               ."'$nome', "
               ."'$email', "
@@ -27,14 +57,21 @@
               ."'$datanasc', "
               ."'$telefone', "
               ."'$ativo', "
-              ."'dist/img/fotoperfil.png');";
+              ."'$cep', "
+              ."'$endereco', "
+              ."'$numero', "
+              ."'$complemento', "
+              ."'$bairro', "
+              ."'$cidade', "
+              ."'$uf');";
+              
         $result = mysqli_query($conn, $sql);    
         
         // CORREÇÃO CRÍTICA: Pega o ID que o banco de dados acabou de gerar para esse novo funcionário
         // Precisamos disso para que o código da foto (lá embaixo) saiba em qual ID salvar a imagem!
         $idCliente = mysqli_insert_id($conn);
 
-    } elseif($funcao == "A") {
+    } elseif($funcao == "A") { 
         // ATUALIZAÇÃO COM O CAMPO ATIVO
         $sql = "UPDATE cliente "
               ." SET Nome = '$nome', "
@@ -43,7 +80,13 @@
               ." Datanasc = '$datanasc', "
               ." Telefone = '$telefone', "
               ." Ativo = '$ativo', "
-              ." idCliente = idCliente " // Truque técnico para gerir a vírgula
+              ." Cep = '$cep', "
+              ." Endereco = '$endereco', "
+              ." Numero = '$numero', "
+              ." Complemento = '$complemento', "
+              ." Bairro = '$bairro', "
+              ." Cidade = '$cidade', "
+              ." UF = '$uf' "
               ." WHERE idCliente = $idCliente;";
               
         $result = mysqli_query($conn, $sql);
@@ -83,5 +126,5 @@
         mysqli_close($conn);
     }
 
-    header("location: ../clientes.php");
+    header("location: ../clientes.php?sucesso=1");
 ?>
