@@ -9,6 +9,7 @@ function montaMenu($n1, $n2) {
     $clsLivros       = 'text-light'; $styLivros       = '';
     $clsFuncionarios = 'text-light'; $styFuncionarios = '';
     $clsClientes     = 'text-light'; $styClientes     = '';
+    $clsEditoras     = 'text-light'; $styEditoras     = '';
     $clsEmprestimos  = 'text-light'; $styEmprestimos  = '';
     $clsPerfil       = 'text-light'; $styPerfil       = '';
     
@@ -31,6 +32,10 @@ function montaMenu($n1, $n2) {
         case 'livros':
             $clsLivros = $activeClass;
             $styLivros = $activeStyle;
+            break;
+        case 'editoras':
+            $clsEditoras = $activeClass;
+            $styEditoras = $activeStyle;
             break;
         case 'emprestimos':
         case 'emprestimo':
@@ -72,6 +77,13 @@ function montaMenu($n1, $n2) {
                 <a href="clientes.php" class="nav-link '.$clsClientes.'" style="'.$styClientes.'">
                     <i class="nav-icon fas fa-user-friends"></i>
                     <p>Clientes</p>
+                </a>
+            </li>
+
+            <li class="nav-item mb-1">
+                <a href="editoras.php" class="nav-link '.$clsEditoras.'" style="'.$styEditoras.'">
+                    <i class="nav-icon fas fa-building"></i>
+                    <p>Editoras</p>
                 </a>
             </li>
 
