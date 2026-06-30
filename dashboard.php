@@ -119,13 +119,13 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                 <div class="row">
                     <div class="col-md-7">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-chart-line mr-1"></i> Histórico de Empréstimos (Linha)</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-chart-line mr-1"></i> Histórico de Empréstimos</h3></div>
                             <div class="card-body"><canvas id="graficoMensal" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
                     <div class="col-md-5">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-chart-pie mr-1"></i> Gêneros Mais Procurados (Donut)</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-chart-pie mr-1"></i> Gêneros Mais Procurados</h3></div>
                             <div class="card-body"><canvas id="graficoGeneros" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
@@ -134,19 +134,19 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                 <div class="row">
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-user-chart mr-1"></i> Top Clientes (Barra Horizontal)</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-user-chart mr-1"></i> Top Clientes</h3></div>
                             <div class="card-body"><canvas id="graficoTopClientes" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-id-card mr-1"></i> Envios por Funcionário (Radar)</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-id-card mr-1"></i> Envios por Funcionário</h3></div>
                             <div class="card-body"><canvas id="graficoFuncionarios" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-calendar-alt mr-1"></i> Acervo por Ano (Barra Vertical)</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-calendar-alt mr-1"></i> Acervo por Ano</h3></div>
                             <div class="card-body"><canvas id="graficoAnos" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
