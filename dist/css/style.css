@@ -95,3 +95,23 @@
     top: 0;
     background-size: cover;
 }
+
+/* Animação de vibração para acesso negado */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.shake-animation {
+  animation: shake 0.4s ease-in-out;
+  color: #dc3545 !important; /* Fica vermelhinho rapidinho pra dar ênfase */
+}
+
+/* Cursor de bloqueio */
+.acesso-negado {
+  cursor: not-allowed !important;
+  opacity: 0.6; /* Deixa o menu meio apagadinho */
+}

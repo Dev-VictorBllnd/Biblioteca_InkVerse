@@ -1,27 +1,19 @@
-<aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #0b1a2c;">
+<aside class="main-sidebar sidebar-dark-primary elevation-4" style="background-color: #0b1a2c; display: flex; flex-direction: column; height: 100vh;">
+    
     <div class="brand-link text-left" style="border-bottom: none; padding: 20px 0.5rem;">
-    <img src="/BIBLIOTECA_InkVerse/dist/img/logo.png"
-     alt="Logo Biblioteca"
-     width="60">
-     <span class="brand-text font-weight-bold">
-        Biblioteca
-    </span>
+        <img src="/BIBLIOTECA_InkVerse/dist/img/logo.png" alt="Logo Biblioteca" width="60">
+        <span class="brand-text font-weight-bold">Biblioteca</span>
     </div>
 
-    <div class="sidebar">
+    <div class="sidebar" style="flex-grow: 1; overflow-y: auto; overflow-x: hidden;">
       
       <?php
-        // Verifica se a tela atual é a do perfil para aplicar o estilo azul
         $isPerfil = (isset($_SESSION['menu-n2']) && $_SESSION['menu-n2'] == 'perfil');
-        
-        // Se for o perfil, fundo azul arredondado. Se não, apenas a linha divisória transparente
         $estiloPerfil = $isPerfil 
             ? 'background-color: #2563eb; border-radius: 10px; padding: 10px; margin-top: 10px;' 
             : 'border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-top: 10px;';
-
       ?>
 
-      <!-- Painel do Usuário (Foto e Nome) -->
       <div class="user-panel mb-3 d-flex" style="<?php echo $estiloPerfil; ?> align-items: center;">
         <div class="image">
           <img src="<?php echo fotoUsuario($_SESSION['idLogin']); ?>" class="img-circle elevation-2" alt="User Image">
@@ -33,10 +25,23 @@
         </div>
       </div>
 
-      <!-- Aqui chamamos a função que monta o menu abaixo do perfil -->
-      <?php echo montaMenu($_SESSION['menu-n1'], $_SESSION['menu-n2']); ?>
+      <div>
+        <?php echo montaMenu($_SESSION['menu-n1'], $_SESSION['menu-n2']); ?>
+      </div>
 
     </div>
+
+    <div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.1); background-color: #0b1a2c;">
+        <ul class="nav nav-pills nav-sidebar flex-column">
+            <li class="nav-item">
+                <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
+                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                    <p>Sair do Sistema</p>
+                </a>
+            </li>
+        </ul>
+    </div>
+
 </aside>
 
 <div class="modal fade" id="modalLogout" tabindex="-1" role="dialog" aria-labelledby="modalLogoutLabel" aria-hidden="true">

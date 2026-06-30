@@ -52,3 +52,22 @@
 <script src="plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 <!-- JS Novo -->
 <script src="dist/js/uteis.js"></script>
+
+<script>
+  $(document).ready(function() {
+    // Quando clicar em um menu restrito
+    $('.menu-restrito').on('click', function(e) {
+      e.preventDefault(); // Impede o clique de tentar abrir um link
+      
+      var $botao = $(this);
+      
+      // Adiciona a classe que faz tremer
+      $botao.addClass('shake-animation');
+      
+      // Remove a classe depois que a animação termina (400ms) para poder tremer de novo se ele clicar de novo
+      setTimeout(function() {
+        $botao.removeClass('shake-animation');
+      }, 400);
+    });
+  });
+</script>

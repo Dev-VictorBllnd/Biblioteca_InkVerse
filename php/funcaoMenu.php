@@ -64,15 +64,29 @@ function montaMenu($n1, $n2) {
                     <i class="nav-icon fas fa-book-open"></i>
                     <p>Livros</p>
                 </a>
-            </li>
+            </li>'; // <--- AQUI FECHA A PRIMEIRA PARTE DA STRING
 
+    // === INÍCIO DA REGRA DO CADEADO ===
+    $idCargo = $_SESSION['idCargo'] ?? 0;
+    
+    if ($idCargo == 1) {
+        $html .= '
             <li class="nav-item mb-1">
                 <a href="funcionarios.php" class="nav-link '.$clsFuncionarios.'" style="'.$styFuncionarios.'">
                     <i class="nav-icon fas fa-user"></i>
                     <p>Funcionários</p>
                 </a>
-            </li>
-
+            </li>';
+    } else {
+        $html .= '
+            <li class="nav-item mb-1">
+                <a href="#" class="nav-link text-light acesso-negado menu-restrito" title="Você não tem acesso ao módulo de Funcionários">
+                    <i class="nav-icon fas fa-lock"></i>
+                    <p>Funcionários</p>
+                </a>
+            </li>';
+    }
+    $html .= '
             <li class="nav-item mb-1">
                 <a href="clientes.php" class="nav-link '.$clsClientes.'" style="'.$styClientes.'">
                     <i class="nav-icon fas fa-user-friends"></i>
@@ -91,13 +105,6 @@ function montaMenu($n1, $n2) {
                 <a href="emprestimo.php" class="nav-link '.$clsEmprestimos.'" style="'.$styEmprestimos.'">
                     <i class="nav-icon fas fa-exchange-alt"></i>
                     <p>Empréstimo</p>
-                </a>
-            </li>
-
-            <li class="nav-item mt-4">
-                <a href="#" class="nav-link text-danger" data-toggle="modal" data-target="#modalLogout">
-                    <i class="nav-icon fas fa-sign-out-alt"></i>
-                    <p>Sair do Sistema</p>
                 </a>
             </li>
 
