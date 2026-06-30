@@ -18,7 +18,9 @@ $totalClientes = mysqli_fetch_assoc($qClientes)['total'];
 $qEmprestimos = mysqli_query($conn,"SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
-$qExemplares = mysqli_query($conn,"SELECT COUNT(*) total FROM exemplar WHERE Emprestado='Sim'");
+// Conta os exemplares fisicamente fora pelos registros reais de empréstimo (não pela flag, que pode desencontrar)
+// DISTINCT evita contar a mesma cópia duas vezes caso existam registros duplicados antigos
+$qExemplares = mysqli_query($conn,"SELECT COUNT(DISTINCT idExemplar) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
 // Nova Consulta: Conta empréstimos onde a data prevista já passou e não foi devolvido
