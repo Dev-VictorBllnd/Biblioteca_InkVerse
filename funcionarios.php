@@ -30,7 +30,7 @@
         <div class="row">
           <div class="col-12">
             
-          // VERIFICAÇÃO DE CPF DUPLICADO ARRUMADO
+         
             <?php if(isset($_GET['erro']) && $_GET['erro'] == 'cpf_existe'): ?>
             <div class="alert alert-danger alert-dismissible">
               <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
