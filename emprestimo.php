@@ -85,7 +85,7 @@
                     <h3 class="card-title">Controle de Empréstimos Ativos</h3>
                   </div>
                   <div class="col-3 text-right">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novoEmprestimoModal">
+                    <button type="button" class="btn text-white" style="background-color: #0b1a2c;" data-toggle="modal" data-target="#novoEmprestimoModal">
                       <i class="fas fa-plus"></i> Novo Empréstimo
                     </button>
                   </div>
@@ -133,7 +133,7 @@
                   ?>
                   <tr class="<?php echo $atrasado ? 'table-danger' : ''; ?>">
                     <td class="align-middle"><?php echo $dados['idCliente']; ?></td>
-                    <td class="align-middle"><strong><?php echo htmlspecialchars($dados['Cliente']); ?></strong></td>
+                    <td class="align-middle"><?php echo htmlspecialchars($dados['Cliente']); ?></td>
                     <td class="align-middle">
                       <?php echo htmlspecialchars($dados['Titulo']); ?>
                       <small class="text-muted">(Cód: <?php echo $dados['idExemplar']; ?>)</small>
@@ -148,20 +148,19 @@
                       <?php endif; ?>
                     </td>
                     <td class="text-center align-middle">
-                      <button class="btn btn-sm btn-info mr-1" title="Renovar Prazo" data-toggle="modal" data-target="#modalEditar<?php echo $chave; ?>">
+                      <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo" data-toggle="modal" data-target="#modalEditar<?php echo $chave; ?>">
                         <i class="fas fa-sync-alt"></i>
                       </button>
-                      <button class="btn btn-sm btn-success" title="Registrar Devolução" data-toggle="modal" data-target="#modalDevolver<?php echo $chave; ?>">
+                      <button class="btn btn-sm btn-link text-success" title="Registrar Devolução" data-toggle="modal" data-target="#modalDevolver<?php echo $chave; ?>">
                         <i class="fas fa-undo"></i>
                       </button>
                     </td>
                   </tr>
 
-                  <!-- Modal Renovar -->
                   <div class="modal fade" id="modalEditar<?php echo $chave; ?>">
                     <div class="modal-dialog">
                       <div class="modal-content">
-                        <div class="modal-header bg-info">
+                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
                           <h4 class="modal-title">Renovar Empréstimo</h4>
                           <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
                         </div>
@@ -173,28 +172,27 @@
                             <p><strong>Livro:</strong> <?php echo htmlspecialchars($dados['Titulo']); ?></p>
                             <hr>
                             <div class="form-group">
-                              <label>Data do Empréstimo:</label>
-                              <input type="date" class="form-control" name="nDataEmprestimo" value="<?php echo $dados['Data_emprestimo']; ?>" required>
+                              <label>Data do Empréstimo (Renovação):</label>
+                              <input type="date" class="form-control" name="nDataEmprestimo" value="<?php echo $hoje; ?>" required>
                             </div>
                             <div class="form-group">
-                              <label>Nova Data Prevista para Devolução:</label>
-                              <input type="date" class="form-control" name="nDataPrevista" value="<?php echo $dados['data_prevista']; ?>" required>
+                              <label>Nova Data Prevista para Devolução (+7 dias):</label>
+                              <input type="date" class="form-control" name="nDataPrevista" value="<?php echo date('Y-m-d', strtotime('+7 days')); ?>" required>
                             </div>
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-info"><i class="fas fa-save"></i> Renovar</button>
+                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-save"></i> Renovar</button>
                           </div>
                         </form>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Modal Devolver -->
                   <div class="modal fade" id="modalDevolver<?php echo $chave; ?>">
                     <div class="modal-dialog">
                       <div class="modal-content">
-                        <div class="modal-header bg-success">
+                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
                           <h4 class="modal-title">Confirmar Devolução</h4>
                           <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
                         </div>
@@ -209,7 +207,7 @@
                           <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
                           <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Confirmar Devolução</button>
+                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-check"></i> Confirmar Devolução</button>
                           </div>
                         </form>
                       </div>
@@ -233,11 +231,10 @@
           </div>
         </div>
 
-        <!-- Modal Novo Empréstimo -->
         <div class="modal fade" id="novoEmprestimoModal">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
-              <div class="modal-header bg-success">
+              <div class="modal-header text-white" style="background-color: #0b1a2c;">
                 <h4 class="modal-title">Novo Empréstimo</h4>
                 <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
               </div>
@@ -299,7 +296,6 @@
                           <i class="fas fa-arrow-left mr-1"></i> Clique nos livros ao lado para adicioná-los aqui.
                         </div>
                       </div>
-                      <!-- Inputs ocultos com os exemplares escolhidos são inseridos aqui via JS -->
                       <div id="inputsExemplares"></div>
                     </div>
 
@@ -321,7 +317,7 @@
 
                   <div class="modal-footer mt-2 px-0">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Registrar Empréstimo</button>
+                    <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-save"></i> Registrar Empréstimo</button>
                   </div>
                 </form>
               </div>
