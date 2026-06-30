@@ -453,7 +453,7 @@ $(document).ready(function () {
     }
   });
 
-  // Auto-preenche devolução = empréstimo + 7 dias
+  // Auto-preenche devolução = empréstimo + 7 dias teste
   $('#iDataEmprestimo').on('change', function() {
     var d = new Date(this.value + 'T00:00:00');
     d.setDate(d.getDate() + 7);
