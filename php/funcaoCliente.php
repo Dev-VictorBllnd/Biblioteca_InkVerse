@@ -17,7 +17,7 @@ function listaClientes(){
         foreach ($result as $coluna) {
 
             if ($coluna["Ativo"] == 'S') {
-                $icone = '<h5><span class="badge badge-success"><i class="fas fa-check"></i> Ativo</span></h5>';
+                $icone = '<h5><span class="badge text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Ativo</span></h5>';
             } else {
                 $icone = '<h5><span class="badge badge-danger"><i class="fas fa-ban"></i> Inativo</span></h5>';
             } 
@@ -51,7 +51,7 @@ function listaClientes(){
             .'<div class="modal fade" id="modalEditCliente'.$coluna["idCliente"].'">'
                 .'<div class="modal-dialog modal-lg">'
                     .'<div class="modal-content">'
-                        .'<div class="modal-header bg-info">'
+                        .'<div class="modal-header text-white" style="background-color: #0b1a2c;">'
                             .'<h4 class="modal-title">Alterar Cliente</h4>'
                             .'<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">'
                                 .'<span aria-hidden="true">&times;</span>'
@@ -158,7 +158,7 @@ function listaClientes(){
                                 .'</div>'
                                 .'<div class="modal-footer mt-3">'
                                     .'<button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>'
-                                    .'<button type="submit" class="btn btn-success">Salvar Alterações</button>'
+                                    .'<button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar Alterações</button>'
                                 .'</div>'
                             .'</form>'
                         .'</div>'

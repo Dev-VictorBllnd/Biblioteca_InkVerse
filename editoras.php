@@ -55,8 +55,8 @@
                   </div>
 
                   <div class="col-3" align="right">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#novaEditoraModal">
-                      Nova Editora
+                    <button type="button" class="btn text-white" style="background-color: #2563eb;" data-toggle="modal" data-target="#novaEditoraModal">
+                    <i class="fas fa-plus"></i>  Nova Editora
                     </button>
                   </div>
 
@@ -90,7 +90,7 @@
       <div class="modal fade" id="novaEditoraModal">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
-            <div class="modal-header bg-success">
+            <div class="modal-header text-white" style="background-color: #0b1a2c;">
               <h4 class="modal-title">Nova Editora</h4>
               <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 X
@@ -99,7 +99,7 @@
             <div class="modal-body">
               <form method="POST" action="php/salvarEditora.php?funcao=I">
 
-                <h5 class="mb-3 text-success border-bottom pb-2">Dados da Editora</h5>
+                <h5 class="mb-3 text-info border-bottom pb-2">Dados da Editora</h5>
 
                 <div class="row">
                   <div class="col-md-12">
@@ -126,7 +126,7 @@
 
                 <div class="modal-footer mt-3">
                   <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
-                  <button type="submit" class="btn btn-success">Salvar</button>
+                  <button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar</button>
                 </div>
 
               </form>

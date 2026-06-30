@@ -85,7 +85,7 @@
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header text-white" style="background-color: #0b1a2c;">
-              <h4 class="modal-title">Novo Usuário</h4>
+              <h4 class="modal-title">Novo Funcionário</h4>
               <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>

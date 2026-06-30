@@ -85,7 +85,7 @@
                     <h3 class="card-title">Controle de Empréstimos Ativos</h3>
                   </div>
                   <div class="col-3 text-right">
-                    <button type="button" class="btn text-white" style="background-color: #0b1a2c;" data-toggle="modal" data-target="#novoEmprestimoModal">
+                    <button type="button" class="btn text-white" style="background-color: #2563eb;" data-toggle="modal" data-target="#novoEmprestimoModal">
                       <i class="fas fa-plus"></i> Novo Empréstimo
                     </button>
                   </div>
@@ -142,9 +142,9 @@
                     <td class="align-middle"><?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></td>
                     <td class="align-middle">
                       <?php if($atrasado): ?>
-                        <span class="badge badge-danger">Atrasado</span>
+                        <h5><span class="badge badge-danger">Atrasado</span></h5>
                       <?php else: ?>
-                        <span class="badge badge-success">No Prazo</span>
+                        <h5><span class="badge text-white" style="background-color: #2563eb;">No Prazo</span></h5>
                       <?php endif; ?>
                     </td>
                     <td class="text-center align-middle">
@@ -182,7 +182,7 @@
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-save"></i> Renovar</button>
+                            <button type="submit" class="btn text-white" style="background-color: #2563eb;"><i class="fas fa-save"></i> Renovar</button>
                           </div>
                         </form>
                       </div>
@@ -207,7 +207,7 @@
                           <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
                           <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-check"></i> Confirmar Devolução</button>
+                            <button type="submit" class="btn text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Confirmar Devolução</button>
                           </div>
                         </form>
                       </div>
@@ -317,7 +317,7 @@
 
                   <div class="modal-footer mt-2 px-0">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-save"></i> Registrar Empréstimo</button>
+                    <button type="submit" class="btn text-white" style="background-color: #2563eb;"><i class="fas fa-save"></i> Registrar Empréstimo</button>
                   </div>
                 </form>
               </div>
