@@ -13,10 +13,11 @@ function listaLivro(){
                 l.idEditora,
                 g.Descricao as Genero, 
                 ed.Nome as Editora, 
-                l.Isbn, 
-                l.ano, 
+                l.Isbn,
+                l.ano,
+                l.Foto,
                 e.Emprestado,
-                e.Ativo 
+                e.Ativo
             FROM exemplar e
             INNER JOIN livro l ON e.idLivro = l.idLivro
             LEFT JOIN genero g ON l.idGenero = g.idGenero
@@ -48,10 +49,18 @@ function listaLivro(){
             $nomeGenero = $coluna["Genero"] ? $coluna["Genero"] : 'Sem Gênero';
             $nomeEditora = $coluna["Editora"] ? $coluna["Editora"] : 'Sem Editora';
 
-            $lista .= 
+            // Capa do livro (retângulo vertical). Usa a padrão se não houver imagem cadastrada
+            $capa = $coluna["Foto"] ? $coluna["Foto"] : 'dist/img/capalivro.png';
+
+            $lista .=
             '<tr>'
-                .'<td align="center" class="font-weight-bold text-primary">'.$coluna["idExemplar"].'</td>'
-                .'<td>'.$coluna["Titulo"].'</td>'
+                .'<td align="center">'.$coluna["idExemplar"].'</td>'
+                .'<td>'
+                    .'<img src="'.$capa.'" alt="Capa" class="elevation-1 mr-2 capa-ampliar" '
+                        .'data-capa="'.$capa.'" data-titulo="'.htmlspecialchars($coluna["Titulo"], ENT_QUOTES).'" '
+                        .'style="width: 34px; height: 48px; object-fit: cover; border-radius: 3px; cursor: pointer; vertical-align: middle;">'
+                    .$coluna["Titulo"]
+                .'</td>'
                 .'<td>'.$coluna["Autor"].'</td>'
                 .'<td>'.$nomeGenero.'</td>'
                 .'<td>'.$nomeEditora.'</td>'
@@ -83,15 +92,25 @@ function listaLivro(){
                             .'<button type="button" class="close text-white" data-dismiss="modal">&times;</button>'
                         .'</div>'
                         .'<div class="modal-body">'
-                            .'<form method="POST" action="php/salvarExemplar.php?funcao=A&codigo='.$coluna["idExemplar"].'">'              
+                            .'<form method="POST" action="php/salvarExemplar.php?funcao=A&codigo='.$coluna["idExemplar"].'" enctype="multipart/form-data">'
                                 .'<input type="hidden" name="nIdLivro" value="'.$coluna["idLivro"].'">'
-                                .'<div class="form-group">'
-                                    .'<label>Título do Livro:</label>'
-                                    .'<input type="text" name="nTitulo" class="form-control" value="'.$coluna["Titulo"].'" required>'
-                                .'</div>'
-                                .'<div class="form-group">'
-                                    .'<label>Autor:</label>'
-                                    .'<input type="text" name="nAutor" class="form-control" value="'.$coluna["Autor"].'" required>'
+                                .'<div class="row">'
+                                    .'<div class="col-3 text-center">'
+                                        .'<label class="d-block">Capa:</label>'
+                                        .'<img src="'.$capa.'" alt="Capa atual" class="img-fluid elevation-1 mb-2" '
+                                            .'style="width: 100%; max-width: 130px; height: 180px; object-fit: cover; border-radius: 4px;">'
+                                        .'<input type="file" name="Capa" class="form-control-file" accept="image/*">'
+                                    .'</div>'
+                                    .'<div class="col-9">'
+                                        .'<div class="form-group">'
+                                            .'<label>Título do Livro:</label>'
+                                            .'<input type="text" name="nTitulo" class="form-control" value="'.$coluna["Titulo"].'" required>'
+                                        .'</div>'
+                                        .'<div class="form-group">'
+                                            .'<label>Autor:</label>'
+                                            .'<input type="text" name="nAutor" class="form-control" value="'.$coluna["Autor"].'" required>'
+                                        .'</div>'
+                                    .'</div>'
                                 .'</div>'
                                 .'<div class="row">'
                                     .'<div class="col-6">'

@@ -52,7 +52,7 @@
                 </div>
               </div>
               <div class="card-body">
-                <table id="tabela" class="table table-bordered table-striped w-100">
+                <table id="tabela" class="table table-bordered table-hover">
                   <thead>
                     <tr>
                       <th style="width: 8%;">ID Cópia</th>
@@ -88,16 +88,26 @@
               </button>
             </div>
             <div class="modal-body">
-              <form method="POST" action="php/salvarLivro.php?funcao=I">
+              <form method="POST" action="php/salvarLivro.php?funcao=I" enctype="multipart/form-data">
 
-                <div class="form-group">
-                  <label for="iTitulo">Título:</label>
-                  <input type="text" class="form-control" id="iTitulo" name="nTitulo" maxlength="200" placeholder="Título completo do livro" required>
-                </div>
+                <div class="row">
+                  <div class="col-3 text-center">
+                    <label class="d-block">Capa do Livro:</label>
+                    <img src="dist/img/capalivro.png" id="previewCapa" alt="Capa" class="img-fluid elevation-1 mb-2"
+                         style="width: 100%; max-width: 130px; height: 180px; object-fit: cover; border-radius: 4px;">
+                    <input type="file" name="Capa" id="inputCapa" class="form-control-file" accept="image/*">
+                  </div>
+                  <div class="col-9">
+                    <div class="form-group">
+                      <label for="iTitulo">Título:</label>
+                      <input type="text" class="form-control" id="iTitulo" name="nTitulo" maxlength="200" placeholder="Título completo do livro" required>
+                    </div>
 
-                <div class="form-group">
-                  <label for="iAutor">Autor:</label>
-                  <input type="text" class="form-control" id="iAutor" name="nAutor" maxlength="150" placeholder="Nome do autor" required>
+                    <div class="form-group">
+                      <label for="iAutor">Autor:</label>
+                      <input type="text" class="form-control" id="iAutor" name="nAutor" maxlength="150" placeholder="Nome do autor" required>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="row">
@@ -179,6 +189,23 @@
   </div>
 </div>
 
+<!-- Modal para visualizar a capa ampliada -->
+<div class="modal fade" id="modalCapaLivro">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #0b1a2c;">
+        <h4 class="modal-title" id="tituloCapaLivro">Capa</h4>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="imgCapaLivro" alt="Capa do Livro" class="img-fluid rounded" style="max-height: 75vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include('partes/js.php'); ?>
 
 <script>
@@ -191,6 +218,22 @@
       "info": true,
       "autoWidth": false,
       "responsive": true,
+    });
+
+    // Pré-visualização da capa ao escolher o arquivo no cadastro
+    $('#inputCapa').on('change', function () {
+      if (this.files && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) { $('#previewCapa').attr('src', e.target.result); };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+
+    // Clicar na capa pequena abre o modal com a imagem ampliada
+    $(document).on('click', '.capa-ampliar', function () {
+      $('#imgCapaLivro').attr('src', $(this).data('capa'));
+      $('#tituloCapaLivro').text($(this).data('titulo'));
+      $('#modalCapaLivro').modal('show');
     });
 
     const urlParams = new URLSearchParams(window.location.search);

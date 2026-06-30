@@ -25,6 +25,22 @@ if ($funcao == "A") {
             WHERE idLivro = $idLivroForm;";
             
     if (mysqli_query($conn, $sql)) {
+
+        // Upload da nova capa (opcional) — só atualiza se o arquivo for enviado
+        if (isset($_FILES['Capa']) && $_FILES['Capa']['tmp_name'] != '') {
+            $ext      = pathinfo($_FILES['Capa']['name'], PATHINFO_EXTENSION);
+            $novoNome = 'capa-'.$idLivroForm.'-'.time().'.'.$ext;
+
+            if (!is_dir('../dist/img/livros/')) {
+                mkdir('../dist/img/livros/', 0777, true);
+            }
+
+            if (move_uploaded_file($_FILES['Capa']['tmp_name'], '../dist/img/livros/'.$novoNome)) {
+                $dirImagem = 'dist/img/livros/'.$novoNome;
+                mysqli_query($conn, "UPDATE livro SET Foto = '$dirImagem' WHERE idLivro = $idLivroForm;");
+            }
+        }
+
         header("Location: ../livros.php?sucesso_edit=1");
     } else {
         echo "Erro ao atualizar dados da obra: " . mysqli_error($conn);

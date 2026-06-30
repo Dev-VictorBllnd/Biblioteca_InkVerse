@@ -34,8 +34,25 @@ if ($funcao == "I") {
 
     $idLivro = mysqli_insert_id($conn);
 
+    // Cria os exemplares (cópias físicas) deste livro
     for ($i = 0; $i < $qtd; $i++) {
-        $sqlEx = "INSERT INTO exemplar (idLivro, Emprestado) VALUES ($idLivro, 'nao');";
+        $sqlEx = "INSERT INTO exemplar (idLivro, Emprestado, Ativo) VALUES ($idLivro, 'nao', 'S');";
+        mysqli_query($conn, $sqlEx);
+    }
+
+    // Upload da capa (opcional)
+    if (isset($_FILES['Capa']) && $_FILES['Capa']['tmp_name'] != '') {
+        $ext      = pathinfo($_FILES['Capa']['name'], PATHINFO_EXTENSION);
+        $novoNome = 'capa-'.$idLivro.'-'.time().'.'.$ext;
+
+        if (!is_dir('../dist/img/livros/')) {
+            mkdir('../dist/img/livros/', 0777, true);
+        }
+
+        if (move_uploaded_file($_FILES['Capa']['tmp_name'], '../dist/img/livros/'.$novoNome)) {
+            $dirImagem = 'dist/img/livros/'.$novoNome;
+            mysqli_query($conn, "UPDATE livro SET Foto = '$dirImagem' WHERE idLivro = $idLivro;");
+        }
     }
 
     mysqli_close($conn);
