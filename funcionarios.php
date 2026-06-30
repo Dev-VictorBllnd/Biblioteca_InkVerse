@@ -182,6 +182,23 @@
   </aside>
 </div>
 
+<!-- Modal para visualizar a foto ampliada -->
+<div class="modal fade" id="modalFotoFuncionario">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h4 class="modal-title" id="tituloFotoFuncionario">Foto</h4>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="" id="imgFotoFuncionario" alt="Foto do Funcionário" class="img-fluid rounded" style="max-height: 70vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php include('partes/js.php'); ?>
 
 <script>
@@ -194,6 +211,15 @@
       "info": true,
       "autoWidth": false,
       "responsive": true,
+    });
+
+    // Ao clicar na foto pequena, abre o modal com a imagem ampliada
+    $(document).on('click', '.foto-ampliar', function () {
+      var foto = $(this).data('foto');
+      var nome = $(this).data('nome');
+      $('#imgFotoFuncionario').attr('src', foto);
+      $('#tituloFotoFuncionario').text(nome);
+      $('#modalFotoFuncionario').modal('show');
     });
   });
 </script>
