@@ -29,17 +29,15 @@
         <?php echo montaMenu($_SESSION['menu-n1'], $_SESSION['menu-n2']); ?>
       </div>
 
-    </div>
+      <ul class="nav nav-pills nav-sidebar flex-column mt-2" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+          <li class="nav-item">
+              <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
+                  <i class="nav-icon fas fa-sign-out-alt"></i>
+                  <p>Sair do Sistema</p>
+              </a>
+          </li>
+      </ul>
 
-    <div class="p-3" style="border-top: 1px solid rgba(255,255,255,0.1); background-color: #0b1a2c;">
-        <ul class="nav nav-pills nav-sidebar flex-column">
-            <li class="nav-item">
-                <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
-                    <i class="nav-icon fas fa-sign-out-alt"></i>
-                    <p>Sair do Sistema</p>
-                </a>
-            </li>
-        </ul>
     </div>
 
 </aside>
