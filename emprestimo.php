@@ -29,19 +29,6 @@
         <div class="row">
           <div class="col-12">
 
-            <?php if (isset($_GET['sucesso'])): ?>
-              <div class="alert alert-success alert-dismissible fade show">
-                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                <h5><i class="icon fas fa-check"></i> Sucesso!</h5>
-                <?php
-                  $s = $_GET['sucesso'];
-                  if($s == 'inserido')  echo "Novo empréstimo registrado com sucesso.";
-                  if($s == 'editado')   echo "Empréstimo renovado com sucesso.";
-                  if($s == 'devolvido') echo "Livro devolvido e disponível na prateleira novamente.";
-                ?>
-              </div>
-            <?php endif; ?>
-
             <?php if (isset($_GET['erro']) && $_GET['erro'] == 'sem_livro'): ?>
               <div class="alert alert-danger alert-dismissible fade show">
                 <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
@@ -116,7 +103,8 @@
                       ehe.idExemplar,
                       l.Titulo,
                       ehe.Data_emprestimo,
-                      ehe.data_prevista
+                      ehe.data_prevista,
+                      e.multa
                     FROM cliente c
                     INNER JOIN emprestimo e ON c.idCliente = e.idCliente
                     INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
@@ -130,8 +118,14 @@
                     while($dados = mysqli_fetch_assoc($sql)):
                       $chave    = $dados['idEmprestimo'].'_'.$dados['idExemplar'];
                       $atrasado = $dados['data_prevista'] < $hoje;
+
+                      // Multa: R$ 1,00 por dia de atraso
+                      $diasAtraso = $atrasado ? (int)floor((strtotime($hoje) - strtotime($dados['data_prevista'])) / 86400) : 0;
+                      $valorMulta = $diasAtraso * 1.00;
+                      // Tem multa registrada quando o valor em emprestimo.multa é maior que 0
+                      $multaPaga  = ((float)$dados['multa'] > 0);
                   ?>
-                  <tr class="<?php echo $atrasado ? 'table-danger' : ''; ?>">
+                  <tr class="<?php echo ($atrasado && !$multaPaga) ? 'table-danger' : ''; ?>">
                     <td class="align-middle"><?php echo $dados['idCliente']; ?></td>
                     <td class="align-middle"><?php echo htmlspecialchars($dados['Cliente']); ?></td>
                     <td class="align-middle">
@@ -141,16 +135,24 @@
                     <td class="align-middle"><?php echo date('d/m/Y', strtotime($dados['Data_emprestimo'])); ?></td>
                     <td class="align-middle"><?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></td>
                     <td class="align-middle">
-                      <?php if($atrasado): ?>
-                        <h5><span class="badge badge-danger">Atrasado</span></h5>
+                      <?php if($multaPaga): ?>
+                        <h5><span class="badge badge-success"><i class="fas fa-check"></i> Multa paga</span></h5>
+                      <?php elseif($atrasado): ?>
+                        <h5><span class="badge badge-danger">Atrasado (<?php echo $diasAtraso; ?>d)</span></h5>
                       <?php else: ?>
                         <h5><span class="badge text-white" style="background-color: #2563eb;">No Prazo</span></h5>
                       <?php endif; ?>
                     </td>
                     <td class="text-center align-middle">
-                      <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo" data-toggle="modal" data-target="#modalEditar<?php echo $chave; ?>">
-                        <i class="fas fa-sync-alt"></i>
-                      </button>
+                      <?php if($atrasado && !$multaPaga): ?>
+                        <button class="btn btn-sm btn-link text-danger mr-1" title="Pagar Multa" data-toggle="modal" data-target="#modalMulta<?php echo $chave; ?>">
+                          <i class="fas fa-dollar-sign"></i>
+                        </button>
+                      <?php else: ?>
+                        <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo" data-toggle="modal" data-target="#modalEditar<?php echo $chave; ?>">
+                          <i class="fas fa-sync-alt"></i>
+                        </button>
+                      <?php endif; ?>
                       <button class="btn btn-sm btn-link text-success" title="Registrar Devolução" data-toggle="modal" data-target="#modalDevolver<?php echo $chave; ?>">
                         <i class="fas fa-undo"></i>
                       </button>
@@ -213,6 +215,41 @@
                       </div>
                     </div>
                   </div>
+
+                  <?php if($atrasado && !$multaPaga): ?>
+                  <div class="modal fade" id="modalMulta<?php echo $chave; ?>">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
+                          <h4 class="modal-title"><i class="fas fa-dollar-sign mr-1"></i> Pagamento de Multa</h4>
+                          <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                        </div>
+                        <form method="POST" action="php/salvarEmprestimo.php?funcao=M">
+                          <div class="modal-body">
+                            <input type="hidden" name="idEmprestimo" value="<?php echo $dados['idEmprestimo']; ?>">
+                            <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
+                            <input type="hidden" name="nValorMulta"  value="<?php echo number_format($valorMulta, 2, '.', ''); ?>">
+
+                            <p><strong>Cliente:</strong> <?php echo htmlspecialchars($dados['Cliente']); ?></p>
+                            <p><strong>Livro:</strong> <?php echo htmlspecialchars($dados['Titulo']); ?> <small class="text-muted">(Cód: <?php echo $dados['idExemplar']; ?>)</small></p>
+                            <p><strong>Devolução prevista:</strong> <?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></p>
+                            <p><strong>Dias em atraso:</strong> <?php echo $diasAtraso; ?> dia(s)</p>
+                            <hr>
+                            <div class="text-center">
+                              <small class="text-muted d-block">Valor da multa (R$ 1,00 por dia de atraso)</small>
+                              <h2 class="text-danger font-weight-bold mb-0">R$ <?php echo number_format($valorMulta, 2, ',', '.'); ?></h2>
+                            </div>
+                            <p class="text-center text-muted mt-3 mb-0"><small><i class="fas fa-info-circle mr-1"></i>Ao confirmar, a multa é paga e o livro é devolvido automaticamente.</small></p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-check"></i> Pagar e Devolver</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  <?php endif; ?>
 
                   <?php endwhile;
                   else: ?>

@@ -100,5 +100,32 @@ if (isset($_GET['funcao'])) {
         header("Location: ../emprestimo.php?sucesso=devolvido");
         exit;
     }
+
+    // =========================================================================
+    // 4. PAGAR MULTA (Função M) — grava o valor na coluna emprestimo.multa
+    // =========================================================================
+    if ($funcao == 'M') {
+        $idEmprestimo = $_POST['idEmprestimo'] ?? 0;
+        $idExemplar   = $_POST['idExemplar']   ?? 0;
+        $valorMulta   = (float)($_POST['nValorMulta'] ?? 0);
+
+        // Registra o valor da multa
+        $sqlMulta = "UPDATE emprestimo
+                     SET multa = '$valorMulta'
+                     WHERE idEmprestimo = '$idEmprestimo'";
+        mysqli_query($conn, $sqlMulta);
+
+        // Ao pagar a multa, o livro também é devolvido automaticamente
+        $sqlDev = "UPDATE emprestimo_has_exemplar
+                   SET Data_devolucao = NOW()
+                   WHERE idEmprestimo = '$idEmprestimo' AND idExemplar = '$idExemplar'";
+        mysqli_query($conn, $sqlDev);
+
+        $sqlLib = "UPDATE exemplar SET Emprestado = 'nao' WHERE idExemplar = '$idExemplar'";
+        mysqli_query($conn, $sqlLib);
+
+        header("Location: ../emprestimo.php?sucesso=multa");
+        exit;
+    }
 }
 ?>
