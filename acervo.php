@@ -9,7 +9,7 @@ $sql = "SELECT
             ed.Nome AS Editora,
             l.ano,
             COUNT(e.idExemplar) AS total_copias,
-            SUM(CASE WHEN (e.Emprestado IS NULL OR e.Emprestado = 'N' OR e.Emprestado = '0') THEN 1 ELSE 0 END) AS disponiveis
+            SUM(CASE WHEN (e.idExemplar IS NOT NULL AND (e.Emprestado IS NULL OR e.Emprestado NOT IN ('sim', 'S'))) THEN 1 ELSE 0 END) AS disponiveis
         FROM livro l
         LEFT JOIN exemplar e ON e.idLivro = l.idLivro AND (e.Ativo IS NULL OR e.Ativo != 'N')
         LEFT JOIN genero g ON l.idGenero = g.idGenero
