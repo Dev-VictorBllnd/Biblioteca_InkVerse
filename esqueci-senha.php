@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recuperar Senha</title>
 
-<link rel="stylesheet" href="dist/css/Esqueci-Senha.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Recuperar Senha</title>
+
+    <link rel="stylesheet" href="dist/css/Esqueci-Senha.css">
 
 </head>
 <body>
 
-    <div class="tela-login">
+<div class="tela-login">
 
     <div class="lado-esquerdo">
 
-    <h2>Seja Bem-vindo!</h2>
+        <h2>Seja Bem-vindo!</h2>
 
-    <p>Faça login para acessar a biblioteca.</p>
+        <p>Faça login para acessar a biblioteca.</p>
 
-    <div class="logo-area">
-        <img src="dist/img/logo.png" alt="Logo Biblioteca">
+        <div class="logo-area">
+            <img src="dist/img/logo.png" alt="Logo Biblioteca">
+        </div>
+
+        <h1>InkVerse</h1>
+
     </div>
-
-<h1>InkVerse</h1>
-
-</div>
 
     <div class="lado-direito">
 
@@ -39,6 +41,7 @@
             <form action="enviarCodigo.php" method="POST">
 
                 <div class="campo">
+
                     <label for="email">E-mail</label>
 
                     <input
@@ -47,6 +50,7 @@
                         name="email"
                         placeholder="Digite seu e-mail"
                         required>
+
                 </div>
 
                 <button type="submit" class="btn-login">

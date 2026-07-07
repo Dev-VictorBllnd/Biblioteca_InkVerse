@@ -6,24 +6,23 @@ require_once("conexao.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Verifica se o usuário validou o código
+// Verifica se o formulário foi enviado
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+    die("Acesso inválido.");
+}
+
+// Verifica se o código foi validado
 if (
     !isset($_SESSION['email']) ||
     empty($_SESSION['email']) ||
-    !isset($_SESSION['codigo_validado']) ||
-    $_SESSION['codigo_validado'] !== true
+    !isset($_SESSION['codigo_validado'])
 ) {
 
     echo "<script>
-            alert('Acesso negado.');
+            alert('Sessão expirada. Faça a recuperação novamente.');
             window.location='../Esqueci-Senha.php';
           </script>";
     exit();
-}
-
-// Verifica se veio do formulário
-if ($_SERVER["REQUEST_METHOD"] != "POST") {
-    die("Acesso inválido.");
 }
 
 $email = $_SESSION['email'];
@@ -41,20 +40,20 @@ if (empty($senha) || empty($confirmar)) {
     exit();
 }
 
-// Confirmação
+// Senhas diferentes
 if ($senha != $confirmar) {
 
     echo "<script>
-            alert('As senhas não conferem.');
+            alert('As senhas não conferem!');
             history.back();
           </script>";
     exit();
 }
 
-// Compatível com seu login
+// Criptografa a senha (compatível com seu login)
 $senha = md5($senha);
 
-// Atualiza senha
+// Atualiza a senha e limpa o código de recuperação
 $sql = "UPDATE funcionario
         SET Senha = ?,
             CodigoRecuperacao = NULL,

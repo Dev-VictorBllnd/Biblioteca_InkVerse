@@ -1,68 +1,168 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recuperar Senha - Código</title>
+<?php
+session_start();
 
-<link rel="stylesheet" href="dist/css/Enviar-Codigo.css">
+require_once("php/conexao.php");
 
-</head>
-<body>
+error_reporting(E_ALL);
+ini_set("display_errors",1);
 
-<div class="tela-codigo">
 
-    <!-- Lado esquerdo -->
-    <div class="lado-esquerdo">
+/*
+|--------------------------------------------------------------------------
+| Recebe o e-mail
+|--------------------------------------------------------------------------
+*/
 
-        <h2>Seja Bem-vindo!</h2>
+if(isset($_POST["email"])){
 
-        <p>Faça login para acessar a biblioteca.</p>
+    $email = trim($_POST["email"]);
 
-        <div class="logo-area">
-            <img src="dist/img/logo.png" alt="Logo Biblioteca">
-        </div>
 
-        <h1>InkVerse</h1>
+    if(empty($email)){
 
-    </div>
+        echo "
+        <script>
+        alert('Informe o e-mail.');
+        window.location='Esqueci-Senha.php';
+        </script>";
 
-    <!-- Lado direito -->
-    <div class="lado-direito">
+        exit();
 
-        <div class="codigo-box">
+    }
 
-            <h2>Verificar Código</h2>
 
-            <p class="subtitulo">
-                Informe o código recebido para continuar.
-            </p>
+    $sql = "SELECT * FROM funcionario WHERE Email=?";
 
-            <form method="POST" action="nova-senha.php">
 
-                <div class="campo">
-                    <label for="codigo">Código</label>
+    $stmt = $conn->prepare($sql);
 
-                    <input
-                        type="text"
-                        id="codigo"
-                        name="codigo"
-                        maxlength="6"
-                        required
-                        placeholder="Digite o código de recuperação">
-                </div>
 
-                <button type="submit" class="btn-verificar">
-                    Verificar
-                </button>
+    if(!$stmt){
 
-            </form>
+        die("Erro SQL: ".$conn->error);
 
-        </div>
+    }
 
-    </div>
 
-</div>
+    $stmt->bind_param("s",$email);
 
-</body>
-</html>
+    $stmt->execute();
+
+
+    $resultado = $stmt->get_result();
+
+
+
+    if($resultado->num_rows == 0){
+
+
+        echo "
+        <script>
+        alert('E-mail não encontrado.');
+        window.location='Esqueci-Senha.php';
+        </script>";
+
+        exit();
+
+    }
+
+
+    $_SESSION["email"] = $email;
+
+
+}else{
+
+
+    if(!isset($_SESSION["email"])){
+
+        echo "
+        <script>
+        alert('Sessão inválida.');
+        window.location='Esqueci-Senha.php';
+        </script>";
+
+        exit();
+
+    }
+
+
+    $email = $_SESSION["email"];
+
+}
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Gera código de recuperação
+|--------------------------------------------------------------------------
+*/
+
+
+$codigo = random_int(100000,999999);
+
+
+
+$_SESSION["codigo_recuperacao"] = $codigo;
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Salva no banco
+|--------------------------------------------------------------------------
+*/
+
+
+$sql = "UPDATE funcionario
+SET CodigoRecuperacao=?,
+ExpiraCodigo=DATE_ADD(NOW(),INTERVAL 15 MINUTE)
+WHERE Email=?";
+
+
+
+$stmt = $conn->prepare($sql);
+
+
+
+if(!$stmt){
+
+    die("Erro UPDATE: ".$conn->error);
+
+}
+
+
+
+$stmt->bind_param("is",$codigo,$email);
+
+
+
+if(!$stmt->execute()){
+
+    die("Erro ao salvar código: ".$stmt->error);
+
+}
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Redireciona para validar código
+|--------------------------------------------------------------------------
+*/
+
+echo "
+
+<script>
+
+alert('Código enviado com sucesso.');
+
+window.location='verificar-codigo.php';
+
+</script>
+
+";
+
+exit();
+
+?>
