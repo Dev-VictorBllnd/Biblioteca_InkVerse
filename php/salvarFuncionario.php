@@ -1,21 +1,34 @@
 <?php
+    // Inicia a sessão para garantir a proteção de autoexclusão no backend
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    $idSessaoAtiva = $_SESSION['idLogin'] ?? 1;
+
     include('funcoes.php');
 
-    // Captura os comandos da URL
     $funcao      = $_GET["funcao"] ?? '';
-    $idUsuario   = $_GET["codigo"] ?? 0; // idFuncionario
+    $idUsuario   = $_GET["codigo"] ?? 0;
 
-    // Captura os dados do POST de forma segura (evita erro quando é apenas Delete)
+    // ==========================================
+    // BLOQUEIO DE AUTOEXCLUSÃO (Segurança Backend)
+    // ==========================================
+    if($funcao == "D" && $idUsuario == $idSessaoAtiva) {
+        // Redireciona com um erro caso o usuário tente forçar a exclusão da própria conta pela URL
+        header("location: ../funcionarios.php?erro=auto_exclusao");
+        exit;
+    }
+    // ==========================================
+
     $tipoUsuario = $_POST["nTipoUsuario"] ?? null; 
     $nome        = $_POST["nNome"] ?? '';
     $login       = $_POST["nLogin"] ?? '';       
     $senha       = $_POST["nSenha"] ?? '';
     
-    // CAMPOS DO INKVERSE:
     $cpf         = $_POST["nCpf"] ?? '';
     $datanasc    = $_POST["nDatanasc"]      ?? '';
     $telefone    = $_POST["nTelefone"] ?? '';
-    $ativo       = $_POST["nAtivo"] ?? 'S'; // Se não vier nada, cadastra como 'S' (Ativo)
+    $ativo       = $_POST["nAtivo"] ?? 'S';
 
     include("conexao.php");
 

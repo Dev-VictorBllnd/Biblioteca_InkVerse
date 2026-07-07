@@ -2,8 +2,17 @@
 // Função para listar todos os usuários e gerar os Modais de Edição e Exclusão
 function listaUsuario(){
 
+    // 1. Inicia a sessão se ainda não estiver ativa para pegar o ID do usuário logado
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    // Supondo que a variável de sessão se chame 'idFuncionario'. Se for o admin id=1, garanta que esteja na sessão.
+    $idSessaoAtiva = $_SESSION['idLogin'] ?? 1; 
+
     include("conexao.php");
-    $sql = "SELECT * FROM funcionario ORDER BY idFuncionario;";
+    
+    // 2. O truque do ORDER BY CASE coloca o usuário logado no topo
+    $sql = "SELECT * FROM funcionario ORDER BY CASE WHEN idFuncionario = $idSessaoAtiva THEN 0 ELSE 1 END, idFuncionario;";
             
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
@@ -11,7 +20,6 @@ function listaUsuario(){
     $lista = '';
     $icone = '';
 
-    // O SEGREDINHO AQUI: O "$result &&" previne o Erro Fatal!
     if ($result && mysqli_num_rows($result) > 0) {
         
         foreach ($result as $coluna) {
@@ -21,9 +29,15 @@ function listaUsuario(){
             } else {
                 $icone = '<h5><span class="badge badge-danger"><i class="fas fa-ban"></i> Inativo</span></h5>';
             } 
-                
+            
+            // 3. Verifica se a linha atual é a do usuário logado
+            $isUsuarioLogado = ($coluna["idFuncionario"] == $idSessaoAtiva);
+            
+            // 4. Aplica estilo levemente destacado e evento de duplo clique se for o próprio usuário
+            $estiloLinha = $isUsuarioLogado ? 'style="background-color: #f0f4f8; cursor: pointer;" title="Dê um duplo clique para acessar seu Perfil" ondblclick="window.location.href=\'perfil.php\'"' : '';
+
             $lista .= 
-            '<tr>'
+            '<tr '.$estiloLinha.'>'
                 .'<td align="center">'.$coluna["idFuncionario"].'</td>'
                 .'<td align="center">'.descrCargo($coluna["idCargo"]).'</td>'
                 .'<td>'
@@ -36,136 +50,145 @@ function listaUsuario(){
                 .'</td>'
                 .'<td>'.$coluna["Email"].'</td>'
                 .'<td align="center">'.$icone.'</td>'
-                .'<td>'
-                    .'<div class="row" align="center">'
+                .'<td>';
+
+            // 5. Renderiza botões de ação condicionalmente
+            if ($isUsuarioLogado) {
+                // Botão de Perfil para o próprio usuário
+                $lista .= '<div align="center"><a href="perfil.php" class="btn btn-sm text-white" style="background-color: #2563eb;"><i class="fas fa-user"></i> Meu Perfil</a></div>';
+            } else {
+                // Botões normais (Editar/Excluir) para os outros usuários
+                $lista .= 
+                    '<div class="row" align="center">'
                         .'<div class="col-6">'
                             .'<a href="#modalEditUsuario'.$coluna["idFuncionario"].'" data-toggle="modal">'
                                 .'<h6><i class="fas fa-edit text-info" data-toggle="tooltip" title="Alterar usuário"></i></h6>'
                             .'</a>'
                         .'</div>'
-                        
                         .'<div class="col-6">'
                             .'<a href="#modalDeleteUsuario'.$coluna["idFuncionario"].'" data-toggle="modal">'
                                 .'<h6><i class="fas fa-trash text-danger" data-toggle="tooltip" title="Excluir usuário"></i></h6>'
                             .'</a>'
                         .'</div>'
-                    .'</div>'
-                .'</td>'
-            .'</tr>'
+                    .'</div>';
+            }
             
-            // MODAL DE EDIÇÃO
-            .'<div class="modal fade" id="modalEditUsuario'.$coluna["idFuncionario"].'">'
-                .'<div class="modal-dialog modal-lg">'
-                    .'<div class="modal-content">'
-                        .'<div class="modal-header text-white" style="background-color: #0b1a2c;">'
-                            .'<h4 class="modal-title">Alterar Usuário</h4>'
-                            .'<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">'
-                                .'<span aria-hidden="true">&times;</span>'
-                            .'</button>'
-                        .'</div>'
-                        .'<div class="modal-body">'
-                            .'<form method="POST" action="php/salvarFuncionario.php?funcao=A&codigo='.$coluna["idFuncionario"].'" enctype="multipart/form-data">'              
-                                .'<div class="row">'
-                                    .'<div class="col-8">'
-                                        .'<div class="form-group">'
-                                            .'<label>Nome:</label>'
-                                            .'<input type="text" value="'.$coluna["Nome"].'" class="form-control" name="nNome" maxlength="100" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>Tipo de Usuário:</label>'
-                                            .'<select name="nTipoUsuario" class="form-control" required>'
-                                                .'<option value="'.$coluna["idCargo"].'">'.descrCargo($coluna["idCargo"]).'</option>'
-                                                . optionCargo() 
-                                            .'</select>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-8">'
-                                        .'<div class="form-group">'
-                                            .'<label>E-mail (Login):</label>'
-                                            .'<input type="email" value="'.$coluna["Email"].'" class="form-control" name="nLogin" maxlength="100" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>Senha: (Deixe em branco para não alterar)</label>'
-                                            .'<input type="password" class="form-control" name="nSenha" maxlength="50">'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>CPF:</label>'
-                                            .'<input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>Telefone:</label>'
-                                            .'<input type="text" value="'.$coluna["Telefone"].'" class="form-control" name="nTelefone" maxlength="15" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>Data de Nascimento:</label>'
-                                            .'<input type="date" value="'.$coluna["Datanasc"].'" class="form-control" name="nDatanasc" required>'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-8">'
-                                        .'<div class="form-group">'
-                                            .'<label>Nova Foto:</label>'
-                                            .'<input type="file" class="form-control" name="Foto" accept="image/*">'
-                                        .'</div>'
-                                    .'</div>'
-                                    .'<div class="col-4">'
-                                        .'<div class="form-group">'
-                                            .'<label>Situação do Usuário:</label>'
-                                            .'<select name="nAtivo" class="form-control" required>'
-                                                .'<option value="S" '.($coluna["Ativo"] == 'S' ? 'selected' : '').'>Ativo (Acesso Permitido)</option>'
-                                                .'<option value="N" '.($coluna["Ativo"] == 'N' ? 'selected' : '').'>Inativo (Acesso Bloqueado)</option>'
-                                            .'</select>'
-                                        .'</div>'
-                                    .'</div>'
-                                .'</div>'
-                                .'<div class="modal-footer mt-3">'
-                                    .'<button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>'
-                                    .'<button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar Alterações</button>'
-                                .'</div>'
-                            .'</form>'
-                        .'</div>'
-                    .'</div>'
-                .'</div>'
-            .'</div>' // Fim modal edição
+            $lista .= '</td></tr>';
             
-            // MODAL DE EXCLUSÃO
-            .'<div class="modal fade" id="modalDeleteUsuario'.$coluna["idFuncionario"].'">'
-                .'<div class="modal-dialog">'
-                    .'<div class="modal-content bg-danger">'
-                        .'<div class="modal-header">'
-                            .'<h4 class="modal-title">Excluir Usuário</h4>'
-                            .'<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">'
-                                .'<span aria-hidden="true">&times;</span>'
-                            .'</button>'
-                        .'</div>'
-                        .'<div class="modal-body">'
-                            .'<p>Deseja realmente excluir o usuário <strong>'.$coluna["Nome"].'</strong>?</p>'
-                        .'</div>'
-                        .'<div class="modal-footer justify-content-between">'
-                            .'<button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancelar</button>'
-                            .'<a href="php/salvarFuncionario.php?funcao=D&codigo='.$coluna["idFuncionario"].'" class="btn btn-outline-light">Excluir</a>'
-                        .'</div>'
-                    .'</div>'
-                .'</div>'
-            .'</div>'; // Fim modal exclusão
-            
+            // 6. GERA OS MODAIS APENAS PARA OS OUTROS USUÁRIOS (Economiza processamento e HTML)
+            if (!$isUsuarioLogado) {
+                $lista .= '
+                <div class="modal fade" id="modalEditUsuario'.$coluna["idFuncionario"].'">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header text-white" style="background-color: #0b1a2c;">
+                                <h4 class="modal-title">Alterar Usuário</h4>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="php/salvarFuncionario.php?funcao=A&codigo='.$coluna["idFuncionario"].'" enctype="multipart/form-data">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="form-group">
+                                                <label>Nome:</label>
+                                                <input type="text" value="'.$coluna["Nome"].'" class="form-control" name="nNome" maxlength="100" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>Tipo de Usuário:</label>
+                                                <select name="nTipoUsuario" class="form-control" required>
+                                                    <option value="'.$coluna["idCargo"].'">'.descrCargo($coluna["idCargo"]).'</option>
+                                                    '. optionCargo() .'
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="form-group">
+                                                <label>E-mail (Login):</label>
+                                                <input type="email" value="'.$coluna["Email"].'" class="form-control" name="nLogin" maxlength="100" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>Senha: (Deixe em branco para não alterar)</label>
+                                                <input type="password" class="form-control" name="nSenha" maxlength="50">
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>CPF:</label>
+                                                <input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>Telefone:</label>
+                                                <input type="text" value="'.$coluna["Telefone"].'" class="form-control" name="nTelefone" maxlength="15" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>Data de Nascimento:</label>
+                                                <input type="date" value="'.$coluna["Datanasc"].'" class="form-control" name="nDatanasc" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="form-group">
+                                                <label>Nova Foto:</label>
+                                                <input type="file" class="form-control" name="Foto" accept="image/*">
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="form-group">
+                                                <label>Situação do Usuário:</label>
+                                                <select name="nAtivo" class="form-control" required>
+                                                    <option value="S" '.($coluna["Ativo"] == 'S' ? 'selected' : '').'>Ativo (Acesso Permitido)</option>
+                                                    <option value="N" '.($coluna["Ativo"] == 'N' ? 'selected' : '').'>Inativo (Acesso Bloqueado)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer mt-3">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn text-white" style="background-color: #2563eb;">Salvar Alterações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modalDeleteUsuario'.$coluna["idFuncionario"].'">
+                    <div class="modal-dialog">
+                        <div class="modal-content bg-danger">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Excluir Usuário</h4>
+                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Deseja realmente excluir o usuário <strong>'.$coluna["Nome"].'</strong>?</p>
+                            </div>
+                            <div class="modal-footer justify-content-between">
+                                <button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancelar</button>
+                                <a href="php/salvarFuncionario.php?funcao=D&codigo='.$coluna["idFuncionario"].'" class="btn btn-outline-light">Excluir</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>'; 
+            }
         } 
     } else {
-        // Se der erro na leitura ou a tabela não existir, mostra esta mensagem na tabela em vez de travar o PHP inteiro!
         $lista = '<tr><td colspan="6" align="center">Nenhum funcionário cadastrado ou tabela não encontrada.</td></tr>';
     }
     
     return $lista;
 }
+
 
 // =========================================================
 // Funções de Perfil (Agora seguras contra Variáveis Vazias)
