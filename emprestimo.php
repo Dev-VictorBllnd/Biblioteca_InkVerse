@@ -11,6 +11,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InkVerse - Empréstimos</title>
   <?php include('partes/css.php'); ?>
+  <!-- Select2 (busca no seletor de cliente) -->
+  <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
@@ -370,6 +373,8 @@
 </div>
 
 <?php include('partes/js.php'); ?>
+<!-- Select2 (busca no seletor de cliente) -->
+<script src="plugins/select2/js/select2.full.min.js"></script>
 
 <script>
 // Quantos livros cada cliente já tem em mãos (vindo do PHP)
@@ -384,6 +389,16 @@ $(document).ready(function () {
     "language": {
       "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json"
     }
+  });
+
+  // Seletor de cliente com busca por nome (Select2)
+  $('#iCliente').select2({
+    theme: 'bootstrap4',
+    placeholder: 'Digite ou selecione o cliente...',
+    language: {
+      noResults: function () { return 'Nenhum cliente encontrado'; }
+    },
+    dropdownParent: $('#novoEmprestimoModal')
   });
 
   // ---- Limite disponível conforme o cliente já tem em mãos ----
