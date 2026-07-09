@@ -8,7 +8,7 @@
 
 <title>Verificar Código</title>
 
-<link rel="stylesheet" href="css/verificarCodigo.css">
+<link rel="stylesheet" href="dist/css/verificarCodigo.css">
 
 </head>
 
@@ -74,7 +74,6 @@
                     <input
                     type="text"
                     name="codigo"
-                    placeholder="Digite o código"
                     maxlength="6"
                     required>
 
