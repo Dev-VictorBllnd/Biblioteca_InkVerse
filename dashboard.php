@@ -113,7 +113,7 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                     <div class="col-lg-3 col-md-6 col-6">
                         <div class="card-sistema"><div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div><div class="icon"><i class="fas fa-book-reader"></i></div></div>
                     </div>
-                    <div class="col-lg-2 col-md-6 col-12">
+                    <div class="col-lg-2 col-md-6 col-12" data-toggle="modal" data-target="#modalAtrasos" style="cursor: pointer;">
                         <div class="card-sistema card-atraso"><div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div></div>
                     </div>
                 </div>
@@ -162,59 +162,145 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                     <i class="fas fa-history mr-1"></i> Fluxo de Movimentações Recentes (Empréstimos e Devoluções)
                                 </h3>
                                 <div class="card-tools">
-    <a href="php/exportar_dashboard.php" class="btn btn-success btn-sm" style="font-weight: 500;">
-        <i class="fas fa-file-excel mr-1"></i> Exportar Completo
-    </a>
-    <button type="button" class="btn btn-info btn-sm" style="font-weight: 500;" data-toggle="modal" data-target="#modalPeriodoExcel">
-        <i class="fas fa-calendar-alt mr-1"></i> Exportar por Período
-    </button>
-</div>
+                                    <a href="php/exportar_dashboard.php" class="btn btn-success btn-sm" style="font-weight: 500;">
+                                        <i class="fas fa-file-excel mr-1"></i> Exportar Completo
+                                    </a>
+                                    <button type="button" class="btn btn-info btn-sm" style="font-weight: 500;" data-toggle="modal" data-target="#modalPeriodoExcel">
+                                        <i class="fas fa-calendar-alt mr-1"></i> Exportar por Período
+                                    </button>
+                                </div>
                             </div>
-                            <div class="modal fade" id="modalPeriodoExcel" tabindex="-1" role="dialog" aria-labelledby="modalPeriodoExcelLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #0b1a2c; color: white;">
-                <h5 class="modal-title" id="modalPeriodoExcelLabel"><i class="fas fa-file-excel mr-2"></i>Exportar Histórico por Período</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="php/exportar_periodo.php" method="GET">
-                <div class="modal-body">
-                    <p class="text-muted small">Escolha o intervalo de datas baseado na **Data do Empréstimo**.</p>
-                    <div class="form-group row">
-                        <div class="col-md-6">
-                            <label for="data_inicio">Data Inicial:</label>
-                            <input type="date" id="data_inicio" name="data_inicio" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="data_fim">Data Final:</label>
-                            <input type="date" id="data_fim" name="data_fim" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success"><i class="fas fa-download mr-1"></i> Gerar Excel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<script>
-// Opcional: Validação básica para impedir que a data final seja menor que a inicial
-document.querySelector('#modalPeriodoExcel form').addEventListener('submit', function(e) {
-    const inicio = document.getElementById('data_inicio').value;
-    const fim = document.getElementById('data_fim').value;
-    if (inicio && fim && inicio > fim) {
-        e.preventDefault();
-        alert('A data inicial não pode ser maior que a data final!');
-    }
-});
-</script>
+                            <!-- Modal Excel por Período -->
+                            <div class="modal fade" id="modalPeriodoExcel" tabindex="-1" role="dialog" aria-labelledby="modalPeriodoExcelLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #0b1a2c; color: white;">
+                                            <h5 class="modal-title" id="modalPeriodoExcelLabel"><i class="fas fa-file-excel mr-2"></i>Exportar Histórico por Período</h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <form action="php/exportar_periodo.php" method="GET">
+                                            <div class="modal-body">
+                                                <p class="text-muted small">Escolha o intervalo de datas baseado na **Data do Empréstimo**.</p>
+                                                <div class="form-group row">
+                                                    <div class="col-md-6">
+                                                        <label for="data_inicio">Data Inicial:</label>
+                                                        <input type="date" id="data_inicio" name="data_inicio" class="form-control" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="data_fim">Data Final:</label>
+                                                        <input type="date" id="data_fim" name="data_fim" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-success"><i class="fas fa-download mr-1"></i> Gerar Excel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal de Clientes em Atraso -->
+                            <div class="modal fade" id="modalAtrasos" tabindex="-1" role="dialog" aria-labelledby="modalAtrasosLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #721c24; color: white;">
+                                            <h5 class="modal-title" id="modalAtrasosLabel">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i> Relatório Prático de Empréstimos em Atraso
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 450px; overflow-y: auto;">
+                                            <table class="table table-hover m-0">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Cliente</th>
+                                                        <th>Livro / Cópia</th>
+                                                        <th>Data Empréstimo</th>
+                                                        <th>Prazo Limite</th>
+                                                        <th class="text-center">Ação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    // Adicionado c.Telefone na busca para integração com WhatsApp
+                                                    $qListaAtrasos = mysqli_query($conn, "
+                                                        SELECT 
+                                                            c.Nome AS cliente,
+                                                            c.Telefone AS telefone,
+                                                            l.Titulo AS livro,
+                                                            ehe.idExemplar AS copia,
+                                                            ehe.Data_emprestimo AS data_acao,
+                                                            ehe.data_prevista AS prazo
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL AND ehe.data_prevista < NOW()
+                                                        ORDER BY ehe.data_prevista ASC
+                                                    ");
+
+                                                    if(mysqli_num_rows($qListaAtrasos) == 0){
+                                                        echo '<tr><td colspan="5" class="text-center text-muted p-4">Nenhum empréstimo em atraso hoje! 🎉</td></tr>';
+                                                    } else {
+                                                        while($atraso = mysqli_fetch_assoc($qListaAtrasos)){
+                                                            $diasAtraso = floor((time() - strtotime($atraso['prazo'])) / (60 * 60 * 24));
+                                                            
+                                                            // Configuração do link dinâmico do WhatsApp
+                                                            $primeiroNome = explode(' ', trim($atraso['cliente']))[0];
+                                                            $dataPrazoStr = date('d/m/Y', strtotime($atraso['prazo']));
+                                                            
+                                                            // Remove qualquer caractere que não seja número do telefone
+                                                            $numeroLimpo = preg_replace('/[^0-9]/', '', $atraso['telefone']);
+                                                            
+                                                            // Insere o código do país (55) caso não esteja salvo no banco
+                                                            if(strlen($numeroLimpo) == 10 || strlen($numeroLimpo) == 11) {
+                                                                $numeroLimpo = '55' . $numeroLimpo;
+                                                            }
+
+                                                            // Mensagem padrão formatada
+                                                            $mensagem = "Olá, {$primeiroNome}! Passando para lembrar sobre a devolução do livro *{$atraso['livro']}*, que estava prevista para {$dataPrazoStr}. Qualquer dúvida, estamos à disposição na biblioteca!";
+                                                            $linkWhats = "https://api.whatsapp.com/send?phone={$numeroLimpo}&text=" . urlencode($mensagem);
+                                                    ?>
+                                                            <tr>
+                                                                <td><strong><?php echo $atraso['cliente']; ?></strong></td>
+                                                                <td><?php echo $atraso['livro']; ?> <small class="text-muted">(Cód. <?php echo $atraso['copia']; ?>)</small></td>
+                                                                <td><?php echo date('d/m/Y', strtotime($atraso['data_acao'])); ?></td>
+                                                                <td>
+                                                                    <span class="text-danger font-weight-bold">
+                                                                        <?php echo $dataPrazoStr; ?>
+                                                                    </span>
+                                                                    <small class="badge badge-danger ml-1"><?php echo $diasAtraso; ?>d atrás</small>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <a href="<?php echo $linkWhats; ?>" target="_blank" class="btn btn-xs btn-outline-danger" title="Notificar no WhatsApp">
+                                                                        <i class="fab fa-whatsapp"></i> Cobrar
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                    <?php 
+                                                        }
+                                                    } 
+                                                    ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card-body table-responsive p-0">
-                                <table class="table table-hover text-nowrap table-striped">
+                                <table id="tabelaMovimentacoes" class="table table-hover text-nowrap">
                                     <thead>
                                         <tr>
                                             <th>Cód. Controle</th>
@@ -242,7 +328,6 @@ document.querySelector('#modalPeriodoExcel form').addEventListener('submit', fun
                                             JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
                                             JOIN livro l ON ex.idLivro = l.idLivro
                                             ORDER BY ehe.Data_emprestimo DESC 
-                                            LIMIT 10
                                         ");
 
                                         while($mov = mysqli_fetch_assoc($queryMovimentacoes)){
@@ -280,8 +365,35 @@ document.querySelector('#modalPeriodoExcel form').addEventListener('submit', fun
 
 <?php include('partes/js.php'); ?>
 
+<link class="script-dependency" rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script class="script-dependency" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script class="script-dependency" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // --- SCRIPT DO VALIDADOR DE EXCEL ---
+    const formExcel = document.querySelector('#modalPeriodoExcel form');
+    if(formExcel) {
+        formExcel.addEventListener('submit', function(e) {
+            const inicio = document.getElementById('data_inicio').value;
+            const fim = document.getElementById('data_fim').value;
+            if (inicio && fim && inicio > fim) {
+                e.preventDefault();
+                alert('A data inicial não pode ser maior que a data final!');
+            }
+        });
+    }
+
+    // --- INICIALIZAÇÃO DO DATATABLES ---
+    $('#tabelaMovimentacoes').DataTable({
+        "pageLength": 10,
+        "order": [[ 0, "desc" ]],
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+        }
+    });
+
+    // --- GRÁFICOS ---
     const azulSistema = '#0b1a2c';
     const paletaDeAzuis = ['#0b1a2c', '#1a3350', '#2e4f77', '#466fa1', '#6393cc', '#8cb4e6'];
 
