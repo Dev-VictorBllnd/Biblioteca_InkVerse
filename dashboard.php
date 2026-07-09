@@ -77,6 +77,10 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         /* Cor de destaque avermelhada e suave para o card de atraso mantendo a identidade visual */
         .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
         .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
+
+        /* Ajustes visuais para os componentes do DataTables dentro do Modal */
+        #modalAtrasos .dataTables_wrapper { padding: 15px; }
+        #modalAtrasos .dataTables_filter { text-align: right; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -216,8 +220,9 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                 <span aria-hidden="true">&times;</span>
                                             </button>
                                         </div>
-                                        <div class="modal-body p-0" style="max-height: 450px; overflow-y: auto;">
-                                            <table class="table table-hover m-0">
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <!-- Foi adicionado o ID tabelaAtrasos aqui para mapeamento do DataTables -->
+                                            <table id="tabelaAtrasos" class="table table-hover m-0" style="width: 100%;">
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th>Cliente</th>
@@ -247,9 +252,7 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                         ORDER BY ehe.data_prevista ASC
                                                     ");
 
-                                                    if(mysqli_num_rows($qListaAtrasos) == 0){
-                                                        echo '<tr><td colspan="5" class="text-center text-muted p-4">Nenhum empréstimo em atraso hoje! 🎉</td></tr>';
-                                                    } else {
+                                                    if(mysqli_num_rows($qListaAtrasos) > 0) {
                                                         while($atraso = mysqli_fetch_assoc($qListaAtrasos)){
                                                             $diasAtraso = floor((time() - strtotime($atraso['prazo'])) / (60 * 60 * 24));
                                                             
@@ -384,7 +387,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- INICIALIZAÇÃO DO DATATABLES ---
+    // --- INICIALIZAÇÃO DO DATATABLES - MOVIMENTAÇÕES ---
     $('#tabelaMovimentacoes').DataTable({
         "pageLength": 10,
         "order": [[ 0, "desc" ]],
@@ -392,6 +395,21 @@ document.addEventListener("DOMContentLoaded", function () {
             "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
         }
     });
+
+    // --- INICIALIZAÇÃO DO DATATABLES - MODAL DE ATRASOS ---
+    $('#tabelaAtrasos').DataTable({
+        "pageLength": 5, // Exibe 5 por página para caber bem no modal
+        "order": [[ 3, "asc" ]], // Ordena pelo prazo mais crítico primeiro
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
+        }
+    });
+
+    // Forçar o ajuste das colunas quando o modal abrir (evita desalinhamento de cabeçalho do DataTable)
+    $('#modalAtrasos').on('shown.bs.modal', function () {
+        $('#tabelaAtrasos').DataTable().columns.adjust();
+    });
+
 
     // --- GRÁFICOS ---
     const azulSistema = '#0b1a2c';
