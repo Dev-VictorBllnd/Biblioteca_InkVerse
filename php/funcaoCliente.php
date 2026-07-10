@@ -3,7 +3,27 @@
 function listaClientes(){
 
     include("conexao.php");
-    $sql = "SELECT * FROM cliente ORDER BY idCliente;";
+  
+$sql = "SELECT c.*, 
+            (
+                -- 1. Soma multas antigas já registradas na tabela emprestimo
+                SELECT COALESCE(SUM(e.multa), 0) 
+                FROM emprestimo e 
+                WHERE e.idCliente = c.idCliente
+            ) 
+            + 
+            (
+                -- 2. Calcula a multa em TEMPO REAL (-1 dia para remover a diferença)
+                SELECT COALESCE(SUM( (DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00), 0)
+                FROM emprestimo e
+                INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+                WHERE e.idCliente = c.idCliente
+                  AND ehe.Data_devolucao IS NULL 
+                  AND ehe.data_prevista < CURDATE()
+            ) AS TotalMulta
+            
+            FROM cliente c
+            ORDER BY c.idCliente;";
             
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
@@ -15,6 +35,9 @@ function listaClientes(){
     if ($result && mysqli_num_rows($result) > 0) {
         
         foreach ($result as $coluna) {
+
+            // Formata o valor da multa para o padrão brasileiro (R$ 0,00)
+            $valorMultaFormatado = 'R$ ' . number_format($coluna["TotalMulta"], 2, ',', '.');
 
             if ($coluna["Ativo"] == 'S') {
                 $icone = '<h5><span class="badge text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Ativo</span></h5>';
@@ -29,6 +52,7 @@ function listaClientes(){
                 .'<td>'.$coluna["Email"].'</td>'
                 .'<td>'.$coluna["Cpf"].'</td>'
                 .'<td>'.$coluna["Telefone"].'</td>'
+                .'<td align="center" class="text-danger font-weight-bold">'.$valorMultaFormatado.'</td>' /* NOVA COLUNA DA MULTA AQUI */
                 .'<td align="center">'.$icone.'</td>'
                 .'<td>'
                     .'<div class="row" align="center">'
