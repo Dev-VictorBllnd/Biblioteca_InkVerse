@@ -9,7 +9,7 @@ $_SESSION['menu-n1'] = 'biblioteca';
 $_SESSION['menu-n2'] = 'dashboard';
 
 /* CARDS INDICADORES */
-$qLivros = mysqli_query($conn,"SELECT COUNT(*) total FROM livro");
+$qLivros = mysqli_query($conn,"SELECT COUNT(*) total FROM exemplar");
 $totalLivros = mysqli_fetch_assoc($qLivros)['total'];
 
 $qClientes = mysqli_query($conn,"SELECT COUNT(*) total FROM cliente");
@@ -19,7 +19,6 @@ $qEmprestimos = mysqli_query($conn,"SELECT COUNT(*) total FROM emprestimo_has_ex
 $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
 // Conta os exemplares fisicamente fora pelos registros reais de empréstimo (não pela flag, que pode desencontrar)
-// DISTINCT evita contar a mesma cópia duas vezes caso existam registros duplicados antigos
 $qExemplares = mysqli_query($conn,"SELECT COUNT(DISTINCT idExemplar) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
@@ -68,7 +67,7 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         body { font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         .card { box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.1); border-radius: 0.25rem; margin-bottom: 20px; }
         .card-sistema { background-color: #0b1a2c !important; color: #ffffff !important; position: relative; display: block; margin-bottom: 20px; border-radius: 0.25rem; box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.3); transition: transform 0.2s; }
-        .card-sistema:hover { transform: translateY(-3px); }
+        .card-sistema:hover { transform: translateY(-3px); text-decoration: none; color: #fff !important; filter: brightness(115%); }
         .card-sistema .inner { padding: 15px 20px; }
         .card-sistema h3 { font-size: 2.2rem; font-weight: 700; margin: 0 0 5px 0; }
         .card-sistema p { font-size: 1rem; margin-bottom: 0; opacity: 0.8; }
@@ -78,9 +77,9 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
         .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
 
-        /* Ajustes visuais para os componentes do DataTables dentro do Modal */
-        #modalAtrasos .dataTables_wrapper { padding: 15px; }
-        #modalAtrasos .dataTables_filter { text-align: right; }
+        /* Ajustes visuais para os componentes do DataTables dentro dos Modais */
+        .modal .dataTables_wrapper { padding: 15px; }
+        .modal .dataTables_filter { text-align: right; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -93,9 +92,13 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
     <div class="content-wrapper">
         <div class="content-header">
             <div class="container-fluid">
-                <div class="row mb-2">
+                <div class="row mb-2 align-items-center">
                     <div class="col-sm-6">
                         <h1 class="m-0" style="color: #0b1a2c; font-weight: 600;">Painel de Controle Estatístico</h1>
+                    </div>
+                    <div class="col-sm-6 text-right">
+                        <label for="filtroMesOculos" class="mr-2 font-weight-bold text-muted small"><i class="fas fa-filter mr-1"></i> FILTRAR MÊS:</label>
+                        <input type="month" id="filtroMesOculos" class="form-control d-inline-block" style="max-width: 200px; color: #0b1a2c; font-weight: 500;">
                     </div>
                 </div>
             </div>
@@ -105,20 +108,40 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
             <div class="container-fluid">
 
                 <div class="row">
+                    <!-- Card Livros - Redireciona para livros.php -->
                     <div class="col-lg-2 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div><div class="icon"><i class="fas fa-book"></i></div></div>
+                        <a href="livros.php" class="card-sistema" style="cursor: pointer;">
+                            <div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div>
+                            <div class="icon"><i class="fas fa-book"></i></div>
+                        </a>
                     </div>
+                    <!-- Card Clientes - Redireciona para clientes.php -->
                     <div class="col-lg-2 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div><div class="icon"><i class="fas fa-users"></i></div></div>
+                        <a href="clientes.php" class="card-sistema" style="cursor: pointer;">
+                            <div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div>
+                            <div class="icon"><i class="fas fa-users"></i></div>
+                        </a>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div><div class="icon"><i class="fas fa-exchange-alt"></i></div></div>
+                    <!-- Card Empréstimos Ativos - Abre Modal Empréstimos Ativos -->
+                    <div class="col-lg-3 col-md-4 col-6" data-toggle="modal" data-target="#modalEmprestimosAtivos" style="cursor: pointer;">
+                        <div class="card-sistema">
+                            <div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div>
+                            <div class="icon"><i class="fas fa-exchange-alt"></i></div>
+                        </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div><div class="icon"><i class="fas fa-book-reader"></i></div></div>
+                    <!-- Card Exemplares Fora - Abre Modal Exemplares Fora -->
+                    <div class="col-lg-3 col-md-6 col-6" data-toggle="modal" data-target="#modalExemplaresFora" style="cursor: pointer;">
+                        <div class="card-sistema">
+                            <div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div>
+                            <div class="icon"><i class="fas fa-book-reader"></i></div>
+                        </div>
                     </div>
+                    <!-- Card Em Atraso - Abre Modal Atrasos -->
                     <div class="col-lg-2 col-md-6 col-12" data-toggle="modal" data-target="#modalAtrasos" style="cursor: pointer;">
-                        <div class="card-sistema card-atraso"><div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div></div>
+                        <div class="card-sistema card-atraso">
+                            <div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div>
+                            <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        </div>
                     </div>
                 </div>
 
@@ -208,6 +231,112 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 </div>
                             </div>
 
+                            <!-- NOVO MODAL: Empréstimos Ativos -->
+                            <div class="modal fade" id="modalEmprestimosAtivos" tabindex="-1" role="dialog" aria-labelledby="modalEmprestimosAtivosLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #0b1a2c; color: white;">
+                                            <h5 class="modal-title" id="modalEmprestimosAtivosLabel">
+                                                <i class="fas fa-exchange-alt mr-2"></i> Listagem de Empréstimos Ativos
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <table id="tabelaEmprestimosAtivos" class="table table-hover m-0" style="width: 100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Cliente</th>
+                                                        <th>Livro (Cópia)</th>
+                                                        <th>Data Retirada</th>
+                                                        <th>Prazo Limite</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $qAtivos = mysqli_query($conn, "
+                                                        SELECT c.Nome as cliente, l.Titulo as livro, ehe.idExemplar as copia, ehe.Data_emprestimo as data_acao, ehe.data_prevista as prazo 
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL
+                                                        ORDER BY ehe.Data_emprestimo DESC
+                                                    ");
+                                                    while($atv = mysqli_fetch_assoc($qAtivos)){
+                                                    ?>
+                                                        <tr>
+                                                            <td><strong><?php echo $atv['cliente']; ?></strong></td>
+                                                            <td><?php echo $atv['livro']; ?> <small class="text-muted">(Cód. <?php echo $atv['copia']; ?>)</small></td>
+                                                            <td><?php echo date('d/m/Y H:i', strtotime($atv['data_acao'])); ?></td>
+                                                            <td><?php echo date('d/m/Y', strtotime($atv['prazo'])); ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- NOVO MODAL: Exemplares Fora -->
+                            <div class="modal fade" id="modalExemplaresFora" tabindex="-1" role="dialog" aria-labelledby="modalExemplaresForaLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #1a3350; color: white;">
+                                            <h5 class="modal-title" id="modalExemplaresForaLabel">
+                                                <i class="fas fa-book-reader mr-2"></i> Livros Atualmente Fora do Acervo
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <table id="tabelaExemplaresFora" class="table table-hover m-0" style="width: 100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Código Cópia</th>
+                                                        <th>Título do Livro</th>
+                                                        <th>Retirado por</th>
+                                                        <th>Data de Saída</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $qFora = mysqli_query($conn, "
+                                                        SELECT ehe.idExemplar as copia, l.Titulo as livro, c.Nome as cliente, ehe.Data_emprestimo as data_acao
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL
+                                                        ORDER BY ehe.idExemplar ASC
+                                                    ");
+                                                    while($fra = mysqli_fetch_assoc($qFora)){
+                                                    ?>
+                                                        <tr>
+                                                            <td><span class="badge badge-dark">#<?php echo $fra['copia']; ?></span></td>
+                                                            <td><strong><?php echo $fra['livro']; ?></strong></td>
+                                                            <td><?php echo $fra['cliente']; ?></td>
+                                                            <td><?php echo date('d/m/Y H:i', strtotime($fra['data_acao'])); ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Modal de Clientes em Atraso -->
                             <div class="modal fade" id="modalAtrasos" tabindex="-1" role="dialog" aria-labelledby="modalAtrasosLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -221,7 +350,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                             </button>
                                         </div>
                                         <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
-                                            <!-- Foi adicionado o ID tabelaAtrasos aqui para mapeamento do DataTables -->
                                             <table id="tabelaAtrasos" class="table table-hover m-0" style="width: 100%;">
                                                 <thead class="thead-light">
                                                     <tr>
@@ -234,7 +362,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    // Adicionado c.Telefone na busca para integração com WhatsApp
                                                     $qListaAtrasos = mysqli_query($conn, "
                                                         SELECT 
                                                             c.Nome AS cliente,
@@ -256,19 +383,14 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                         while($atraso = mysqli_fetch_assoc($qListaAtrasos)){
                                                             $diasAtraso = floor((time() - strtotime($atraso['prazo'])) / (60 * 60 * 24));
                                                             
-                                                            // Configuração do link dinâmico do WhatsApp
                                                             $primeiroNome = explode(' ', trim($atraso['cliente']))[0];
                                                             $dataPrazoStr = date('d/m/Y', strtotime($atraso['prazo']));
                                                             
-                                                            // Remove qualquer caractere que não seja número do telefone
                                                             $numeroLimpo = preg_replace('/[^0-9]/', '', $atraso['telefone']);
-                                                            
-                                                            // Insere o código do país (55) caso não esteja salvo no banco
                                                             if(strlen($numeroLimpo) == 10 || strlen($numeroLimpo) == 11) {
                                                                 $numeroLimpo = '55' . $numeroLimpo;
                                                             }
 
-                                                            // Mensagem padrão formatada
                                                             $mensagem = "Olá, {$primeiroNome}! Passando para lembrar sobre a devolução do livro *{$atraso['livro']}*, que estava prevista para {$dataPrazoStr}. Qualquer dúvida, estamos à disposição na biblioteca!";
                                                             $linkWhats = "https://api.whatsapp.com/send?phone={$numeroLimpo}&text=" . urlencode($mensagem);
                                                     ?>
@@ -388,26 +510,43 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // --- INICIALIZAÇÃO DO DATATABLES - MOVIMENTAÇÕES ---
-    $('#tabelaMovimentacoes').DataTable({
+    const tabelaMov = $('#tabelaMovimentacoes').DataTable({
         "pageLength": 10,
         "order": [[ 0, "desc" ]],
-        "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
-        }
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
     });
 
-    // --- INICIALIZAÇÃO DO DATATABLES - MODAL DE ATRASOS ---
+    // --- LÓGICA DO FILTRO POR MÊS ---
+    document.getElementById('filtroMesOculos').addEventListener('change', function() {
+        const val = this.value; 
+        if (!val) { tabelaMov.column(3).search('').draw(); return; }
+        const partes = val.split('-');
+        const mesAnoFormatado = partes[1] + '/' + partes[0];
+        tabelaMov.column(3).search(mesAnoFormatado).draw();
+    });
+
+    // --- INICIALIZAÇÃO DOS NOVOS DATATABLES ---
+    $('#tabelaEmprestimosAtivos').DataTable({
+        "pageLength": 5,
+        "order": [[ 2, "desc" ]],
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
+    $('#tabelaExemplaresFora').DataTable({
+        "pageLength": 5,
+        "order": [[ 0, "asc" ]],
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
     $('#tabelaAtrasos').DataTable({
-        "pageLength": 5, // Exibe 5 por página para caber bem no modal
-        "order": [[ 3, "asc" ]], // Ordena pelo prazo mais crítico primeiro
-        "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json"
-        }
+        "pageLength": 5, 
+        "order": [[ 3, "asc" ]], 
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
     });
 
-    // Forçar o ajuste das colunas quando o modal abrir (evita desalinhamento de cabeçalho do DataTable)
-    $('#modalAtrasos').on('shown.bs.modal', function () {
-        $('#tabelaAtrasos').DataTable().columns.adjust();
+    // Ajustar o layout do grid interno dos tabelas quando qualquer modal carregar
+    $('.modal').on('shown.bs.modal', function () {
+        $(this).find('table').DataTable().columns.adjust();
     });
 
 
