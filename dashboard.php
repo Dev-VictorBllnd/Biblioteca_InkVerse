@@ -18,38 +18,30 @@ $totalClientes = mysqli_fetch_assoc($qClientes)['total'];
 $qEmprestimos = mysqli_query($conn,"SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
-// Conta os exemplares fisicamente fora pelos registros reais de empréstimo (não pela flag, que pode desencontrar)
 $qExemplares = mysqli_query($conn,"SELECT COUNT(DISTINCT idExemplar) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
-// Nova Consulta: Conta empréstimos onde a data prevista já passou e não foi devolvido
 $qAtrasos = mysqli_query($conn, "SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL AND data_prevista < NOW()");
 $totalAtrasos = mysqli_fetch_assoc($qAtrasos)['total'];
 
 
 /* DADOS PARA OS GRÁFICOS */
-
-// 1. Empréstimos por Gênero (Donut)
 $g_labels = []; $g_valores = [];
 $qGeneros = mysqli_query($conn, "SELECT g.Descricao, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar JOIN livro l ON ex.idLivro = l.idLivro JOIN genero g ON l.idGenero = g.idGenero GROUP BY g.idGenero");
 while($r = mysqli_fetch_assoc($qGeneros)) { $g_labels[] = $r['Descricao']; $g_valores[] = (int)$r['total']; }
 
-// 2. Evolução Mensal (Linha)
 $m_labels = []; $m_valores = [];
 $qMeses = mysqli_query($conn, "SELECT DATE_FORMAT(Data_emprestimo, '%m/%Y') as mes_ano, COUNT(*) as total FROM emprestimo_has_exemplar GROUP BY mes_ano ORDER BY Data_emprestimo ASC LIMIT 6");
 while($r = mysqli_fetch_assoc($qMeses)) { $m_labels[] = $r['mes_ano']; $m_valores[] = (int)$r['total']; }
 
-// 3. Top Clientes (Barras Horizontais)
 $c_labels = []; $c_valores = [];
 $qTopClientes = mysqli_query($conn, "SELECT c.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN cliente c ON e.idCliente = c.idCliente GROUP BY c.idCliente ORDER BY total DESC LIMIT 5");
 while($r = mysqli_fetch_assoc($qTopClientes)) { $c_labels[] = $r['Nome']; $c_valores[] = (int)$r['total']; }
 
-// 4. Atendimentos por Funcionário (Radar)
 $f_labels = []; $f_valores = [];
 $qTopFunc = mysqli_query($conn, "SELECT f.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN funcionario f ON e.idFuncionario = f.idFuncionario GROUP BY f.idFuncionario");
 while($r = mysqli_fetch_assoc($qTopFunc)) { $f_labels[] = $r['Nome']; $f_valores[] = (int)$r['total']; }
 
-// 5. Livros Adicionados por Ano de Publicação (Barras Verticais)
 $a_labels = []; $a_valores = [];
 $qAnosLivros = mysqli_query($conn, "SELECT ano, COUNT(*) as total FROM livro GROUP BY ano ORDER BY ano ASC LIMIT 6");
 while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valores[] = (int)$r['total']; }
@@ -73,13 +65,14 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         .card-sistema p { font-size: 1rem; margin-bottom: 0; opacity: 0.8; }
         .card-sistema .icon { position: absolute; top: 15px; right: 20px; font-size: 40px; color: rgba(58, 137, 222, 0.25); }
         
-        /* Cor de destaque avermelhada e suave para o card de atraso mantendo a identidade visual */
         .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
         .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
 
-        /* Ajustes visuais para os componentes do DataTables dentro dos Modais */
         .modal .dataTables_wrapper { padding: 15px; }
         .modal .dataTables_filter { text-align: right; }
+        
+        /* Ajuste do container de filtros superiores */
+        .filtro-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -93,12 +86,44 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         <div class="content-header">
             <div class="container-fluid">
                 <div class="row mb-2 align-items-center">
-                    <div class="col-sm-6">
+                    <div class="col-sm-5">
                         <h1 class="m-0" style="color: #0b1a2c; font-weight: 600;">Painel de Controle Estatístico</h1>
                     </div>
-                    <div class="col-sm-6 text-right">
-                        <label for="filtroMesOculos" class="mr-2 font-weight-bold text-muted small"><i class="fas fa-filter mr-1"></i> FILTRAR MÊS:</label>
-                        <input type="month" id="filtroMesOculos" class="form-control d-inline-block" style="max-width: 200px; color: #0b1a2c; font-weight: 500;">
+                    <div class="col-sm-7">
+                        <div class="filtro-container">
+                            <span class="font-weight-bold text-muted small"><i class="fas fa-filter mr-1"></i> FILTRAR PERÍODO:</span>
+                            
+                            <div class="input-group d-inline-flex" style="max-width: 280px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px;">
+                                <select id="filtroMes" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                    <option value="">Mês ---</option>
+                                    <option value="01">Jan</option>
+                                    <option value="02">Fev</option>
+                                    <option value="03">Mar</option>
+                                    <option value="04">Abr</option>
+                                    <option value="05">Mai</option>
+                                    <option value="06">Jun</option>
+                                    <option value="07">Jul</option>
+                                    <option value="08">Ago</option>
+                                    <option value="09">Set</option>
+                                    <option value="10">Out</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dez</option>
+                                </select>
+                                
+                                <div class="input-group-prepend input-group-append">
+                                    <span class="input-group-text bg-white text-muted small border-left-0 border-right-0" style="font-weight: 500;">de</span>
+                                </div>
+
+                                <select id="filtroAno" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                    <option value="">Ano ---</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -108,35 +133,30 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
             <div class="container-fluid">
 
                 <div class="row">
-                    <!-- Card Livros - Redireciona para livros.php -->
                     <div class="col-lg-2 col-md-4 col-6">
                         <a href="livros.php" class="card-sistema" style="cursor: pointer;">
                             <div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div>
                             <div class="icon"><i class="fas fa-book"></i></div>
                         </a>
                     </div>
-                    <!-- Card Clientes - Redireciona para clientes.php -->
                     <div class="col-lg-2 col-md-4 col-6">
                         <a href="clientes.php" class="card-sistema" style="cursor: pointer;">
                             <div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div>
                             <div class="icon"><i class="fas fa-users"></i></div>
                         </a>
                     </div>
-                    <!-- Card Empréstimos Ativos - Abre Modal Empréstimos Ativos -->
                     <div class="col-lg-3 col-md-4 col-6" data-toggle="modal" data-target="#modalEmprestimosAtivos" style="cursor: pointer;">
                         <div class="card-sistema">
                             <div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div>
                             <div class="icon"><i class="fas fa-exchange-alt"></i></div>
                         </div>
                     </div>
-                    <!-- Card Exemplares Fora - Abre Modal Exemplares Fora -->
                     <div class="col-lg-3 col-md-6 col-6" data-toggle="modal" data-target="#modalExemplaresFora" style="cursor: pointer;">
                         <div class="card-sistema">
                             <div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div>
                             <div class="icon"><i class="fas fa-book-reader"></i></div>
                         </div>
                     </div>
-                    <!-- Card Em Atraso - Abre Modal Atrasos -->
                     <div class="col-lg-2 col-md-6 col-12" data-toggle="modal" data-target="#modalAtrasos" style="cursor: pointer;">
                         <div class="card-sistema card-atraso">
                             <div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div>
@@ -198,7 +218,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 </div>
                             </div>
 
-                            <!-- Modal Excel por Período -->
                             <div class="modal fade" id="modalPeriodoExcel" tabindex="-1" role="dialog" aria-labelledby="modalPeriodoExcelLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered" role="document">
                                     <div class="modal-content">
@@ -231,7 +250,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 </div>
                             </div>
 
-                            <!-- NOVO MODAL: Empréstimos Ativos -->
                             <div class="modal fade" id="modalEmprestimosAtivos" tabindex="-1" role="dialog" aria-labelledby="modalEmprestimosAtivosLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                                     <div class="modal-content">
@@ -284,7 +302,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 </div>
                             </div>
 
-                            <!-- NOVO MODAL: Exemplares Fora -->
                             <div class="modal fade" id="modalExemplaresFora" tabindex="-1" role="dialog" aria-labelledby="modalExemplaresForaLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                                     <div class="modal-content">
@@ -337,7 +354,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                 </div>
                             </div>
 
-                            <!-- Modal de Clientes em Atraso -->
                             <div class="modal fade" id="modalAtrasos" tabindex="-1" role="dialog" aria-labelledby="modalAtrasosLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                                     <div class="modal-content">
@@ -496,7 +512,6 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // --- SCRIPT DO VALIDADOR DE EXCEL ---
     const formExcel = document.querySelector('#modalPeriodoExcel form');
     if(formExcel) {
         formExcel.addEventListener('submit', function(e) {
@@ -516,16 +531,36 @@ document.addEventListener("DOMContentLoaded", function () {
         "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
     });
 
-    // --- LÓGICA DO FILTRO POR MÊS ---
-    document.getElementById('filtroMesOculos').addEventListener('change', function() {
-        const val = this.value; 
-        if (!val) { tabelaMov.column(3).search('').draw(); return; }
-        const partes = val.split('-');
-        const mesAnoFormatado = partes[1] + '/' + partes[0];
-        tabelaMov.column(3).search(mesAnoFormatado).draw();
-    });
+    // --- LÓGICA DE FILTRO COMBINADO (MÊS + ANO) ---
+    function aplicarFiltroPeriodo() {
+        const mes = document.getElementById('filtroMes').value;
+        const ano = document.getElementById('filtroAno').value;
+        
+        if (!mes && !ano) {
+            tabelaMov.column(3).search('').draw();
+            return;
+        }
+        
+        let stringBusca = "";
+        if (mes && ano) {
+            stringBusca = mes + '/' + ano;
+        } else if (ano) {
+            stringBusca = '/' + ano;
+        } else if (mes) {
+            stringBusca = mes + '/';
+        }
+        
+        tabelaMov.column(3).search(stringBusca).draw();
+    }
 
-    // --- INICIALIZAÇÃO DOS NOVOS DATATABLES ---
+    // Escuta alterações nos dois selects
+    document.getElementById('filtroMes').addEventListener('change', aplicarFiltroPeriodo);
+    document.getElementById('filtroAno').addEventListener('change', aplicarFiltroPeriodo);
+
+    // Inicializa filtrando por 2026 automaticamente no carregamento inicial
+    aplicarFiltroPeriodo();
+
+    // --- INICIALIZAÇÃO DOS OUTROS DATATABLES ---
     $('#tabelaEmprestimosAtivos').DataTable({
         "pageLength": 5,
         "order": [[ 2, "desc" ]],
@@ -544,17 +579,14 @@ document.addEventListener("DOMContentLoaded", function () {
         "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
     });
 
-    // Ajustar o layout do grid interno dos tabelas quando qualquer modal carregar
     $('.modal').on('shown.bs.modal', function () {
         $(this).find('table').DataTable().columns.adjust();
     });
-
 
     // --- GRÁFICOS ---
     const azulSistema = '#0b1a2c';
     const paletaDeAzuis = ['#0b1a2c', '#1a3350', '#2e4f77', '#466fa1', '#6393cc', '#8cb4e6'];
 
-    // 1. GRÁFICO LINHA
     new Chart(document.getElementById('graficoMensal').getContext('2d'), {
         type: 'line',
         data: {
@@ -564,14 +596,12 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 
-    // 2. GRÁFICO DONUT
     new Chart(document.getElementById('graficoGeneros').getContext('2d'), {
         type: 'doughnut',
         data: { labels: <?php echo json_encode($g_labels); ?>, datasets: [{ data: <?php echo json_encode($g_valores); ?>, backgroundColor: paletaDeAzuis }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
     });
 
-    // 3. BARRAS HORIZONTAIS
     new Chart(document.getElementById('graficoTopClientes').getContext('2d'), {
         type: 'bar',
         data: {
@@ -581,7 +611,6 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 
-    // 4. RADAR
     new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
         type: 'radar',
         data: {
@@ -591,7 +620,6 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } } }
     });
 
-    // 5. BARRAS VERTICAIS
     new Chart(document.getElementById('graficoAnos').getContext('2d'), {
         type: 'bar',
         data: {
