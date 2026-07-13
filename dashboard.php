@@ -9,7 +9,7 @@ $_SESSION['menu-n1'] = 'biblioteca';
 $_SESSION['menu-n2'] = 'dashboard';
 
 /* CARDS INDICADORES */
-$qLivros = mysqli_query($conn,"SELECT COUNT(*) total FROM livro");
+$qLivros = mysqli_query($conn,"SELECT COUNT(*) total FROM exemplar");
 $totalLivros = mysqli_fetch_assoc($qLivros)['total'];
 
 $qClientes = mysqli_query($conn,"SELECT COUNT(*) total FROM cliente");
@@ -18,39 +18,30 @@ $totalClientes = mysqli_fetch_assoc($qClientes)['total'];
 $qEmprestimos = mysqli_query($conn,"SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
-// Conta os exemplares fisicamente fora pelos registros reais de empréstimo (não pela flag, que pode desencontrar)
-// DISTINCT evita contar a mesma cópia duas vezes caso existam registros duplicados antigos
 $qExemplares = mysqli_query($conn,"SELECT COUNT(DISTINCT idExemplar) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
 $totalExemplares = mysqli_fetch_assoc($qExemplares)['total'];
 
-// Nova Consulta: Conta empréstimos onde a data prevista já passou e não foi devolvido
 $qAtrasos = mysqli_query($conn, "SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL AND data_prevista < NOW()");
 $totalAtrasos = mysqli_fetch_assoc($qAtrasos)['total'];
 
 
 /* DADOS PARA OS GRÁFICOS */
-
-// 1. Empréstimos por Gênero (Donut)
 $g_labels = []; $g_valores = [];
 $qGeneros = mysqli_query($conn, "SELECT g.Descricao, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar JOIN livro l ON ex.idLivro = l.idLivro JOIN genero g ON l.idGenero = g.idGenero GROUP BY g.idGenero");
 while($r = mysqli_fetch_assoc($qGeneros)) { $g_labels[] = $r['Descricao']; $g_valores[] = (int)$r['total']; }
 
-// 2. Evolução Mensal (Linha)
 $m_labels = []; $m_valores = [];
 $qMeses = mysqli_query($conn, "SELECT DATE_FORMAT(Data_emprestimo, '%m/%Y') as mes_ano, COUNT(*) as total FROM emprestimo_has_exemplar GROUP BY mes_ano ORDER BY Data_emprestimo ASC LIMIT 6");
 while($r = mysqli_fetch_assoc($qMeses)) { $m_labels[] = $r['mes_ano']; $m_valores[] = (int)$r['total']; }
 
-// 3. Top Clientes (Barras Horizontais)
 $c_labels = []; $c_valores = [];
 $qTopClientes = mysqli_query($conn, "SELECT c.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN cliente c ON e.idCliente = c.idCliente GROUP BY c.idCliente ORDER BY total DESC LIMIT 5");
 while($r = mysqli_fetch_assoc($qTopClientes)) { $c_labels[] = $r['Nome']; $c_valores[] = (int)$r['total']; }
 
-// 4. Atendimentos por Funcionário (Radar)
 $f_labels = []; $f_valores = [];
 $qTopFunc = mysqli_query($conn, "SELECT f.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN funcionario f ON e.idFuncionario = f.idFuncionario GROUP BY f.idFuncionario");
 while($r = mysqli_fetch_assoc($qTopFunc)) { $f_labels[] = $r['Nome']; $f_valores[] = (int)$r['total']; }
 
-// 5. Livros Adicionados por Ano de Publicação (Barras Verticais)
 $a_labels = []; $a_valores = [];
 $qAnosLivros = mysqli_query($conn, "SELECT ano, COUNT(*) as total FROM livro GROUP BY ano ORDER BY ano ASC LIMIT 6");
 while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valores[] = (int)$r['total']; }
@@ -68,15 +59,20 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         body { font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         .card { box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.1); border-radius: 0.25rem; margin-bottom: 20px; }
         .card-sistema { background-color: #0b1a2c !important; color: #ffffff !important; position: relative; display: block; margin-bottom: 20px; border-radius: 0.25rem; box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.3); transition: transform 0.2s; }
-        .card-sistema:hover { transform: translateY(-3px); }
+        .card-sistema:hover { transform: translateY(-3px); text-decoration: none; color: #fff !important; filter: brightness(115%); }
         .card-sistema .inner { padding: 15px 20px; }
         .card-sistema h3 { font-size: 2.2rem; font-weight: 700; margin: 0 0 5px 0; }
         .card-sistema p { font-size: 1rem; margin-bottom: 0; opacity: 0.8; }
         .card-sistema .icon { position: absolute; top: 15px; right: 20px; font-size: 40px; color: rgba(58, 137, 222, 0.25); }
         
-        /* Cor de destaque avermelhada e suave para o card de atraso mantendo a identidade visual */
         .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
         .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
+
+        .modal .dataTables_wrapper { padding: 15px; }
+        .modal .dataTables_filter { text-align: right; }
+        
+        /* Ajuste do container de filtros superiores */
+        .filtro-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -89,9 +85,45 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
     <div class="content-wrapper">
         <div class="content-header">
             <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
+                <div class="row mb-2 align-items-center">
+                    <div class="col-sm-5">
                         <h1 class="m-0" style="color: #0b1a2c; font-weight: 600;">Painel de Controle Estatístico</h1>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="filtro-container">
+                            <span class="font-weight-bold text-muted small"><i class="fas fa-filter mr-1"></i> FILTRAR PERÍODO:</span>
+                            
+                            <div class="input-group d-inline-flex" style="max-width: 280px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px;">
+                                <select id="filtroMes" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                    <option value="">Mês ---</option>
+                                    <option value="01">Jan</option>
+                                    <option value="02">Fev</option>
+                                    <option value="03">Mar</option>
+                                    <option value="04">Abr</option>
+                                    <option value="05">Mai</option>
+                                    <option value="06">Jun</option>
+                                    <option value="07">Jul</option>
+                                    <option value="08">Ago</option>
+                                    <option value="09">Set</option>
+                                    <option value="10">Out</option>
+                                    <option value="11">Nov</option>
+                                    <option value="12">Dez</option>
+                                </select>
+                                
+                                <div class="input-group-prepend input-group-append">
+                                    <span class="input-group-text bg-white text-muted small border-left-0 border-right-0" style="font-weight: 500;">de</span>
+                                </div>
+
+                                <select id="filtroAno" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                    <option value="">Ano ---</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,19 +134,34 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
 
                 <div class="row">
                     <div class="col-lg-2 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div><div class="icon"><i class="fas fa-book"></i></div></div>
+                        <a href="livros.php" class="card-sistema" style="cursor: pointer;">
+                            <div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div>
+                            <div class="icon"><i class="fas fa-book"></i></div>
+                        </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div><div class="icon"><i class="fas fa-users"></i></div></div>
+                        <a href="clientes.php" class="card-sistema" style="cursor: pointer;">
+                            <div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div>
+                            <div class="icon"><i class="fas fa-users"></i></div>
+                        </a>
                     </div>
-                    <div class="col-lg-3 col-md-4 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div><div class="icon"><i class="fas fa-exchange-alt"></i></div></div>
+                    <div class="col-lg-3 col-md-4 col-6" data-toggle="modal" data-target="#modalEmprestimosAtivos" style="cursor: pointer;">
+                        <div class="card-sistema">
+                            <div class="inner"><h3><?php echo $totalEmprestimos; ?></h3><p>Empréstimos Ativos</p></div>
+                            <div class="icon"><i class="fas fa-exchange-alt"></i></div>
+                        </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 col-6">
-                        <div class="card-sistema"><div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div><div class="icon"><i class="fas fa-book-reader"></i></div></div>
+                    <div class="col-lg-3 col-md-6 col-6" data-toggle="modal" data-target="#modalExemplaresFora" style="cursor: pointer;">
+                        <div class="card-sistema">
+                            <div class="inner"><h3><?php echo $totalExemplares; ?></h3><p>Exemplares Fora</p></div>
+                            <div class="icon"><i class="fas fa-book-reader"></i></div>
+                        </div>
                     </div>
-                    <div class="col-lg-2 col-md-6 col-12">
-                        <div class="card-sistema card-atraso"><div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div><div class="icon"><i class="fas fa-exclamation-triangle"></i></div></div>
+                    <div class="col-lg-2 col-md-6 col-12" data-toggle="modal" data-target="#modalAtrasos" style="cursor: pointer;">
+                        <div class="card-sistema card-atraso">
+                            <div class="inner"><h3><?php echo $totalAtrasos; ?></h3><p>Em Atraso</p></div>
+                            <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        </div>
                     </div>
                 </div>
 
@@ -162,59 +209,239 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                     <i class="fas fa-history mr-1"></i> Fluxo de Movimentações Recentes (Empréstimos e Devoluções)
                                 </h3>
                                 <div class="card-tools">
-    <a href="php/exportar_dashboard.php" class="btn btn-success btn-sm" style="font-weight: 500;">
-        <i class="fas fa-file-excel mr-1"></i> Exportar Completo
-    </a>
-    <button type="button" class="btn btn-info btn-sm" style="font-weight: 500;" data-toggle="modal" data-target="#modalPeriodoExcel">
-        <i class="fas fa-calendar-alt mr-1"></i> Exportar por Período
-    </button>
-</div>
+                                    <a href="php/exportar_dashboard.php" class="btn btn-success btn-sm" style="font-weight: 500;">
+                                        <i class="fas fa-file-excel mr-1"></i> Exportar Completo
+                                    </a>
+                                    <button type="button" class="btn btn-info btn-sm" style="font-weight: 500;" data-toggle="modal" data-target="#modalPeriodoExcel">
+                                        <i class="fas fa-calendar-alt mr-1"></i> Exportar por Período
+                                    </button>
+                                </div>
                             </div>
-                            <div class="modal fade" id="modalPeriodoExcel" tabindex="-1" role="dialog" aria-labelledby="modalPeriodoExcelLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: #0b1a2c; color: white;">
-                <h5 class="modal-title" id="modalPeriodoExcelLabel"><i class="fas fa-file-excel mr-2"></i>Exportar Histórico por Período</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="php/exportar_periodo.php" method="GET">
-                <div class="modal-body">
-                    <p class="text-muted small">Escolha o intervalo de datas baseado na **Data do Empréstimo**.</p>
-                    <div class="form-group row">
-                        <div class="col-md-6">
-                            <label for="data_inicio">Data Inicial:</label>
-                            <input type="date" id="data_inicio" name="data_inicio" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="data_fim">Data Final:</label>
-                            <input type="date" id="data_fim" name="data_fim" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success"><i class="fas fa-download mr-1"></i> Gerar Excel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
-<script>
-// Opcional: Validação básica para impedir que a data final seja menor que a inicial
-document.querySelector('#modalPeriodoExcel form').addEventListener('submit', function(e) {
-    const inicio = document.getElementById('data_inicio').value;
-    const fim = document.getElementById('data_fim').value;
-    if (inicio && fim && inicio > fim) {
-        e.preventDefault();
-        alert('A data inicial não pode ser maior que a data final!');
-    }
-});
-</script>
+                            <div class="modal fade" id="modalPeriodoExcel" tabindex="-1" role="dialog" aria-labelledby="modalPeriodoExcelLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #0b1a2c; color: white;">
+                                            <h5 class="modal-title" id="modalPeriodoExcelLabel"><i class="fas fa-file-excel mr-2"></i>Exportar Histórico por Período</h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <form action="php/exportar_periodo.php" method="GET">
+                                            <div class="modal-body">
+                                                <p class="text-muted small">Escolha o intervalo de datas baseado na **Data do Empréstimo**.</p>
+                                                <div class="form-group row">
+                                                    <div class="col-md-6">
+                                                        <label for="data_inicio">Data Inicial:</label>
+                                                        <input type="date" id="data_inicio" name="data_inicio" class="form-control" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="data_fim">Data Final:</label>
+                                                        <input type="date" id="data_fim" name="data_fim" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-success"><i class="fas fa-download mr-1"></i> Gerar Excel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modalEmprestimosAtivos" tabindex="-1" role="dialog" aria-labelledby="modalEmprestimosAtivosLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #0b1a2c; color: white;">
+                                            <h5 class="modal-title" id="modalEmprestimosAtivosLabel">
+                                                <i class="fas fa-exchange-alt mr-2"></i> Listagem de Empréstimos Ativos
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <table id="tabelaEmprestimosAtivos" class="table table-hover m-0" style="width: 100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Cliente</th>
+                                                        <th>Livro (Cópia)</th>
+                                                        <th>Data Retirada</th>
+                                                        <th>Prazo Limite</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $qAtivos = mysqli_query($conn, "
+                                                        SELECT c.Nome as cliente, l.Titulo as livro, ehe.idExemplar as copia, ehe.Data_emprestimo as data_acao, ehe.data_prevista as prazo 
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL
+                                                        ORDER BY ehe.Data_emprestimo DESC
+                                                    ");
+                                                    while($atv = mysqli_fetch_assoc($qAtivos)){
+                                                    ?>
+                                                        <tr>
+                                                            <td><strong><?php echo $atv['cliente']; ?></strong></td>
+                                                            <td><?php echo $atv['livro']; ?> <small class="text-muted">(Cód. <?php echo $atv['copia']; ?>)</small></td>
+                                                            <td><?php echo date('d/m/Y H:i', strtotime($atv['data_acao'])); ?></td>
+                                                            <td><?php echo date('d/m/Y', strtotime($atv['prazo'])); ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modalExemplaresFora" tabindex="-1" role="dialog" aria-labelledby="modalExemplaresForaLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #1a3350; color: white;">
+                                            <h5 class="modal-title" id="modalExemplaresForaLabel">
+                                                <i class="fas fa-book-reader mr-2"></i> Livros Atualmente Fora do Acervo
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <table id="tabelaExemplaresFora" class="table table-hover m-0" style="width: 100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Código Cópia</th>
+                                                        <th>Título do Livro</th>
+                                                        <th>Retirado por</th>
+                                                        <th>Data de Saída</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $qFora = mysqli_query($conn, "
+                                                        SELECT ehe.idExemplar as copia, l.Titulo as livro, c.Nome as cliente, ehe.Data_emprestimo as data_acao
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL
+                                                        ORDER BY ehe.idExemplar ASC
+                                                    ");
+                                                    while($fra = mysqli_fetch_assoc($qFora)){
+                                                    ?>
+                                                        <tr>
+                                                            <td><span class="badge badge-dark">#<?php echo $fra['copia']; ?></span></td>
+                                                            <td><strong><?php echo $fra['livro']; ?></strong></td>
+                                                            <td><?php echo $fra['cliente']; ?></td>
+                                                            <td><?php echo date('d/m/Y H:i', strtotime($fra['data_acao'])); ?></td>
+                                                        </tr>
+                                                    <?php } ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="modalAtrasos" tabindex="-1" role="dialog" aria-labelledby="modalAtrasosLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #721c24; color: white;">
+                                            <h5 class="modal-title" id="modalAtrasosLabel">
+                                                <i class="fas fa-exclamation-triangle mr-2"></i> Relatório Prático de Empréstimos em Atraso
+                                            </h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body p-0" style="max-height: 520px; overflow-y: auto;">
+                                            <table id="tabelaAtrasos" class="table table-hover m-0" style="width: 100%;">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Cliente</th>
+                                                        <th>Livro / Cópia</th>
+                                                        <th>Data Empréstimo</th>
+                                                        <th>Prazo Limite</th>
+                                                        <th class="text-center">Ação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $qListaAtrasos = mysqli_query($conn, "
+                                                        SELECT 
+                                                            c.Nome AS cliente,
+                                                            c.Telefone AS telefone,
+                                                            l.Titulo AS livro,
+                                                            ehe.idExemplar AS copia,
+                                                            ehe.Data_emprestimo AS data_acao,
+                                                            ehe.data_prevista AS prazo
+                                                        FROM emprestimo_has_exemplar ehe
+                                                        JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo
+                                                        JOIN cliente c ON e.idCliente = c.idCliente
+                                                        JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
+                                                        JOIN livro l ON ex.idLivro = l.idLivro
+                                                        WHERE ehe.Data_devolucao IS NULL AND ehe.data_prevista < NOW()
+                                                        ORDER BY ehe.data_prevista ASC
+                                                    ");
+
+                                                    if(mysqli_num_rows($qListaAtrasos) > 0) {
+                                                        while($atraso = mysqli_fetch_assoc($qListaAtrasos)){
+                                                            $diasAtraso = floor((time() - strtotime($atraso['prazo'])) / (60 * 60 * 24));
+                                                            
+                                                            $primeiroNome = explode(' ', trim($atraso['cliente']))[0];
+                                                            $dataPrazoStr = date('d/m/Y', strtotime($atraso['prazo']));
+                                                            
+                                                            $numeroLimpo = preg_replace('/[^0-9]/', '', $atraso['telefone']);
+                                                            if(strlen($numeroLimpo) == 10 || strlen($numeroLimpo) == 11) {
+                                                                $numeroLimpo = '55' . $numeroLimpo;
+                                                            }
+
+                                                            $mensagem = "Olá, {$primeiroNome}! Passando para lembrar sobre a devolução do livro *{$atraso['livro']}*, que estava prevista para {$dataPrazoStr}. Qualquer dúvida, estamos à disposição na biblioteca!";
+                                                            $linkWhats = "https://api.whatsapp.com/send?phone={$numeroLimpo}&text=" . urlencode($mensagem);
+                                                    ?>
+                                                            <tr>
+                                                                <td><strong><?php echo $atraso['cliente']; ?></strong></td>
+                                                                <td><?php echo $atraso['livro']; ?> <small class="text-muted">(Cód. <?php echo $atraso['copia']; ?>)</small></td>
+                                                                <td><?php echo date('d/m/Y', strtotime($atraso['data_acao'])); ?></td>
+                                                                <td>
+                                                                    <span class="text-danger font-weight-bold">
+                                                                        <?php echo $dataPrazoStr; ?>
+                                                                    </span>
+                                                                    <small class="badge badge-danger ml-1"><?php echo $diasAtraso; ?>d atrás</small>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <a href="<?php echo $linkWhats; ?>" target="_blank" class="btn btn-xs btn-outline-danger" title="Notificar no WhatsApp">
+                                                                        <i class="fab fa-whatsapp"></i> Cobrar
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                    <?php 
+                                                        }
+                                                    } 
+                                                    ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar Janela</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card-body table-responsive p-0">
-                                <table class="table table-hover text-nowrap table-striped">
+                                <table id="tabelaMovimentacoes" class="table table-hover text-nowrap">
                                     <thead>
                                         <tr>
                                             <th>Cód. Controle</th>
@@ -242,7 +469,6 @@ document.querySelector('#modalPeriodoExcel form').addEventListener('submit', fun
                                             JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar
                                             JOIN livro l ON ex.idLivro = l.idLivro
                                             ORDER BY ehe.Data_emprestimo DESC 
-                                            LIMIT 10
                                         ");
 
                                         while($mov = mysqli_fetch_assoc($queryMovimentacoes)){
@@ -280,12 +506,87 @@ document.querySelector('#modalPeriodoExcel form').addEventListener('submit', fun
 
 <?php include('partes/js.php'); ?>
 
+<link class="script-dependency" rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+<script class="script-dependency" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script class="script-dependency" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+    const formExcel = document.querySelector('#modalPeriodoExcel form');
+    if(formExcel) {
+        formExcel.addEventListener('submit', function(e) {
+            const inicio = document.getElementById('data_inicio').value;
+            const fim = document.getElementById('data_fim').value;
+            if (inicio && fim && inicio > fim) {
+                e.preventDefault();
+                alert('A data inicial não pode ser maior que a data final!');
+            }
+        });
+    }
+
+    // --- INICIALIZAÇÃO DO DATATABLES - MOVIMENTAÇÕES ---
+    const tabelaMov = $('#tabelaMovimentacoes').DataTable({
+        "pageLength": 10,
+        "order": [[ 0, "desc" ]],
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
+    // --- LÓGICA DE FILTRO COMBINADO (MÊS + ANO) ---
+    function aplicarFiltroPeriodo() {
+        const mes = document.getElementById('filtroMes').value;
+        const ano = document.getElementById('filtroAno').value;
+        
+        if (!mes && !ano) {
+            tabelaMov.column(3).search('').draw();
+            return;
+        }
+        
+        let stringBusca = "";
+        if (mes && ano) {
+            stringBusca = mes + '/' + ano;
+        } else if (ano) {
+            stringBusca = '/' + ano;
+        } else if (mes) {
+            stringBusca = mes + '/';
+        }
+        
+        tabelaMov.column(3).search(stringBusca).draw();
+    }
+
+    // Escuta alterações nos dois selects
+    document.getElementById('filtroMes').addEventListener('change', aplicarFiltroPeriodo);
+    document.getElementById('filtroAno').addEventListener('change', aplicarFiltroPeriodo);
+
+    // Inicializa filtrando por 2026 automaticamente no carregamento inicial
+    aplicarFiltroPeriodo();
+
+    // --- INICIALIZAÇÃO DOS OUTROS DATATABLES ---
+    $('#tabelaEmprestimosAtivos').DataTable({
+        "pageLength": 5,
+        "order": [[ 2, "desc" ]],
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
+    $('#tabelaExemplaresFora').DataTable({
+        "pageLength": 5,
+        "order": [[ 0, "asc" ]],
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
+    $('#tabelaAtrasos').DataTable({
+        "pageLength": 5, 
+        "order": [[ 3, "asc" ]], 
+        "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
+    });
+
+    $('.modal').on('shown.bs.modal', function () {
+        $(this).find('table').DataTable().columns.adjust();
+    });
+
+    // --- GRÁFICOS ---
     const azulSistema = '#0b1a2c';
     const paletaDeAzuis = ['#0b1a2c', '#1a3350', '#2e4f77', '#466fa1', '#6393cc', '#8cb4e6'];
 
-    // 1. GRÁFICO LINHA
     new Chart(document.getElementById('graficoMensal').getContext('2d'), {
         type: 'line',
         data: {
@@ -295,14 +596,12 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 
-    // 2. GRÁFICO DONUT
     new Chart(document.getElementById('graficoGeneros').getContext('2d'), {
         type: 'doughnut',
         data: { labels: <?php echo json_encode($g_labels); ?>, datasets: [{ data: <?php echo json_encode($g_valores); ?>, backgroundColor: paletaDeAzuis }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
     });
 
-    // 3. BARRAS HORIZONTAIS
     new Chart(document.getElementById('graficoTopClientes').getContext('2d'), {
         type: 'bar',
         data: {
@@ -312,7 +611,6 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 
-    // 4. RADAR
     new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
         type: 'radar',
         data: {
@@ -322,7 +620,6 @@ document.addEventListener("DOMContentLoaded", function () {
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } } }
     });
 
-    // 5. BARRAS VERTICAIS
     new Chart(document.getElementById('graficoAnos').getContext('2d'), {
         type: 'bar',
         data: {

@@ -1,18 +1,26 @@
 <?php
 
-function listaLivro(){
+function listaLivro($filtro = 'ativos'){
     include("conexao.php");
-    
-    // AGORA FILTRA PELO e.Ativo (Exemplar) e não pelo l.Ativo (Livro)
-    $sql = "SELECT 
-                e.idExemplar, 
-                l.idLivro, 
-                l.Titulo, 
-                l.Autor, 
+
+    // Monta o filtro pelo estado do exemplar
+    if ($filtro == 'inativos') {
+        $where = "WHERE e.Ativo = 'N'";
+    } elseif ($filtro == 'todos') {
+        $where = "";
+    } else { // ativos (padrão)
+        $where = "WHERE (e.Ativo IS NULL OR e.Ativo != 'N')";
+    }
+
+    $sql = "SELECT
+                e.idExemplar,
+                l.idLivro,
+                l.Titulo,
+                l.Autor,
                 l.idGenero,
                 l.idEditora,
-                g.Descricao as Genero, 
-                ed.Nome as Editora, 
+                g.Descricao as Genero,
+                ed.Nome as Editora,
                 l.Isbn,
                 l.ano,
                 l.Foto,
@@ -22,13 +30,13 @@ function listaLivro(){
             INNER JOIN livro l ON e.idLivro = l.idLivro
             LEFT JOIN genero g ON l.idGenero = g.idGenero
             LEFT JOIN editora ed ON l.idEditora = ed.idEditora
-            WHERE e.Ativo IS NULL OR e.Ativo != 'N'
+            $where
             ORDER BY l.Titulo ASC, e.idExemplar ASC;";
             
     $result = mysqli_query($conn, $sql);
 
     if(!$result){
-        return array("linhas" => '<tr><td colspan="9" class="text-danger text-center"><b>Erro:</b> '.mysqli_error($conn).'</td></tr>', "modals" => '');
+        return array("linhas" => '<tr><td colspan="10" class="text-danger text-center"><b>Erro:</b> '.mysqli_error($conn).'</td></tr>', "modals" => '');
     }
 
     mysqli_close($conn);
@@ -39,8 +47,12 @@ function listaLivro(){
     if (mysqli_num_rows($result) > 0) {
         foreach ($result as $coluna) {
             
+            $isInativo = (strtoupper((string)$coluna["Ativo"]) === 'N');
+
             $emprestado = strtoupper((string)$coluna["Emprestado"]);
-            if($emprestado == 'S' || $emprestado == 'SIM' || $emprestado == '1' || $emprestado == 'EMPRESTADO') {
+            if($isInativo) {
+                $badgeStatus = '<h5><span class="badge badge-secondary">Inativo</span></h5>';
+            } elseif($emprestado == 'S' || $emprestado == 'SIM' || $emprestado == '1' || $emprestado == 'EMPRESTADO') {
                 $badgeStatus = '<h5><span class="badge badge-warning text-dark">Emprestado</span></h5>';
             } else {
                 $badgeStatus = '<h5><span class="badge text-white" style="background-color: #2563eb;">Disponível</span></h5>';
@@ -54,6 +66,7 @@ function listaLivro(){
 
             $lista .=
             '<tr>'
+                .'<td align="center"><input type="checkbox" class="chk-livro" value="'.$coluna["idExemplar"].'" data-titulo="'.htmlspecialchars($coluna["Titulo"], ENT_QUOTES).'"></td>'
                 .'<td align="center">'.$coluna["idExemplar"].'</td>'
                 .'<td>'
                     .'<img src="'.$capa.'" alt="Capa" class="elevation-1 mr-2 capa-ampliar" '
@@ -75,9 +88,14 @@ function listaLivro(){
                             .'</a>'
                         .'</div>'
                         .'<div class="col-6">'
-                            .'<a href="#modalDeleteExemplar'.$coluna["idExemplar"].'" data-toggle="modal">'
-                                .'<h6><i class="fas fa-trash text-danger" data-toggle="tooltip" title="Excluir Exemplar"></i></h6>'
-                            .'</a>'
+                            .($isInativo
+                                ? '<a href="php/salvarExemplar.php?funcao=R&codigo='.$coluna["idExemplar"].'">'
+                                    .'<h6><i class="fas fa-undo text-success" data-toggle="tooltip" title="Reativar Exemplar"></i></h6>'
+                                  .'</a>'
+                                : '<a href="#modalDeleteExemplar'.$coluna["idExemplar"].'" data-toggle="modal">'
+                                    .'<h6><i class="fas fa-trash text-danger" data-toggle="tooltip" title="Excluir Exemplar"></i></h6>'
+                                  .'</a>'
+                              )
                         .'</div>'
                     .'</div>'
                 .'</td>'
@@ -173,7 +191,8 @@ function listaLivro(){
             .'</div>';
         } 
     } else {
-        $lista = '<tr><td colspan="9" align="center">Nenhum exemplar ativo encontrado no acervo.</td></tr>';
+        // Retorna vazio para o DataTables exibir sua própria mensagem sem quebrar a barra de ferramentas (busca/filtro)
+        $lista = '';
     }
     
     return array("linhas" => $lista, "modals" => $modals);
