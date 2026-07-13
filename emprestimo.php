@@ -51,7 +51,6 @@
             $hoje = date('Y-m-d');
             $LIMITE_CLIENTE = 5;
 
-            // Pendentes por cliente (para o modal de novo empréstimo)
             $pendentesPorCliente = array();
             $qPend = mysqli_query($conn, "
               SELECT e.idCliente, COUNT(*) AS qtd
@@ -66,7 +65,6 @@
               }
             }
 
-            // ── Busca todos os empréstimos ativos e agrupa por idEmprestimo ──
             $emprestimos = array();
             $qEmp = mysqli_query($conn, "
               SELECT
@@ -77,7 +75,7 @@
                 l.Titulo,
                 ehe.Data_emprestimo,
                 ehe.data_prevista,
-                e.multa
+                ehe.multa AS multaExemplar
               FROM cliente c
               INNER JOIN emprestimo e ON c.idCliente = e.idCliente
               INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
@@ -94,22 +92,22 @@
                     'idEmprestimo' => $id,
                     'idCliente'    => $r['idCliente'],
                     'Cliente'      => $r['Cliente'],
-                    'multa'        => $r['multa'],
                     'livros'       => []
                   ];
                 }
                 $diasAtr = ($r['data_prevista'] < $hoje)
                   ? (int)floor((strtotime($hoje) - strtotime($r['data_prevista'])) / 86400)
                   : 0;
+                $multaPaga = ((float)$r['multaExemplar'] > 0);
                 $emprestimos[$id]['livros'][] = [
-                  'idExemplar'     => $r['idExemplar'],
-                  'Titulo'         => $r['Titulo'],
-                  'Data_emprestimo'=> $r['Data_emprestimo'],
-                  'data_prevista'  => $r['data_prevista'],
-                  'atrasado'       => ($r['data_prevista'] < $hoje),
-                  'diasAtraso'     => $diasAtr,
-                  'valorMulta'     => $diasAtr * 1.00,
-                  'multaPaga'      => ((float)$r['multa'] > 0),
+                  'idExemplar'      => $r['idExemplar'],
+                  'Titulo'          => $r['Titulo'],
+                  'Data_emprestimo' => $r['Data_emprestimo'],
+                  'data_prevista'   => $r['data_prevista'],
+                  'atrasado'        => ($r['data_prevista'] < $hoje && !$multaPaga),
+                  'diasAtraso'      => $diasAtr,
+                  'valorMulta'      => $diasAtr * 1.00,
+                  'multaPaga'       => $multaPaga,
                 ];
               }
             }
@@ -147,12 +145,11 @@
                     $idEmp = $emp['idEmprestimo'];
                     $livros = $emp['livros'];
 
-                    // Status geral do empréstimo
-                    $temAtrasado   = false;
-                    $temMultaPaga  = false;
+                    $temAtrasado  = false;
+                    $temMultaPaga = false;
                     foreach($livros as $lv){
-                      if($lv['atrasado'] && !$lv['multaPaga']) $temAtrasado  = true;
-                      if($lv['multaPaga'])                      $temMultaPaga = true;
+                      if($lv['atrasado'])   $temAtrasado  = true;
+                      if($lv['multaPaga'])  $temMultaPaga = true;
                     }
                   ?>
                   <tr class="<?php echo $temAtrasado ? 'table-danger' : ''; ?>">
@@ -175,29 +172,44 @@
                       <?php endforeach; ?>
                     </td>
                     <td class="align-middle">
-                      <?php if($temAtrasado): ?>
-                        <h5><span class="badge badge-danger">Atrasado</span></h5>
-                      <?php elseif($temMultaPaga): ?>
-                        <h5><span class="badge badge-success"><i class="fas fa-check"></i> Multa paga</span></h5>
-                      <?php else: ?>
-                        <h5><span class="badge text-white" style="background-color:#2563eb;">No Prazo</span></h5>
+                      <?php
+                        $qtdNoPrazo   = 0;
+                        $qtdAtrasado  = 0;
+                        $qtdMultaPaga = 0;
+                        foreach($livros as $lv){
+                          if($lv['multaPaga'])       $qtdMultaPaga++;
+                          elseif($lv['atrasado'])    $qtdAtrasado++;
+                          else                       $qtdNoPrazo++;
+                        }
+                      ?>
+                      <?php if($qtdAtrasado > 0): ?>
+                        <span class="badge badge-danger d-block mb-1">
+                          <?php echo $qtdAtrasado; ?> atrasado<?php echo $qtdAtrasado > 1 ? 's' : ''; ?>
+                        </span>
+                      <?php endif; ?>
+                      <?php if($qtdNoPrazo > 0): ?>
+                        <span class="badge text-white d-block mb-1" style="background-color:#2563eb;">
+                          <?php echo $qtdNoPrazo; ?> no prazo
+                        </span>
+                      <?php endif; ?>
+                      <?php if($qtdMultaPaga > 0): ?>
+                        <span class="badge badge-success d-block mb-1">
+                          <?php echo $qtdMultaPaga; ?> multa<?php echo $qtdMultaPaga > 1 ? 's' : ''; ?> paga<?php echo $qtdMultaPaga > 1 ? 's' : ''; ?>
+                        </span>
                       <?php endif; ?>
                     </td>
                     <td class="text-center align-middle">
                       <?php if($temAtrasado): ?>
-                        <!-- Multa: abre seletor dos livros -->
                         <button class="btn btn-sm btn-link text-danger mr-1" title="Pagar Multa"
                                 data-toggle="modal" data-target="#seletorMulta<?php echo $idEmp; ?>">
                           <i class="fas fa-dollar-sign"></i>
                         </button>
                       <?php else: ?>
-                        <!-- Renovar: abre seletor dos livros -->
                         <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo"
                                 data-toggle="modal" data-target="#seletorRenovar<?php echo $idEmp; ?>">
                           <i class="fas fa-sync-alt"></i>
                         </button>
                       <?php endif; ?>
-                      <!-- Devolver: abre seletor dos livros -->
                       <button class="btn btn-sm btn-link text-success" title="Registrar Devolução"
                               data-toggle="modal" data-target="#seletorDevolver<?php echo $idEmp; ?>">
                         <i class="fas fa-undo"></i>
@@ -226,7 +238,7 @@
           $idEmp = $emp['idEmprestimo'];
           $livros = $emp['livros'];
           $temAtrasado = false;
-          foreach($livros as $lv){ if($lv['atrasado'] && !$lv['multaPaga']) $temAtrasado = true; }
+          foreach($livros as $lv){ if($lv['atrasado']) $temAtrasado = true; }
         ?>
 
         <!-- ══ SELETOR RENOVAR ══ -->
@@ -455,7 +467,7 @@
         <?php endforeach; // livros ?>
         <?php endforeach; // emprestimos ?>
 
-        <!-- ══ Modal Novo Empréstimo (sem alteração) ══ -->
+        <!-- ══ Modal Novo Empréstimo ══ -->
         <div class="modal fade" id="novoEmprestimoModal">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
