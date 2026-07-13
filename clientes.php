@@ -63,8 +63,9 @@
                       <th>Email</th>
                       <th>CPF</th>
                       <th>Telefone</th>
+                      <th>Multas (R$)</th>
                       <th>Ativo</th>                
-                      <th>Ações</th>
+                      <th>Ações</th>     
                   </tr>
                   </thead>
                   <tbody>
