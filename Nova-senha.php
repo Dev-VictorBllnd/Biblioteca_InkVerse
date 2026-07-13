@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -31,6 +32,52 @@ if (
 
 <link rel="stylesheet" href="dist/css/Novasenha.css">
 
+<style>
+
+.requisitos{
+
+    margin-top:20px;
+    padding:15px;
+    background:#f5f5f5;
+    border:1px solid #dcdcdc;
+    border-radius:8px;
+    text-align:left;
+
+}
+
+.requisitos h4{
+
+    margin-bottom:10px;
+    color:#0b1a2c;
+    font-size:15px;
+
+}
+
+.requisitos ul{
+
+    list-style:none;
+    padding:0;
+
+}
+
+.requisitos li{
+
+    margin:8px 0;
+    color:#dc3545;
+    font-size:14px;
+    transition:.3s;
+
+}
+
+.requisitos li.ok{
+
+    color:#198754;
+    font-weight:bold;
+
+}
+
+</style>
+
 </head>
 
 <body class="tela-login">
@@ -55,7 +102,7 @@ if (
 
         <h2>Nova Senha</h2>
 
-        <form action="php/alterarSenha.php" method="POST">
+        <form action="php/alterarSenha.php" method="POST" id="formSenha">
 
             <div class="campo">
 
@@ -91,6 +138,26 @@ if (
 
             </div>
 
+            <div class="requisitos">
+
+                <h4>Sua senha deve conter:</h4>
+
+                <ul>
+
+                    <li id="r1">❌ Pelo menos 8 caracteres</li>
+
+                    <li id="r2">❌ Uma letra maiúscula</li>
+
+                    <li id="r3">❌ Uma letra minúscula</li>
+
+                    <li id="r4">❌ Um número</li>
+
+                    <li id="r5">❌ Um caractere especial (@, #, !, $, %, &, ...)</li>
+
+                </ul>
+
+            </div>
+
             <button type="submit" class="btn-login">
                 Alterar Senha
             </button>
@@ -106,8 +173,9 @@ if (
 const mostrar = document.getElementById("mostrar");
 const senha = document.getElementById("senha");
 const confirmar = document.getElementById("confirmar");
+const form = document.getElementById("formSenha");
 
-mostrar.addEventListener("change", function () {
+mostrar.addEventListener("change", function(){
 
     const tipo = this.checked ? "text" : "password";
 
@@ -116,7 +184,70 @@ mostrar.addEventListener("change", function () {
 
 });
 
+senha.addEventListener("input", validarSenha);
+
+function atualizar(id, valido){
+
+    const item = document.getElementById(id);
+
+    if(valido){
+
+        item.classList.add("ok");
+        item.innerHTML = "✔ " + item.textContent.substring(2);
+
+    }else{
+
+        item.classList.remove("ok");
+        item.innerHTML = "❌ " + item.textContent.substring(2);
+
+    }
+
+}
+
+function validarSenha(){
+
+    const valor = senha.value;
+
+    atualizar("r1", valor.length >= 8);
+    atualizar("r2", /[A-Z]/.test(valor));
+    atualizar("r3", /[a-z]/.test(valor));
+    atualizar("r4", /[0-9]/.test(valor));
+    atualizar("r5", /[^A-Za-z0-9]/.test(valor));
+
+}
+
+form.addEventListener("submit", function(e){
+
+    const valor = senha.value;
+
+    if(
+        valor.length < 8 ||
+        !/[A-Z]/.test(valor) ||
+        !/[a-z]/.test(valor) ||
+        !/[0-9]/.test(valor) ||
+        !/[^A-Za-z0-9]/.test(valor)
+    ){
+
+        e.preventDefault();
+
+        alert("Crie uma senha forte antes de continuar.");
+
+        return;
+
+    }
+
+    if(senha.value !== confirmar.value){
+
+        e.preventDefault();
+
+        alert("As senhas não conferem.");
+
+    }
+
+});
+
 </script>
 
 </body>
 </html>
+```
