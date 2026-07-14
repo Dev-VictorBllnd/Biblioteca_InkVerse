@@ -11,7 +11,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>InkVerse - Empréstimos</title>
   <?php include('partes/css.php'); ?>
-  <!-- Select2 (busca no seletor de cliente) -->
   <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
   <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 </head>
@@ -52,7 +51,6 @@
             $hoje = date('Y-m-d');
             $LIMITE_CLIENTE = 5;
 
-            // Quantos livros cada cliente já tem em mãos (não devolvidos)
             $pendentesPorCliente = array();
             $qPend = mysqli_query($conn, "
               SELECT e.idCliente, COUNT(*) AS qtd
@@ -66,6 +64,53 @@
                 $pendentesPorCliente[$p['idCliente']] = (int)$p['qtd'];
               }
             }
+
+            $emprestimos = array();
+            $qEmp = mysqli_query($conn, "
+              SELECT
+                c.idCliente,
+                c.Nome AS Cliente,
+                e.idEmprestimo,
+                ehe.idExemplar,
+                l.Titulo,
+                ehe.Data_emprestimo,
+                ehe.data_prevista,
+                ehe.multa AS multaExemplar
+              FROM cliente c
+              INNER JOIN emprestimo e ON c.idCliente = e.idCliente
+              INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+              INNER JOIN exemplar ex ON ex.idExemplar = ehe.idExemplar
+              INNER JOIN livro l ON l.idLivro = ex.idLivro
+              WHERE ehe.Data_devolucao IS NULL
+              ORDER BY e.idEmprestimo ASC, ehe.data_prevista ASC
+            ");
+            if($qEmp){
+              while($r = mysqli_fetch_assoc($qEmp)){
+                $id = $r['idEmprestimo'];
+                if(!isset($emprestimos[$id])){
+                  $emprestimos[$id] = [
+                    'idEmprestimo' => $id,
+                    'idCliente'    => $r['idCliente'],
+                    'Cliente'      => $r['Cliente'],
+                    'livros'       => []
+                  ];
+                }
+                $diasAtr = ($r['data_prevista'] < $hoje)
+                  ? (int)floor((strtotime($hoje) - strtotime($r['data_prevista'])) / 86400)
+                  : 0;
+                $multaPaga = ((float)$r['multaExemplar'] > 0);
+                $emprestimos[$id]['livros'][] = [
+                  'idExemplar'      => $r['idExemplar'],
+                  'Titulo'          => $r['Titulo'],
+                  'Data_emprestimo' => $r['Data_emprestimo'],
+                  'data_prevista'   => $r['data_prevista'],
+                  'atrasado'        => ($r['data_prevista'] < $hoje && !$multaPaga),
+                  'diasAtraso'      => $diasAtr,
+                  'valorMulta'      => $diasAtr * 1.00,
+                  'multaPaga'       => $multaPaga,
+                ];
+              }
+            }
             ?>
 
             <div class="card">
@@ -75,7 +120,8 @@
                     <h3 class="card-title">Controle de Empréstimos Ativos</h3>
                   </div>
                   <div class="col-3 text-right">
-                    <button type="button" class="btn text-white" style="background-color: #2563eb;" data-toggle="modal" data-target="#novoEmprestimoModal">
+                    <button type="button" class="btn text-white" style="background-color: #2563eb;"
+                            data-toggle="modal" data-target="#novoEmprestimoModal">
                       <i class="fas fa-plus"></i> Novo Empréstimo
                     </button>
                   </div>
@@ -88,176 +134,93 @@
                     <tr>
                       <th style="width:5%;">ID</th>
                       <th style="width:20%;">Cliente</th>
-                      <th style="width:30%;">Livro (Exemplar)</th>
-                      <th style="width:12%;">Retirada</th>
-                      <th style="width:12%;">Devolução Prev.</th>
+                      <th style="width:33%;">Livros</th>
                       <th style="width:10%;">Status</th>
                       <th style="width:11%; text-align:center;">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
 
-                  <?php
-                  $sql = mysqli_query($conn, "
-                    SELECT
-                      c.idCliente,
-                      c.Nome AS Cliente,
-                      e.idEmprestimo,
-                      ehe.idExemplar,
-                      l.Titulo,
-                      ehe.Data_emprestimo,
-                      ehe.data_prevista,
-                      e.multa
-                    FROM cliente c
-                    INNER JOIN emprestimo e ON c.idCliente = e.idCliente
-                    INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
-                    INNER JOIN exemplar ex ON ex.idExemplar = ehe.idExemplar
-                    INNER JOIN livro l ON l.idLivro = ex.idLivro
-                    WHERE ehe.Data_devolucao IS NULL
-                    ORDER BY ehe.data_prevista ASC, c.Nome ASC
-                  ");
+                  <?php foreach($emprestimos as $emp):
+                    $idEmp = $emp['idEmprestimo'];
+                    $livros = $emp['livros'];
 
-                  if($sql && mysqli_num_rows($sql) > 0):
-                    while($dados = mysqli_fetch_assoc($sql)):
-                      $chave    = $dados['idEmprestimo'].'_'.$dados['idExemplar'];
-                      $atrasado = $dados['data_prevista'] < $hoje;
-
-                      // Multa: R$ 1,00 por dia de atraso
-                      $diasAtraso = $atrasado ? (int)floor((strtotime($hoje) - strtotime($dados['data_prevista'])) / 86400) : 0;
-                      $valorMulta = $diasAtraso * 1.00;
-                      // Tem multa registrada quando o valor em emprestimo.multa é maior que 0
-                      $multaPaga  = ((float)$dados['multa'] > 0);
+                    $temAtrasado  = false;
+                    $temMultaPaga = false;
+                    foreach($livros as $lv){
+                      if($lv['atrasado'])   $temAtrasado  = true;
+                      if($lv['multaPaga'])  $temMultaPaga = true;
+                    }
                   ?>
-                  <tr class="<?php echo ($atrasado && !$multaPaga) ? 'table-danger' : ''; ?>">
-                    <td class="align-middle"><?php echo $dados['idCliente']; ?></td>
-                    <td class="align-middle"><?php echo htmlspecialchars($dados['Cliente']); ?></td>
+                  <tr class="<?php echo $temAtrasado ? 'table-danger' : ''; ?>">
+                    <td class="align-middle"><?php echo $idEmp; ?></td>
+                    <td class="align-middle"><?php echo htmlspecialchars($emp['Cliente']); ?></td>
                     <td class="align-middle">
-                      <?php echo htmlspecialchars($dados['Titulo']); ?>
-                      <small class="text-muted">(Cód: <?php echo $dados['idExemplar']; ?>)</small>
+                      <?php foreach($livros as $lv): ?>
+                        <div>
+                          <i class="fas fa-book text-muted mr-1"></i>
+                          <?php echo htmlspecialchars($lv['Titulo']); ?>
+                          <small class="text-muted">(Cód: <?php echo $lv['idExemplar']; ?>)</small>
+                          <?php if($lv['atrasado'] && !$lv['multaPaga']): ?>
+                            <span class="badge badge-danger ml-1"><?php echo $lv['diasAtraso']; ?>d atraso</span>
+                          <?php elseif($lv['multaPaga']): ?>
+                            <span class="badge badge-success ml-1">Multa paga</span>
+                          <?php else: ?>
+                            <span class="badge ml-1 text-white" style="background-color:#2563eb;">No prazo</span>
+                          <?php endif; ?>
+                        </div>
+                      <?php endforeach; ?>
                     </td>
-                    <td class="align-middle"><?php echo date('d/m/Y', strtotime($dados['Data_emprestimo'])); ?></td>
-                    <td class="align-middle"><?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></td>
                     <td class="align-middle">
-                      <?php if($multaPaga): ?>
-                        <h5><span class="badge badge-success"><i class="fas fa-check"></i> Multa paga</span></h5>
-                      <?php elseif($atrasado): ?>
-                        <h5><span class="badge badge-danger">Atrasado (<?php echo $diasAtraso; ?>d)</span></h5>
-                      <?php else: ?>
-                        <h5><span class="badge text-white" style="background-color: #2563eb;">No Prazo</span></h5>
+                      <?php
+                        $qtdNoPrazo   = 0;
+                        $qtdAtrasado  = 0;
+                        $qtdMultaPaga = 0;
+                        foreach($livros as $lv){
+                          if($lv['multaPaga'])       $qtdMultaPaga++;
+                          elseif($lv['atrasado'])    $qtdAtrasado++;
+                          else                       $qtdNoPrazo++;
+                        }
+                      ?>
+                      <?php if($qtdAtrasado > 0): ?>
+                        <span class="badge badge-danger d-block mb-1">
+                          <?php echo $qtdAtrasado; ?> atrasado<?php echo $qtdAtrasado > 1 ? 's' : ''; ?>
+                        </span>
+                      <?php endif; ?>
+                      <?php if($qtdNoPrazo > 0): ?>
+                        <span class="badge text-white d-block mb-1" style="background-color:#2563eb;">
+                          <?php echo $qtdNoPrazo; ?> no prazo
+                        </span>
+                      <?php endif; ?>
+                      <?php if($qtdMultaPaga > 0): ?>
+                        <span class="badge badge-success d-block mb-1">
+                          <?php echo $qtdMultaPaga; ?> multa<?php echo $qtdMultaPaga > 1 ? 's' : ''; ?> paga<?php echo $qtdMultaPaga > 1 ? 's' : ''; ?>
+                        </span>
                       <?php endif; ?>
                     </td>
                     <td class="text-center align-middle">
-                      <?php if($atrasado && !$multaPaga): ?>
-                        <button class="btn btn-sm btn-link text-danger mr-1" title="Pagar Multa" data-toggle="modal" data-target="#modalMulta<?php echo $chave; ?>">
+                      <?php if($temAtrasado): ?>
+                        <button class="btn btn-sm btn-link text-danger mr-1" title="Pagar Multa"
+                                data-toggle="modal" data-target="#seletorMulta<?php echo $idEmp; ?>">
                           <i class="fas fa-dollar-sign"></i>
                         </button>
                       <?php else: ?>
-                        <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo" data-toggle="modal" data-target="#modalEditar<?php echo $chave; ?>">
+                        <button class="btn btn-sm btn-link text-info mr-1" title="Renovar Prazo"
+                                data-toggle="modal" data-target="#seletorRenovar<?php echo $idEmp; ?>">
                           <i class="fas fa-sync-alt"></i>
                         </button>
                       <?php endif; ?>
-                      <button class="btn btn-sm btn-link text-success" title="Registrar Devolução" data-toggle="modal" data-target="#modalDevolver<?php echo $chave; ?>">
+                      <button class="btn btn-sm btn-link text-success" title="Registrar Devolução"
+                              data-toggle="modal" data-target="#seletorDevolver<?php echo $idEmp; ?>">
                         <i class="fas fa-undo"></i>
                       </button>
                     </td>
                   </tr>
+                  <?php endforeach; ?>
 
-                  <div class="modal fade" id="modalEditar<?php echo $chave; ?>">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
-                          <h4 class="modal-title">Renovar Empréstimo</h4>
-                          <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                        </div>
-                        <form method="POST" action="php/salvarEmprestimo.php?funcao=U">
-                          <div class="modal-body">
-                            <input type="hidden" name="idEmprestimo" value="<?php echo $dados['idEmprestimo']; ?>">
-                            <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
-                            <p><strong>Cliente:</strong> <?php echo htmlspecialchars($dados['Cliente']); ?></p>
-                            <p><strong>Livro:</strong> <?php echo htmlspecialchars($dados['Titulo']); ?></p>
-                            <hr>
-                            <div class="form-group">
-                              <label>Data do Empréstimo (Renovação):</label>
-                              <input type="date" class="form-control" name="nDataEmprestimo" value="<?php echo $hoje; ?>" required>
-                            </div>
-                            <div class="form-group">
-                              <label>Nova Data Prevista para Devolução (+7 dias):</label>
-                              <input type="date" class="form-control" name="nDataPrevista" value="<?php echo date('Y-m-d', strtotime('+7 days')); ?>" required>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn text-white" style="background-color: #2563eb;"><i class="fas fa-save"></i> Renovar</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="modal fade" id="modalDevolver<?php echo $chave; ?>">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
-                          <h4 class="modal-title">Confirmar Devolução</h4>
-                          <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                        </div>
-                        <div class="modal-body">
-                          <p>Confirmar a devolução do livro abaixo?</p>
-                          <p><strong>Cliente:</strong> <?php echo htmlspecialchars($dados['Cliente']); ?></p>
-                          <p><strong>Livro:</strong> <?php echo htmlspecialchars($dados['Titulo']); ?> <small class="text-muted">(Cód: <?php echo $dados['idExemplar']; ?>)</small></p>
-                          <p><strong>Devolução prevista:</strong> <?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></p>
-                        </div>
-                        <form method="POST" action="php/salvarEmprestimo.php?funcao=D">
-                          <input type="hidden" name="idEmprestimo" value="<?php echo $dados['idEmprestimo']; ?>">
-                          <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Confirmar Devolução</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-
-                  <?php if($atrasado && !$multaPaga): ?>
-                  <div class="modal fade" id="modalMulta<?php echo $chave; ?>">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header text-white" style="background-color: #0b1a2c;">
-                          <h4 class="modal-title"><i class="fas fa-dollar-sign mr-1"></i> Pagamento de Multa</h4>
-                          <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                        </div>
-                        <form method="POST" action="php/salvarEmprestimo.php?funcao=M">
-                          <div class="modal-body">
-                            <input type="hidden" name="idEmprestimo" value="<?php echo $dados['idEmprestimo']; ?>">
-                            <input type="hidden" name="idExemplar"   value="<?php echo $dados['idExemplar']; ?>">
-                            <input type="hidden" name="nValorMulta"  value="<?php echo number_format($valorMulta, 2, '.', ''); ?>">
-
-                            <p><strong>Cliente:</strong> <?php echo htmlspecialchars($dados['Cliente']); ?></p>
-                            <p><strong>Livro:</strong> <?php echo htmlspecialchars($dados['Titulo']); ?> <small class="text-muted">(Cód: <?php echo $dados['idExemplar']; ?>)</small></p>
-                            <p><strong>Devolução prevista:</strong> <?php echo date('d/m/Y', strtotime($dados['data_prevista'])); ?></p>
-                            <p><strong>Dias em atraso:</strong> <?php echo $diasAtraso; ?> dia(s)</p>
-                            <hr>
-                            <div class="text-center">
-                              <small class="text-muted d-block">Valor da multa (R$ 1,00 por dia de atraso)</small>
-                              <h2 class="text-danger font-weight-bold mb-0">R$ <?php echo number_format($valorMulta, 2, ',', '.'); ?></h2>
-                            </div>
-                            <p class="text-center text-muted mt-3 mb-0"><small><i class="fas fa-info-circle mr-1"></i>Ao confirmar, a multa é paga e o livro é devolvido automaticamente.</small></p>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn text-white" style="background-color: #0b1a2c;"><i class="fas fa-check"></i> Pagar e Devolver</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                  <?php endif; ?>
-
-                  <?php endwhile;
-                  else: ?>
+                  <?php if(empty($emprestimos)): ?>
                     <tr>
-                      <td colspan="7" class="text-center text-muted py-3">
+                      <td colspan="5" class="text-center text-muted py-3">
                         <i class="fas fa-book-open mr-2"></i>Nenhum empréstimo ativo no momento.
                       </td>
                     </tr>
@@ -271,6 +234,240 @@
           </div>
         </div>
 
+        <?php foreach($emprestimos as $emp):
+          $idEmp = $emp['idEmprestimo'];
+          $livros = $emp['livros'];
+          $temAtrasado = false;
+          foreach($livros as $lv){ if($lv['atrasado']) $temAtrasado = true; }
+        ?>
+
+        <!-- ══ SELETOR RENOVAR ══ -->
+        <div class="modal fade" id="seletorRenovar<?php echo $idEmp; ?>">
+          <div class="modal-dialog" style="max-width:430px;">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h5 class="modal-title"><i class="fas fa-sync-alt mr-1"></i> Renovar — Empréstimo #<?php echo $idEmp; ?> · <?php echo htmlspecialchars($emp['Cliente']); ?></h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body py-3">
+                <p class="text-muted small mb-3">Escolha o livro cujo prazo deseja renovar:</p>
+                <?php foreach($livros as $lv):
+                  $chave = $idEmp.'_'.$lv['idExemplar'];
+                ?>
+                <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
+                     style="cursor:pointer;"
+                     onmouseover="this.style.background='#e8f0fe'" onmouseout="this.style.background=''"
+                     onclick="$('#seletorRenovar<?php echo $idEmp; ?>').modal('hide');setTimeout(function(){$('#modalRenovar<?php echo $chave; ?>').modal('show');},400);">
+                  <div>
+                    <div class="font-weight-bold"><?php echo htmlspecialchars($lv['Titulo']); ?></div>
+                    <small class="text-muted">
+                      Retirada: <?php echo date('d/m/Y', strtotime($lv['Data_emprestimo'])); ?> &bull;
+                      Dev. prev.: <?php echo date('d/m/Y', strtotime($lv['data_prevista'])); ?>
+                    </small>
+                  </div>
+                  <i class="fas fa-chevron-right text-muted ml-3"></i>
+                </div>
+                <?php endforeach; ?>
+              </div>
+              <div class="modal-footer py-2">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Fechar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SELETOR DEVOLVER ══ -->
+        <div class="modal fade" id="seletorDevolver<?php echo $idEmp; ?>">
+          <div class="modal-dialog" style="max-width:430px;">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h5 class="modal-title"><i class="fas fa-undo mr-1"></i> Devolver — Empréstimo #<?php echo $idEmp; ?> · <?php echo htmlspecialchars($emp['Cliente']); ?></h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body py-3">
+                <p class="text-muted small mb-3">Escolha o livro a ser devolvido:</p>
+                <?php foreach($livros as $lv):
+                  $chave = $idEmp.'_'.$lv['idExemplar'];
+                ?>
+                <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
+                     style="cursor:pointer;"
+                     onmouseover="this.style.background='#d4edda'" onmouseout="this.style.background=''"
+                     onclick="$('#seletorDevolver<?php echo $idEmp; ?>').modal('hide');setTimeout(function(){$('#modalDevolver<?php echo $chave; ?>').modal('show');},400);">
+                  <div>
+                    <div class="font-weight-bold"><?php echo htmlspecialchars($lv['Titulo']); ?></div>
+                    <small class="text-muted">
+                      Retirada: <?php echo date('d/m/Y', strtotime($lv['Data_emprestimo'])); ?> &bull;
+                      Dev. prev.: <?php echo date('d/m/Y', strtotime($lv['data_prevista'])); ?>
+                      <?php if($lv['atrasado']): ?>
+                        &bull; <span class="text-danger font-weight-bold"><?php echo $lv['diasAtraso']; ?>d atraso</span>
+                      <?php endif; ?>
+                    </small>
+                  </div>
+                  <i class="fas fa-chevron-right text-muted ml-3"></i>
+                </div>
+                <?php endforeach; ?>
+              </div>
+              <div class="modal-footer py-2">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Fechar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ SELETOR MULTA ══ -->
+        <?php if($temAtrasado): ?>
+        <div class="modal fade" id="seletorMulta<?php echo $idEmp; ?>">
+          <div class="modal-dialog" style="max-width:430px;">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h5 class="modal-title"><i class="fas fa-dollar-sign mr-1"></i> Multas — Empréstimo #<?php echo $idEmp; ?> · <?php echo htmlspecialchars($emp['Cliente']); ?></h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body py-3">
+                <p class="text-muted small mb-3">Escolha o livro para pagar a multa:</p>
+                <?php foreach($livros as $lv):
+                  if(!$lv['atrasado'] || $lv['multaPaga']) continue;
+                  $chave = $idEmp.'_'.$lv['idExemplar'];
+                ?>
+                <div class="d-flex align-items-center justify-content-between border rounded px-3 py-2 mb-2"
+                     style="cursor:pointer;"
+                     onmouseover="this.style.background='#fff3cd'" onmouseout="this.style.background=''"
+                     onclick="$('#seletorMulta<?php echo $idEmp; ?>').modal('hide');setTimeout(function(){$('#modalMulta<?php echo $chave; ?>').modal('show');},400);">
+                  <div>
+                    <div class="font-weight-bold"><?php echo htmlspecialchars($lv['Titulo']); ?></div>
+                    <small class="text-muted">
+                      Dev. prev.: <?php echo date('d/m/Y', strtotime($lv['data_prevista'])); ?> &bull;
+                      <span class="text-danger"><?php echo $lv['diasAtraso']; ?> dia(s) em atraso</span>
+                    </small>
+                  </div>
+                  <div class="text-right ml-3">
+                    <span class="text-danger font-weight-bold">R$ <?php echo number_format($lv['valorMulta'],2,',','.'); ?></span>
+                    <br><i class="fas fa-chevron-right text-muted small"></i>
+                  </div>
+                </div>
+                <?php endforeach; ?>
+              </div>
+              <div class="modal-footer py-2">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Fechar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- ══ MODAIS DE AÇÃO POR LIVRO ══ -->
+        <?php foreach($livros as $lv):
+          $chave = $idEmp.'_'.$lv['idExemplar'];
+        ?>
+
+        <!-- Modal Renovar -->
+        <div class="modal fade" id="modalRenovar<?php echo $chave; ?>">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h4 class="modal-title">Renovar Empréstimo</h4>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <form method="POST" action="php/salvarEmprestimo.php?funcao=U">
+                <div class="modal-body">
+                  <input type="hidden" name="idEmprestimo" value="<?php echo $idEmp; ?>">
+                  <input type="hidden" name="idExemplar"   value="<?php echo $lv['idExemplar']; ?>">
+                  <p><strong>Cliente:</strong> <?php echo htmlspecialchars($emp['Cliente']); ?></p>
+                  <p><strong>Livro:</strong> <?php echo htmlspecialchars($lv['Titulo']); ?></p>
+                  <hr>
+                  <div class="form-group">
+                    <label>Data do Empréstimo:</label>
+                    <input type="text" class="form-control bg-light"
+                           value="<?php echo date('d/m/Y', strtotime($lv['Data_emprestimo'])); ?>"
+                           disabled readonly>
+                    <small class="text-muted">A data de retirada não pode ser alterada.</small>
+                  </div>
+                  <div class="form-group">
+                    <label>Nova Data Prevista para Devolução:</label>
+                    <input type="date" class="form-control" name="nDataPrevista"
+                           value="<?php echo date('Y-m-d', strtotime('+7 days')); ?>"
+                           min="<?php echo $hoje; ?>" required>
+                    <small class="text-muted">Não é possível selecionar uma data anterior a hoje.</small>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn text-white" style="background-color:#2563eb;"><i class="fas fa-save"></i> Renovar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Devolver -->
+        <div class="modal fade" id="modalDevolver<?php echo $chave; ?>">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h4 class="modal-title">Confirmar Devolução</h4>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <div class="modal-body">
+                <p>Confirmar a devolução do livro abaixo?</p>
+                <p><strong>Cliente:</strong> <?php echo htmlspecialchars($emp['Cliente']); ?></p>
+                <p><strong>Livro:</strong> <?php echo htmlspecialchars($lv['Titulo']); ?> <small class="text-muted">(Cód: <?php echo $lv['idExemplar']; ?>)</small></p>
+                <p><strong>Retirada:</strong> <?php echo date('d/m/Y', strtotime($lv['Data_emprestimo'])); ?></p>
+                <p><strong>Devolução prevista:</strong> <?php echo date('d/m/Y', strtotime($lv['data_prevista'])); ?></p>
+                <?php if($lv['atrasado']): ?>
+                  <p class="text-danger"><strong>Atraso:</strong> <?php echo $lv['diasAtraso']; ?> dia(s)</p>
+                <?php endif; ?>
+              </div>
+              <form method="POST" action="php/salvarEmprestimo.php?funcao=D">
+                <input type="hidden" name="idEmprestimo" value="<?php echo $idEmp; ?>">
+                <input type="hidden" name="idExemplar"   value="<?php echo $lv['idExemplar']; ?>">
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn text-white" style="background-color:#2563eb;"><i class="fas fa-check"></i> Confirmar Devolução</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Multa -->
+        <?php if($lv['atrasado'] && !$lv['multaPaga']): ?>
+        <div class="modal fade" id="modalMulta<?php echo $chave; ?>">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header text-white" style="background-color:#0b1a2c;">
+                <h4 class="modal-title"><i class="fas fa-dollar-sign mr-1"></i> Pagamento de Multa</h4>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+              </div>
+              <form method="POST" action="php/salvarEmprestimo.php?funcao=M">
+                <div class="modal-body">
+                  <input type="hidden" name="idEmprestimo" value="<?php echo $idEmp; ?>">
+                  <input type="hidden" name="idExemplar"   value="<?php echo $lv['idExemplar']; ?>">
+                  <input type="hidden" name="nValorMulta"  value="<?php echo number_format($lv['valorMulta'],2,'.','.'); ?>">
+                  <p><strong>Cliente:</strong> <?php echo htmlspecialchars($emp['Cliente']); ?></p>
+                  <p><strong>Livro:</strong> <?php echo htmlspecialchars($lv['Titulo']); ?> <small class="text-muted">(Cód: <?php echo $lv['idExemplar']; ?>)</small></p>
+                  <p><strong>Devolução prevista:</strong> <?php echo date('d/m/Y', strtotime($lv['data_prevista'])); ?></p>
+                  <p><strong>Dias em atraso:</strong> <?php echo $lv['diasAtraso']; ?> dia(s)</p>
+                  <hr>
+                  <div class="text-center">
+                    <small class="text-muted d-block">Valor da multa (R$ 1,00 por dia de atraso)</small>
+                    <h2 class="text-danger font-weight-bold mb-0">R$ <?php echo number_format($lv['valorMulta'],2,',','.'); ?></h2>
+                  </div>
+                  <p class="text-center text-muted mt-3 mb-0"><small><i class="fas fa-info-circle mr-1"></i>Ao confirmar, a multa é paga e o livro é devolvido automaticamente.</small></p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn text-white" style="background-color:#0b1a2c;"><i class="fas fa-check"></i> Pagar e Devolver</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+
+        <?php endforeach; // livros ?>
+        <?php endforeach; // emprestimos ?>
+
+        <!-- ══ Modal Novo Empréstimo ══ -->
         <div class="modal fade" id="novoEmprestimoModal">
           <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -373,35 +570,26 @@
 </div>
 
 <?php include('partes/js.php'); ?>
-<!-- Select2 (busca no seletor de cliente) -->
 <script src="plugins/select2/js/select2.full.min.js"></script>
 
 <script>
-// Quantos livros cada cliente já tem em mãos (vindo do PHP)
 var pendentesPorCliente = <?php echo json_encode($pendentesPorCliente); ?>;
 var LIMITE = <?php echo $LIMITE_CLIENTE; ?>;
 
 $(document).ready(function () {
 
-  // Inicializa DataTable
   $('#tabela').DataTable({
-    "order": [[4, "asc"]],
-    "language": {
-      "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json"
-    }
+    "order": [[0, "asc"]],
+    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json" }
   });
 
-  // Seletor de cliente com busca por nome (Select2)
   $('#iCliente').select2({
     theme: 'bootstrap4',
     placeholder: 'Digite ou selecione o cliente...',
-    language: {
-      noResults: function () { return 'Nenhum cliente encontrado'; }
-    },
+    language: { noResults: function(){ return 'Nenhum cliente encontrado'; } },
     dropdownParent: $('#novoEmprestimoModal')
   });
 
-  // ---- Limite disponível conforme o cliente já tem em mãos ----
   function limiteDisponivel() {
     var idCli = $('#iCliente').val();
     var jaTem = (idCli && pendentesPorCliente[idCli]) ? pendentesPorCliente[idCli] : 0;
@@ -413,106 +601,66 @@ $(document).ready(function () {
   }
 
   function atualizaContador() {
-    var idCli   = $('#iCliente').val();
-    var jaTem   = (idCli && pendentesPorCliente[idCli]) ? pendentesPorCliente[idCli] : 0;
-    var total   = jaTem + selecionados();
-    $('#contadorLivros').text(total + '/' + LIMITE);
-
-    if (selecionados() === 0) {
-      $('#msgVazio').show();
-    } else {
-      $('#msgVazio').hide();
-    }
+    var idCli = $('#iCliente').val();
+    var jaTem = (idCli && pendentesPorCliente[idCli]) ? pendentesPorCliente[idCli] : 0;
+    $('#contadorLivros').text((jaTem + selecionados()) + '/' + LIMITE);
+    if (selecionados() === 0) { $('#msgVazio').show(); } else { $('#msgVazio').hide(); }
   }
 
-  // ---- Adicionar livro (da lista para a caixa) ----
   $(document).on('click', '.item-disponivel', function() {
-    if (!$('#iCliente').val()) {
-      alert('Selecione o cliente antes de escolher os livros.');
-      return;
-    }
+    if (!$('#iCliente').val()) { alert('Selecione o cliente antes de escolher os livros.'); return; }
     if (selecionados() >= limiteDisponivel()) {
       var jaTem = pendentesPorCliente[$('#iCliente').val()] || 0;
-      if (jaTem > 0) {
-        alert('Este cliente já está com ' + jaTem + ' livro(s). O limite é de ' + LIMITE + ' por cliente.');
-      } else {
-        alert('Limite de ' + LIMITE + ' livros por cliente atingido.');
-      }
+      alert(jaTem > 0
+        ? 'Este cliente já está com ' + jaTem + ' livro(s). O limite é de ' + LIMITE + ' por cliente.'
+        : 'Limite de ' + LIMITE + ' livros por cliente atingido.');
       return;
     }
-
-    var id     = $(this).data('id');
-    var titulo = $(this).data('titulo');
-
-    // Remove da lista de disponíveis
+    var id = $(this).data('id'), titulo = $(this).data('titulo');
     $(this).remove();
-
-    // Adiciona na caixa de selecionados
     $('#caixaSelecionados').append(
-      '<div class="d-flex justify-content-between align-items-center bg-white border rounded px-2 py-1 mb-1 item-selecionado" data-id="' + id + '" data-titulo="' + titulo + '">' +
-        '<span><i class="fas fa-book text-primary mr-2"></i>' + titulo + ' <small class="text-muted">(Cód: ' + id + ')</small></span>' +
-        '<button type="button" class="btn btn-sm btn-link text-danger p-0 remover-item" title="Remover"><i class="fas fa-times-circle"></i></button>' +
+      '<div class="d-flex justify-content-between align-items-center bg-white border rounded px-2 py-1 mb-1 item-selecionado" data-id="'+id+'" data-titulo="'+titulo+'">' +
+        '<span><i class="fas fa-book text-primary mr-2"></i>'+titulo+' <small class="text-muted">(Cód: '+id+')</small></span>' +
+        '<button type="button" class="btn btn-sm btn-link text-danger p-0 remover-item"><i class="fas fa-times-circle"></i></button>' +
       '</div>'
     );
-
-    // Cria input oculto para envio
-    $('#inputsExemplares').append('<input type="hidden" name="nExemplares[]" value="' + id + '" id="hid' + id + '">');
-
+    $('#inputsExemplares').append('<input type="hidden" name="nExemplares[]" value="'+id+'" id="hid'+id+'">');
     atualizaContador();
   });
 
-  // ---- Remover livro (da caixa de volta para a lista) ----
   $(document).on('click', '.remover-item', function() {
-    var item   = $(this).closest('.item-selecionado');
-    var id     = item.data('id');
-    var titulo = item.data('titulo');
-
+    var item = $(this).closest('.item-selecionado');
+    var id = item.data('id'), titulo = item.data('titulo');
     item.remove();
-    $('#hid' + id).remove();
-
-    // Devolve para a lista de disponíveis
+    $('#hid'+id).remove();
     $('#listaDisponiveis').append(
-      '<button type="button" class="list-group-item list-group-item-action py-2 item-disponivel" data-id="' + id + '" data-titulo="' + titulo + '">' +
-        '<i class="fas fa-plus-circle text-success mr-2"></i>' + titulo + ' <small class="text-muted">(Cód: ' + id + ')</small>' +
+      '<button type="button" class="list-group-item list-group-item-action py-2 item-disponivel" data-id="'+id+'" data-titulo="'+titulo+'">' +
+        '<i class="fas fa-plus-circle text-success mr-2"></i>'+titulo+' <small class="text-muted">(Cód: '+id+')</small>' +
       '</button>'
     );
-
     atualizaContador();
   });
 
-  // ---- Busca na lista de disponíveis ----
   $('#buscaLivro').on('keyup', function() {
     var termo = $(this).val().toLowerCase();
     $('#listaDisponiveis .item-disponivel').each(function() {
-      var txt = $(this).text().toLowerCase();
-      $(this).toggle(txt.indexOf(termo) !== -1);
+      $(this).toggle($(this).text().toLowerCase().indexOf(termo) !== -1);
     });
   });
 
-  // ---- Ao trocar de cliente, limpa a seleção e recalcula ----
   $('#iCliente').on('change', function() {
-    $('#caixaSelecionados .item-selecionado').each(function() {
-      $(this).find('.remover-item').click();
-    });
+    $('#caixaSelecionados .item-selecionado').each(function(){ $(this).find('.remover-item').click(); });
     atualizaContador();
   });
 
-  // ---- Validação no envio ----
   $('#formNovoEmprestimo').on('submit', function(e) {
-    if (selecionados() === 0) {
-      e.preventDefault();
-      alert('Adicione pelo menos um livro para registrar o empréstimo.');
-    }
+    if (selecionados() === 0) { e.preventDefault(); alert('Adicione pelo menos um livro para registrar o empréstimo.'); }
   });
 
-  // Auto-preenche devolução = empréstimo + 7 dias teste
   $('#iDataEmprestimo').on('change', function() {
     var d = new Date(this.value + 'T00:00:00');
     d.setDate(d.getDate() + 7);
-    var yyyy = d.getFullYear();
-    var mm   = String(d.getMonth() + 1).padStart(2, '0');
-    var dd   = String(d.getDate()).padStart(2, '0');
-    $('#iDataPrevista').val(yyyy + '-' + mm + '-' + dd);
+    $('#iDataPrevista').val(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
   });
 
 });

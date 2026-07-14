@@ -55,6 +55,12 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
     <title>InkVerse - Dashboard</title>
     <?php include('partes/css.php'); ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Dependências do novo filtro de período (calendário duplo) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.js"></script>
+
     <style>
         body { font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         .card { box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.1); border-radius: 0.25rem; margin-bottom: 20px; }
@@ -64,15 +70,64 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         .card-sistema h3 { font-size: 2.2rem; font-weight: 700; margin: 0 0 5px 0; }
         .card-sistema p { font-size: 1rem; margin-bottom: 0; opacity: 0.8; }
         .card-sistema .icon { position: absolute; top: 15px; right: 20px; font-size: 40px; color: rgba(58, 137, 222, 0.25); }
-        
+
         .card-atraso { background-color: #721c24 !important; border-left: 5px solid #dc3545; }
         .card-atraso .icon { color: rgba(220, 53, 69, 0.25) !important; }
 
         .modal .dataTables_wrapper { padding: 15px; }
         .modal .dataTables_filter { text-align: right; }
-        
+
         /* Ajuste do container de filtros superiores */
         .filtro-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+        /* ===== NOVO FILTRO DE PERÍODO (dropdown com abas) ===== */
+        .filtro-dropdown { position: relative; }
+
+        .filtro-toggle-btn {
+            background: #fff; border: 1px solid #ced4da; border-radius: 4px;
+            padding: 7px 16px; font-weight: 500; color: #0b1a2c; font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08); cursor: pointer;
+        }
+        .filtro-toggle-btn:hover { border-color: #0b1a2c; }
+        .filtro-toggle-btn .fa-chevron-down { font-size: 0.7rem; margin-left: 6px; opacity: .6; }
+
+        .filtro-painel {
+            position: absolute; top: calc(100% + 8px); right: 0; z-index: 1051;
+            width: 300px; background: #fff; border-radius: 8px;
+            box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 16px 18px 14px;
+            display: none;
+        }
+        .filtro-painel.show { display: block; }
+
+        .filtro-tabs { display: flex; gap: 22px; border-bottom: 1px solid #e9ecef; margin-bottom: 16px; }
+        .filtro-tabs button {
+            background: none; border: none; padding: 0 0 10px; font-weight: 600;
+            font-size: 0.92rem; color: #8a95a3; cursor: pointer; border-bottom: 2px solid transparent;
+        }
+        .filtro-tabs button.active { color: #0b1a2c; border-bottom-color: #0b1a2c; }
+
+        .filtro-tab-pane { display: none; }
+        .filtro-tab-pane.active { display: block; }
+
+        .filtro-tab-pane label { font-size: .8rem; color: #6c757d; font-weight: 600; margin-bottom: 4px; }
+        .filtro-tab-pane .form-control { font-size: .9rem; }
+
+        #inputFiltroPeriodo { background: #fff; cursor: pointer; }
+
+        .filtro-painel-footer { display: flex; align-items: center; margin-top: 16px; }
+        .btn-aplicar-filtro {
+            background: #0b1a2c; border: 1px solid #0b1a2c; color: #fff; font-weight: 600;
+            padding: 6px 18px; border-radius: 4px; font-size: .88rem;
+        }
+        .btn-aplicar-filtro:hover { background: #0b1a2c; color:#fff; }
+        .link-cancelar-filtro { margin-left: 14px; color: #dc3545; font-size: .88rem; font-weight: 500; }
+        .link-cancelar-filtro:hover { color: #a71d2a; text-decoration: none; }
+
+        /* daterangepicker - alinhar à identidade visual do sistema */
+        .daterangepicker td.active, .daterangepicker td.active:hover { background-color: #0b1a2c; }
+        .daterangepicker td.in-range { background-color: rgba(11,26,44,.08); }
+        .daterangepicker .applyBtn { background-color: #0b1a2c; border-color: #0b1a2c; }
+        .daterangepicker .cancelBtn { color:#dc3545; }
     </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -92,36 +147,70 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                     <div class="col-sm-7">
                         <div class="filtro-container">
                             <span class="font-weight-bold text-muted small"><i class="fas fa-filter mr-1"></i> FILTRAR PERÍODO:</span>
-                            
-                            <div class="input-group d-inline-flex" style="max-width: 280px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 4px;">
-                                <select id="filtroMes" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-right-radius: 0; border-bottom-right-radius: 0;">
-                                    <option value="">Mês ---</option>
-                                    <option value="01">Jan</option>
-                                    <option value="02">Fev</option>
-                                    <option value="03">Mar</option>
-                                    <option value="04">Abr</option>
-                                    <option value="05">Mai</option>
-                                    <option value="06">Jun</option>
-                                    <option value="07">Jul</option>
-                                    <option value="08">Ago</option>
-                                    <option value="09">Set</option>
-                                    <option value="10">Out</option>
-                                    <option value="11">Nov</option>
-                                    <option value="12">Dez</option>
-                                </select>
-                                
-                                <div class="input-group-prepend input-group-append">
-                                    <span class="input-group-text bg-white text-muted small border-left-0 border-right-0" style="font-weight: 500;">de</span>
-                                </div>
 
-                                <select id="filtroAno" class="form-control" style="color: #0b1a2c; font-weight: 500; border-top-left-radius: 0; border-bottom-left-radius: 0;">
-                                    <option value="">Ano ---</option>
-                                    <option value="2024">2024</option>
-                                    <option value="2025">2025</option>
-                                    <option value="2026" selected>2026</option>
-                                    <option value="2027">2027</option>
-                                    <option value="2028">2028</option>
-                                </select>
+                            <div class="filtro-dropdown" id="filtroDropdown">
+                                <button type="button" class="filtro-toggle-btn" id="btnFiltroToggle">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span id="labelFiltroAtual">Ano 2026</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+
+                                <div class="filtro-painel" id="painelFiltro">
+                                    <div class="filtro-tabs">
+                                        <button type="button" class="filtro-tab-btn active" data-tab="periodo">Período</button>
+                                        <button type="button" class="filtro-tab-btn" data-tab="mensal">Mensal</button>
+                                        <button type="button" class="filtro-tab-btn" data-tab="anual">Anual</button>
+                                    </div>
+
+                                    <div class="filtro-tab-pane active" data-pane="periodo">
+                                        <label for="inputFiltroPeriodo">Selecione o intervalo</label>
+                                        <input type="text" id="inputFiltroPeriodo" class="form-control" placeholder="Clique para escolher as datas" readonly>
+                                    </div>
+
+                                    <div class="filtro-tab-pane" data-pane="mensal">
+                                        <label for="filtroMes">Mês</label>
+                                        <select id="filtroMes" class="form-control mb-2">
+                                            <option value="">Mês ---</option>
+                                            <option value="01">Janeiro</option>
+                                            <option value="02">Fevereiro</option>
+                                            <option value="03">Março</option>
+                                            <option value="04">Abril</option>
+                                            <option value="05">Maio</option>
+                                            <option value="06">Junho</option>
+                                            <option value="07">Julho</option>
+                                            <option value="08">Agosto</option>
+                                            <option value="09">Setembro</option>
+                                            <option value="10">Outubro</option>
+                                            <option value="11">Novembro</option>
+                                            <option value="12">Dezembro</option>
+                                        </select>
+                                        <label for="filtroAnoMensal">Ano</label>
+                                        <select id="filtroAnoMensal" class="form-control">
+                                            <option value="">Ano ---</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026" selected>2026</option>
+                                            <option value="2027">2027</option>
+                                            <option value="2028">2028</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filtro-tab-pane" data-pane="anual">
+                                        <label for="filtroAnoAnual">Ano</label>
+                                        <select id="filtroAnoAnual" class="form-control">
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026" selected>2026</option>
+                                            <option value="2027">2027</option>
+                                            <option value="2028">2028</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filtro-painel-footer">
+                                        <button type="button" class="btn-aplicar-filtro" id="btnAplicarFiltro">Aplicar</button>
+                                        <a href="#" class="link-cancelar-filtro" id="btnCancelarFiltro">Cancelar</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -398,10 +487,10 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                     if(mysqli_num_rows($qListaAtrasos) > 0) {
                                                         while($atraso = mysqli_fetch_assoc($qListaAtrasos)){
                                                             $diasAtraso = floor((time() - strtotime($atraso['prazo'])) / (60 * 60 * 24));
-                                                            
+
                                                             $primeiroNome = explode(' ', trim($atraso['cliente']))[0];
                                                             $dataPrazoStr = date('d/m/Y', strtotime($atraso['prazo']));
-                                                            
+
                                                             $numeroLimpo = preg_replace('/[^0-9]/', '', $atraso['telefone']);
                                                             if(strlen($numeroLimpo) == 10 || strlen($numeroLimpo) == 11) {
                                                                 $numeroLimpo = '55' . $numeroLimpo;
@@ -531,34 +620,122 @@ document.addEventListener("DOMContentLoaded", function () {
         "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json" }
     });
 
-    // --- LÓGICA DE FILTRO COMBINADO (MÊS + ANO) ---
-    function aplicarFiltroPeriodo() {
-        const mes = document.getElementById('filtroMes').value;
-        const ano = document.getElementById('filtroAno').value;
-        
-        if (!mes && !ano) {
-            tabelaMov.column(3).search('').draw();
-            return;
-        }
-        
-        let stringBusca = "";
-        if (mes && ano) {
-            stringBusca = mes + '/' + ano;
-        } else if (ano) {
-            stringBusca = '/' + ano;
-        } else if (mes) {
-            stringBusca = mes + '/';
-        }
-        
-        tabelaMov.column(3).search(stringBusca).draw();
-    }
+    // ==================================================================
+    // NOVO FILTRO DE PERÍODO (Período / Mensal / Anual) - dropdown custom
+    // ==================================================================
+    let filtroAtivo = { tipo: 'anual', ano: '2026', mes: null, inicio: null, fim: null };
 
-    // Escuta alterações nos dois selects
-    document.getElementById('filtroMes').addEventListener('change', aplicarFiltroPeriodo);
-    document.getElementById('filtroAno').addEventListener('change', aplicarFiltroPeriodo);
+    // Filtro customizado do DataTables, aplicado apenas na tabela de movimentações
+    $.fn.dataTable.ext.search.push(function(settings, data) {
+        if (settings.nTable.id !== 'tabelaMovimentacoes') return true;
+        if (!filtroAtivo.tipo) return true;
 
-    // Inicializa filtrando por 2026 automaticamente no carregamento inicial
-    aplicarFiltroPeriodo();
+        const dataOperacao = data[3].split(' ')[0]; // dd/mm/yyyy
+        const partes = dataOperacao.split('/');
+        if (partes.length !== 3) return true;
+        const dataLinha = new Date(partes[2], parseInt(partes[1], 10) - 1, partes[0]);
+
+        if (filtroAtivo.tipo === 'periodo' && filtroAtivo.inicio && filtroAtivo.fim) {
+            return dataLinha >= filtroAtivo.inicio && dataLinha <= filtroAtivo.fim;
+        }
+        if (filtroAtivo.tipo === 'mensal') {
+            const mesOk = filtroAtivo.mes ? partes[1] === filtroAtivo.mes : true;
+            const anoOk = filtroAtivo.ano ? partes[2] === filtroAtivo.ano : true;
+            return mesOk && anoOk;
+        }
+        if (filtroAtivo.tipo === 'anual') {
+            return filtroAtivo.ano ? partes[2] === filtroAtivo.ano : true;
+        }
+        return true;
+    });
+
+    // Abrir/fechar o painel do filtro
+    const painelFiltro = document.getElementById('painelFiltro');
+    document.getElementById('btnFiltroToggle').addEventListener('click', function(e) {
+        e.stopPropagation();
+        painelFiltro.classList.toggle('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('filtroDropdown').contains(e.target)) {
+            painelFiltro.classList.remove('show');
+        }
+    });
+
+    // Alternar entre as abas Período / Mensal / Anual
+    document.querySelectorAll('.filtro-tab-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filtro-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.filtro-tab-pane').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelector('.filtro-tab-pane[data-pane="' + this.dataset.tab + '"]').classList.add('active');
+        });
+    });
+
+    // Calendário duplo (aba Período) - visual igual ao modelo de referência
+    $('#inputFiltroPeriodo').daterangepicker({
+        showDropdowns: true,
+        opens: 'left',
+        autoUpdateInput: false,
+        locale: {
+            format: 'DD/MM/YYYY',
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            fromLabel: 'De',
+            toLabel: 'Até',
+            daysOfWeek: ['D','S','T','Q','Q','S','S'],
+            monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+            firstDay: 0
+        }
+    });
+    $('#inputFiltroPeriodo').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+    });
+
+    // Botão "Aplicar" do painel: lê a aba ativa e aplica o filtro correspondente
+    document.getElementById('btnAplicarFiltro').addEventListener('click', function() {
+        const abaAtiva = document.querySelector('.filtro-tab-btn.active').dataset.tab;
+        const labelFiltro = document.getElementById('labelFiltroAtual');
+
+        if (abaAtiva === 'periodo') {
+            const picker = $('#inputFiltroPeriodo').data('daterangepicker');
+            if (!picker || !$('#inputFiltroPeriodo').val()) {
+                alert('Selecione um intervalo de datas antes de aplicar.');
+                return;
+            }
+            filtroAtivo = {
+                tipo: 'periodo',
+                inicio: picker.startDate.toDate(),
+                fim: picker.endDate.toDate()
+            };
+            labelFiltro.textContent = picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY');
+        }
+
+        if (abaAtiva === 'mensal') {
+            const mes = document.getElementById('filtroMes').value;
+            const ano = document.getElementById('filtroAnoMensal').value;
+            filtroAtivo = { tipo: 'mensal', mes: mes || null, ano: ano || null };
+            const nomesMeses = {'01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun','07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez'};
+            labelFiltro.textContent = (mes ? nomesMeses[mes] + ' ' : '') + (ano || 'Todos os anos');
+        }
+
+        if (abaAtiva === 'anual') {
+            const ano = document.getElementById('filtroAnoAnual').value;
+            filtroAtivo = { tipo: 'anual', ano: ano || null };
+            labelFiltro.textContent = ano ? ('Ano ' + ano) : 'Todos os períodos';
+        }
+
+        tabelaMov.draw();
+        painelFiltro.classList.remove('show');
+    });
+
+    // Botão "Cancelar": fecha o painel sem alterar o filtro atual
+    document.getElementById('btnCancelarFiltro').addEventListener('click', function(e) {
+        e.preventDefault();
+        painelFiltro.classList.remove('show');
+    });
+
+    // Filtro inicial: ano 2026 (mesmo comportamento padrão do sistema anterior)
+    tabelaMov.draw();
 
     // --- INICIALIZAÇÃO DOS OUTROS DATATABLES ---
     $('#tabelaEmprestimosAtivos').DataTable({
@@ -593,7 +770,24 @@ document.addEventListener("DOMContentLoaded", function () {
             labels: <?php echo json_encode($m_labels); ?>,
             datasets: [{ label: 'Empréstimos', data: <?php echo json_encode($m_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.05)', borderWidth: 2.5, fill: true, tension: 0.25 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Math.floor(value) === value) {
+                                return value;
+                            }
+                        }
+                    }
+                }]
+            }
+        }
     });
 
     new Chart(document.getElementById('graficoGeneros').getContext('2d'), {
@@ -606,9 +800,26 @@ document.addEventListener("DOMContentLoaded", function () {
         type: 'bar',
         data: {
             labels: <?php echo json_encode($c_labels); ?>,
-            datasets: [{ data: <?php echo json_encode($c_valores); ?>, backgroundColor: '#2e4f77', borderRadius: 4 }]
+            datasets: [{ label: 'Total de Empréstimos', data: <?php echo json_encode($c_valores); ?>, backgroundColor: '#2e4f77', borderRadius: 4 }]
         },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Math.floor(value) === value) {
+                                return value;
+                            }
+                        }
+                    }
+                }]
+            }
+        }
     });
 
     new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
@@ -617,16 +828,52 @@ document.addEventListener("DOMContentLoaded", function () {
             labels: <?php echo json_encode($f_labels); ?>,
             datasets: [{ label: 'Atendimentos', data: <?php echo json_encode($f_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.15)', borderWidth: 2 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { r: { grid: { color: '#e2e8f0' }, angleLines: { color: '#e2e8f0' } } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                r: {
+                    grid: { color: '#e2e8f0' },
+                    angleLines: { color: '#e2e8f0' },
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Math.floor(value) === value) {
+                                return value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     });
 
     new Chart(document.getElementById('graficoAnos').getContext('2d'), {
         type: 'bar',
         data: {
             labels: <?php echo json_encode($a_labels); ?>,
-            datasets: [{ data: <?php echo json_encode($a_valores); ?>, backgroundColor: paletaDeAzuis, borderRadius: 4 }]
+            datasets: [{ label:'Livros Cadastrados', data: <?php echo json_encode($a_valores); ?>, backgroundColor: paletaDeAzuis, borderRadius: 4 }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Math.floor(value) === value) {
+                                return value;
+                            }
+                        }
+                    }
+                }]
+            }
+        }
     });
 });
 </script>
