@@ -272,7 +272,7 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                 <div class="row">
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-user-chart mr-1"></i> Top Clientes</h3></div>
+                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-trophy"></i> Top Clientes</h3></div>
                             <div class="card-body"><canvas id="graficoTopClientes" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
@@ -510,7 +510,7 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                                                                     <small class="badge badge-danger ml-1"><?php echo $diasAtraso; ?>d atrás</small>
                                                                 </td>
                                                                 <td class="text-center">
-                                                                    <a href="<?php echo $linkWhats; ?>" target="_blank" class="btn btn-xs btn-outline-danger" title="Notificar no WhatsApp">
+                                                                    <a href="<?php echo $linkWhats; ?>" target="_blank" class="btn btn-xs btn-outline-success" title="Notificar no WhatsApp">
                                                                         <i class="fab fa-whatsapp"></i> Cobrar
                                                                     </a>
                                                                 </td>
@@ -808,38 +808,30 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     new Chart(document.getElementById('graficoTopClientes').getContext('2d'), {
-    type: 'bar',
-    data: {
-        labels: <?php echo json_encode($c_labels); ?>,
-        datasets: [{
-            label: 'Total de Empréstimos',
-            data: <?php echo json_encode($c_valores); ?>,
-            backgroundColor: '#2e4f77',
-            borderRadius: 4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-            display: false
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($c_labels); ?>,
+            datasets: [{ label: 'Total de Empréstimos', data: <?php echo json_encode($c_valores); ?>, backgroundColor: '#2e4f77', borderRadius: 4 }]
         },
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true,
-                    max: 5,
-                    stepSize: 1,
-                    callback: function(value) {
-                        if (Math.floor(value) === value) {
-                            return value;
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend: { display: false },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1,
+                        callback: function(value) {
+                            if (Math.floor(value) === value) {
+                                return value;
+                            }
                         }
                     }
-                }
-            }]
+                }]
+            }
         }
-    }
-});
+    });
 
 
     new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
