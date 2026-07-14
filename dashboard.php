@@ -35,11 +35,11 @@ $qMeses = mysqli_query($conn, "SELECT DATE_FORMAT(Data_emprestimo, '%m/%Y') as m
 while($r = mysqli_fetch_assoc($qMeses)) { $m_labels[] = $r['mes_ano']; $m_valores[] = (int)$r['total']; }
 
 $c_labels = []; $c_valores = [];
-$qTopClientes = mysqli_query($conn, "SELECT c.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN cliente c ON e.idCliente = c.idCliente GROUP BY c.idCliente ORDER BY total DESC LIMIT 5");
+$qTopClientes = mysqli_query($conn, "SELECT c.Nome, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo JOIN cliente c ON e.idCliente = c.idCliente GROUP BY c.idCliente ORDER BY total DESC LIMIT 5");
 while($r = mysqli_fetch_assoc($qTopClientes)) { $c_labels[] = $r['Nome']; $c_valores[] = (int)$r['total']; }
 
 $f_labels = []; $f_valores = [];
-$qTopFunc = mysqli_query($conn, "SELECT f.Nome, COUNT(e.idEmprestimo) as total FROM emprestimo e JOIN funcionario f ON e.idFuncionario = f.idFuncionario GROUP BY f.idFuncionario");
+$qTopFunc = mysqli_query($conn, "SELECT f.Nome, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo JOIN funcionario f ON e.idFuncionario = f.idFuncionario GROUP BY f.idFuncionario");
 while($r = mysqli_fetch_assoc($qTopFunc)) { $f_labels[] = $r['Nome']; $f_valores[] = (int)$r['total']; }
 
 $a_labels = []; $a_valores = [];
@@ -765,30 +765,41 @@ document.addEventListener("DOMContentLoaded", function () {
     const paletaDeAzuis = ['#0b1a2c', '#1a3350', '#2e4f77', '#466fa1', '#6393cc', '#8cb4e6'];
 
     new Chart(document.getElementById('graficoMensal').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($m_labels); ?>,
-            datasets: [{ label: 'Empréstimos', data: <?php echo json_encode($m_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.05)', borderWidth: 2.5, fill: true, tension: 0.25 }]
+    type: 'line',
+    data: {
+        labels: <?php echo json_encode($m_labels); ?>,
+        datasets: [{
+            label: 'Empréstimos',
+            data: <?php echo json_encode($m_valores); ?>,
+            borderColor: azulSistema,
+            backgroundColor: 'rgba(11, 26, 44, 0.05)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.25
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+            display: false
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                        stepSize: 1,
-                        callback: function(value) {
-                            if (Math.floor(value) === value) {
-                                return value;
-                            }
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    max: 5,          // <-- Adicione esta linha
+                    stepSize: 1,
+                    callback: function(value) {
+                        if (Math.floor(value) === value) {
+                            return value;
                         }
                     }
-                }]
-            }
+                }
+            }]
         }
-    });
+    }
+});
 
     new Chart(document.getElementById('graficoGeneros').getContext('2d'), {
         type: 'doughnut',
@@ -797,36 +808,45 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     new Chart(document.getElementById('graficoTopClientes').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: <?php echo json_encode($c_labels); ?>,
-            datasets: [{ label: 'Total de Empréstimos', data: <?php echo json_encode($c_valores); ?>, backgroundColor: '#2e4f77', borderRadius: 4 }]
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($c_labels); ?>,
+        datasets: [{
+            label: 'Total de Empréstimos',
+            data: <?php echo json_encode($c_valores); ?>,
+            backgroundColor: '#2e4f77',
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+            display: false
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                        stepSize: 1,
-                        callback: function(value) {
-                            if (Math.floor(value) === value) {
-                                return value;
-                            }
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    max: 5,
+                    stepSize: 1,
+                    callback: function(value) {
+                        if (Math.floor(value) === value) {
+                            return value;
                         }
                     }
-                }]
-            }
+                }
+            }]
         }
-    });
+    }
+});
+
 
     new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
         type: 'radar',
         data: {
             labels: <?php echo json_encode($f_labels); ?>,
-            datasets: [{ label: 'Atendimentos', data: <?php echo json_encode($f_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.15)', borderWidth: 2 }]
+            datasets: [{  data: <?php echo json_encode($f_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.15)', borderWidth: 2 }]
         },
         options: {
             responsive: true,
@@ -851,30 +871,38 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     new Chart(document.getElementById('graficoAnos').getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: <?php echo json_encode($a_labels); ?>,
-            datasets: [{ label:'Livros Cadastrados', data: <?php echo json_encode($a_valores); ?>, backgroundColor: paletaDeAzuis, borderRadius: 4 }]
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($a_labels); ?>,
+        datasets: [{
+            label: 'Livros Cadastrados',
+            data: <?php echo json_encode($a_valores); ?>,
+            backgroundColor: paletaDeAzuis,
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+            display: false
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            legend: { display: false },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true,
-                        stepSize: 1,
-                        callback: function(value) {
-                            if (Math.floor(value) === value) {
-                                return value;
-                            }
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true,
+                    max: 5,
+                    stepSize: 1,
+                    callback: function(value) {
+                        if (Math.floor(value) === value) {
+                            return value;
                         }
                     }
-                }]
-            }
+                }
+            }]
         }
-    });
+    }
+});
 });
 </script>
 </body>
