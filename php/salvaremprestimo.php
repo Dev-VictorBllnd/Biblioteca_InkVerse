@@ -63,6 +63,19 @@ if (isset($_GET['funcao'])) {
             mysqli_query($conn, "UPDATE exemplar SET Emprestado = 'sim' WHERE idExemplar = '$idExemplar'");
         }
 
+        // Se cliente confirmou posse dos livros, renova automaticamente os existentes
+        if (isset($_POST['nConfirmaPosse']) && $_POST['nConfirmaPosse'] === 'sim') {
+            $novaPrevista = date('Y-m-d', strtotime('+7 days'));
+            mysqli_query($conn, "
+                UPDATE emprestimo_has_exemplar ehe
+                INNER JOIN emprestimo e ON e.idEmprestimo = ehe.idEmprestimo
+                SET ehe.data_prevista = '$novaPrevista'
+                WHERE e.idCliente = $cliente
+                  AND ehe.Data_devolucao IS NULL
+                  AND ehe.idEmprestimo != $idEmprestimo
+            ");
+        }
+
         header("Location: ../emprestimo.php?sucesso=inserido");
         exit;
     }
