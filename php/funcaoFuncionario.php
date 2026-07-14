@@ -1,20 +1,47 @@
 <?php
 // Função para listar todos os usuários e gerar os Modais de Edição e Exclusão
-function listaUsuario(){
-
-    // 1. Inicia a sessão se ainda não estiver ativa para pegar o ID do usuário logado
+function listaUsuario($filtro = 'ativos')
+{
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    // Supondo que a variável de sessão se chame 'idFuncionario'. Se for o admin id=1, garanta que esteja na sessão.
-    $idSessaoAtiva = $_SESSION['idLogin'] ?? 1; 
 
     include("conexao.php");
-    
-    // 2. O truque do ORDER BY CASE coloca o usuário logado no topo
-    $sql = "SELECT * FROM funcionario ORDER BY CASE WHEN idFuncionario = $idSessaoAtiva THEN 0 ELSE 1 END, idFuncionario;";
-            
-    $result = mysqli_query($conn,$sql);
+
+    $idSessaoAtiva = $_SESSION['idLogin'] ?? 0;
+
+    switch ($filtro) {
+        case 'inativos':
+            $where = " WHERE funcionario.Ativo = 'N' ";
+            break;
+
+        case 'todos':
+            $where = "";
+            break;
+
+        default:
+            $where = " WHERE funcionario.Ativo = 'S' ";
+            break;
+    }
+
+    $sql = "
+        SELECT *
+        FROM funcionario
+        $where
+        ORDER BY
+            CASE
+                WHEN idFuncionario = $idSessaoAtiva THEN 0
+                ELSE 1
+            END,
+            Nome
+    ";
+
+    $result = mysqli_query($conn, $sql);
+
+    if (!$result) {
+        return '<tr><td colspan="6" align="center">Erro SQL: '.mysqli_error($conn).'</td></tr>';
+    }
+
     mysqli_close($conn);
 
     $lista = '';
@@ -183,7 +210,11 @@ function listaUsuario(){
             }
         } 
     } else {
-        $lista = '<tr><td colspan="6" align="center">Nenhum funcionário cadastrado ou tabela não encontrada.</td></tr>';
+        // Não gera uma <tr> manual aqui: uma linha com menos <td> do que
+        // colunas no cabeçalho quebra a contagem de colunas do DataTables
+        // e trava o restante do JavaScript (inclusive o botão de filtro).
+        // O DataTables mostra a mensagem de "vazio" sozinho via "language.emptyTable".
+        $lista = '';
     }
     
     return $lista;
