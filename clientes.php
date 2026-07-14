@@ -1,6 +1,11 @@
 <?php 
-  session_start();
-  include('php/funcoes.php');
+ session_start();
+ include('php/funcoes.php');
+
+ // Filtro de exibição: ativos (padrão), inativos ou todos
+ $filtroCliente = $_GET['filtro'] ?? 'ativos';
+ if(!in_array($filtroCliente, ['ativos','inativos','todos'])){ $filtroCliente = 'ativos'; }
+
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +75,7 @@
                   </thead>
                   <tbody>
 
-                  <?php echo listaClientes(); ?>
+                  <?php echo listaClientes($filtroCliente); ?>
                   
                   </tbody>
                   
@@ -226,17 +231,50 @@
 <?php include('partes/js.php'); ?>
 
 <script>
-  $(function () {
-    $('#tabela').DataTable({
-      "paging": true,
-      "lengthChange": true,
-      "searching": true,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
+$(document).ready(function () {
+
+    var filtroAtual = '<?php echo $filtroCliente; ?>';
+
+    var rotulos = {
+        ativos: 'Ativos',
+        inativos: 'Inativos',
+        todos: 'Todos'
+    };
+
+    var tabela = $('#tabela').DataTable({
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+
+        language: {
+            search: "Pesquisar:"
+        },
+
+        initComplete: function () {
+
+            var filtro =
+            '<div class="btn-group mr-2">' +
+                '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">' +
+                    '<i class="fas fa-filter"></i> ' + rotulos[filtroAtual] +
+                '</button>' +
+                '<div class="dropdown-menu">' +
+                    '<a class="dropdown-item" href="clientes.php?filtro=ativos">Somente Ativos</a>' +
+                    '<a class="dropdown-item" href="clientes.php?filtro=inativos">Somente Inativos</a>' +
+                    '<a class="dropdown-item" href="clientes.php?filtro=todos">Todos</a>' +
+                '</div>' +
+            '</div>';
+
+            $('#tabela_filter label').before(filtro);
+
+        }
+
     });
-  });
+
+});
 </script>
 
 </body>

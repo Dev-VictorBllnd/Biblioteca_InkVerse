@@ -1,29 +1,37 @@
 <?php
 // Função para listar todos os clientes e gerar os Modais de Edição e Exclusão
-function listaClientes(){
+function listaClientes($filtro = 'ativos'){
 
     include("conexao.php");
   
+ // Filtro pelo status do cliente
+ if ($filtro == 'inativos') {
+    $where = "WHERE c.Ativo = 'N'";
+} elseif ($filtro == 'todos') {
+    $where = "";
+} else { // ativos (padrão)
+    $where = "WHERE (c.Ativo IS NULL OR c.Ativo != 'N')";
+}
+
 $sql = "SELECT c.*, 
-            (
-                -- 1. Soma multas antigas já registradas na tabela emprestimo
-                SELECT COALESCE(SUM(e.multa), 0) 
-                FROM emprestimo e 
-                WHERE e.idCliente = c.idCliente
-            ) 
-            + 
-            (
-                -- 2. Calcula a multa em TEMPO REAL (-1 dia para remover a diferença)
-                SELECT COALESCE(SUM( (DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00), 0)
-                FROM emprestimo e
-                INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
-                WHERE e.idCliente = c.idCliente
-                  AND ehe.Data_devolucao IS NULL 
-                  AND ehe.data_prevista < CURDATE()
-            ) AS TotalMulta
-            
-            FROM cliente c
-            ORDER BY c.idCliente;";
+        (
+            SELECT COALESCE(SUM(e.multa), 0) 
+            FROM emprestimo e 
+            WHERE e.idCliente = c.idCliente
+        ) 
+        + 
+        (
+            SELECT COALESCE(SUM( (DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00), 0)
+            FROM emprestimo e
+            INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+            WHERE e.idCliente = c.idCliente
+              AND ehe.Data_devolucao IS NULL 
+              AND ehe.data_prevista < CURDATE()
+        ) AS TotalMulta
+        
+        FROM cliente c
+        $where
+        ORDER BY c.idCliente;";
             
     $result = mysqli_query($conn,$sql);
     mysqli_close($conn);
@@ -213,8 +221,8 @@ $sql = "SELECT c.*,
             
         } 
     } else {
-        // Se der erro na leitura ou a tabela não existir, mostra esta mensagem na tabela em vez de travar o PHP inteiro!
-        $lista = '<tr><td colspan="7" align="center">Nenhum cliente cadastrado ou tabela não encontrada.</td></tr>';
+        
+        $lista = '';
     }
     
     return $lista;
