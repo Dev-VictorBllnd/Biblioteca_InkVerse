@@ -35,7 +35,8 @@ function proximoID($tabela, $id){
 
 //Função que envia o e-mail (ex: código de recuperação de senha) para o usuário
 //Retorna true se o e-mail foi enviado com sucesso, ou false se houve falha
-function enviarEmail($email,$msg,$assunto,$nome){
+//$altBody (opcional) permite definir uma versão em texto puro mais amigável que o strip_tags padrão
+function enviarEmail($email,$msg,$assunto,$nome,$altBody = null){
 
     require_once __DIR__ . '/../libs/PHPMailer/Exception.php';
     require_once __DIR__ . '/../libs/PHPMailer/PHPMailer.php';
@@ -57,12 +58,26 @@ function enviarEmail($email,$msg,$assunto,$nome){
         //Recipients
         $mail->setFrom('inkversebiblioteca@gmail.com', 'InkVerse'); // TROCAR: mesmo e-mail da empresa
         $mail->addAddress($email, $nome);
+        $mail->addReplyTo('inkversebiblioteca@gmail.com', 'InkVerse'); // Reply-To igual ao From ajuda na reputação
+
+        // Reduz sinais de spam: remove a assinatura "X-Mailer: PHPMailer" do cabeçalho
+        $mail->XMailer = ' ';
+
+        // Logo embutida no e-mail (referenciada no HTML como cid:logoInkVerse)
+        // Usamos a versão otimizada/pequena: imagens grandes pesam contra a entregabilidade
+        $caminhoLogo = __DIR__ . '/../dist/img/email/logo-email.png';
+        if (!file_exists($caminhoLogo)) {
+            $caminhoLogo = __DIR__ . '/../dist/img/logo.png'; // fallback
+        }
+        if (file_exists($caminhoLogo)) {
+            $mail->addEmbeddedImage($caminhoLogo, 'logoInkVerse');
+        }
 
         // Content
         $mail->isHTML(true);
         $mail->Subject = $assunto;
         $mail->Body    = $msg;
-        $mail->AltBody = strip_tags($msg);
+        $mail->AltBody = $altBody ?? strip_tags($msg);
 
         $mail->send();
         return true;
