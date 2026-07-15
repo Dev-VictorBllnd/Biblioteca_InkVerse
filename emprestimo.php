@@ -59,6 +59,14 @@
               </div>
             <?php endif; ?>
 
+            <?php if (isset($_GET['erro']) && $_GET['erro'] == 'multa'): ?>
+              <div class="alert alert-danger alert-dismissible fade show">
+                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                <h5><i class="icon fas fa-exclamation-triangle"></i> Multa em aberto!</h5>
+                Este cliente possui multa(s) em aberto. É necessário pagar a multa antes de emprestar ou renovar livros.
+              </div>
+            <?php endif; ?>
+
             <?php
             $hoje = date('Y-m-d');
             $LIMITE_CLIENTE = 5;
@@ -91,6 +99,21 @@
             if($qLivCli){
               while($lc = mysqli_fetch_assoc($qLivCli)){
                 $livrosPorCliente[$lc['idCliente']][] = $lc['Titulo'].' (Cód: '.$lc['idExemplar'].')';
+              }
+            }
+
+            // Clientes com multa a pagar (congelada de livro devolvido OU atraso em mãos)
+            $clientesComMulta = array();
+            $qMulta = mysqli_query($conn, "
+              SELECT DISTINCT e.idCliente
+              FROM emprestimo e
+              INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+              WHERE (ehe.multa > 0 AND ehe.multa_paga = 'N')
+                 OR (ehe.Data_devolucao IS NULL AND ehe.data_prevista < '$hoje' AND (ehe.multa IS NULL OR ehe.multa = 0))
+            ");
+            if($qMulta){
+              while($m = mysqli_fetch_assoc($qMulta)){
+                $clientesComMulta[(int)$m['idCliente']] = true;
               }
             }
 
@@ -420,7 +443,6 @@
                           }
                         ?>
                       </div>
-                    </div>
                     </div><!-- /#blocoLivros -->
                     <div class="col-md-6">
                       <label>Livros para Empréstimo: <span id="contadorLivros" class="badge badge-success float-right">0/5</span></label>
@@ -466,6 +488,12 @@
 <script>
 var pendentesPorCliente = <?php echo json_encode($pendentesPorCliente); ?>;
 var livrosPorCliente    = <?php echo json_encode($livrosPorCliente); ?>;
+var clientesComMulta    = <?php echo json_encode($clientesComMulta); ?>;
+var clienteDoEmprestimo = <?php
+  $mapCli = array();
+  foreach($emprestimos as $emp){ $mapCli[$emp['idEmprestimo']] = (int)$emp['idCliente']; }
+  echo json_encode($mapCli);
+?>;
 var LIMITE = <?php echo $LIMITE_CLIENTE; ?>;
 var clienteConfirmado  = {}; // guarda quais clientes já confirmaram posse
 var modoRenovar = {}; // controla se painel está em modo renovar
@@ -525,10 +553,6 @@ function executarAcao(funcao, idEmp) {
   var checks    = document.querySelectorAll('#painelAcoes' + idEmp + ' .chk-livro:checked');
   var todosChks = document.querySelectorAll('#painelAcoes' + idEmp + ' .chk-livro');
 
-  // Verifica se há livro atrasado no empréstimo inteiro (não só selecionados)
-  var temAtrasadoNoEmp = false;
-  todosChks.forEach(function(chk) { if (chk.dataset.atrasado === '1') temAtrasadoNoEmp = true; });
-
   if (checks.length === 0) {
     alert('Selecione pelo menos um livro.');
     return;
@@ -536,14 +560,15 @@ function executarAcao(funcao, idEmp) {
 
   // ── DEVOLVER ──
   if (funcao === 'D') {
-    // Não deixa devolver livro atrasado (precisa pagar multa antes)
-    var tentandoAtrasado = false;
-    checks.forEach(function(chk) { if (chk.dataset.atrasado === '1') tentandoAtrasado = true; });
-    if (tentandoAtrasado) {
-      alert('Não é possível devolver livros com multa em aberto.\nPague a multa primeiro.');
-      return;
-    }
-    if (!confirm('Confirmar devolução de ' + checks.length + ' livro(s)?')) return;
+    // Verifica se algum selecionado está atrasado (só para avisar)
+    var temAtrasadoSel = false;
+    checks.forEach(function(chk) { if (chk.dataset.atrasado === '1') temAtrasadoSel = true; });
+
+    var msg = temAtrasadoSel
+      ? 'Atenção: há livro(s) atrasado(s). A multa será registrada (congelada) e não aumentará mais, mesmo sem o pagamento.\n\nConfirmar devolução de ' + checks.length + ' livro(s)?'
+      : 'Confirmar devolução de ' + checks.length + ' livro(s)?';
+    if (!confirm(msg)) return;
+
     var pendentes = checks.length;
     checks.forEach(function(chk) {
       var fd = new FormData();
@@ -557,9 +582,10 @@ function executarAcao(funcao, idEmp) {
 
   // ── RENOVAR ──
   if (funcao === 'U') {
-    // Bloqueia renovar se o empréstimo tiver qualquer livro com multa
-    if (temAtrasadoNoEmp) {
-      alert('Não é possível renovar enquanto houver livros com multa em aberto neste empréstimo.\nPague a multa primeiro.');
+    // Bloqueia renovar se o cliente tiver multa a pagar (inclusive congelada de livro devolvido)
+    var cli = clienteDoEmprestimo[idEmp];
+    if (clientesComMulta[cli]) {
+      alert('Não é possível renovar: este cliente possui multa(s) em aberto.\nÉ necessário pagar a multa antes de renovar qualquer livro.');
       return;
     }
     var algumSemData = false;
@@ -651,6 +677,11 @@ $(document).ready(function () {
 
   $(document).on('click', '.item-disponivel', function() {
     if (!$('#iCliente').val()) { alert('Selecione o cliente antes de escolher os livros.'); return; }
+    // Bloqueia escolher livros se o cliente tiver multa a pagar
+    if (clientesComMulta[$('#iCliente').val()]) {
+      alert('Este cliente possui multa(s) em aberto e precisa pagá-la(s) antes de realizar um novo empréstimo.');
+      return;
+    }
     if (selecionados() >= limiteDisponivel()) {
       var jaTem = pendentesPorCliente[$('#iCliente').val()] || 0;
       alert(jaTem > 0 ? 'Este cliente já está com ' + jaTem + ' livro(s). O limite é de ' + LIMITE + ' por cliente.' : 'Limite de ' + LIMITE + ' livros por cliente atingido.');
@@ -681,16 +712,30 @@ $(document).ready(function () {
     $('#caixaSelecionados .item-selecionado').each(function(){ $(this).find('.remover-item').click(); });
     $('#confirmaPosse').val('');
     atualizaContador();
+
+    // Avisa imediatamente se o cliente tiver multa em aberto
+    var idCli = $(this).val();
+    if (idCli && clientesComMulta[idCli]) {
+      alert('Atenção: este cliente possui multa(s) em aberto e precisa pagá-la(s) antes de realizar um novo empréstimo.');
+    }
   });
 
   $('#formNovoEmprestimo').on('submit', function(e) {
     if (selecionados() === 0) {
       e.preventDefault();
-      alert('Adicione pelo menos um livro para registrar o empéstimo.');
+      alert('Adicione pelo menos um livro para registrar o empréstimo.');
       return;
     }
 
     var idCli = $('#iCliente').val();
+
+    // Bloqueia se o cliente tiver multa a pagar (mesmo já tendo devolvido os livros)
+    if (clientesComMulta[idCli]) {
+      e.preventDefault();
+      alert('Este cliente possui multa(s) em aberto e precisa pagá-la(s) antes de realizar um novo empréstimo.');
+      return;
+    }
+
     var jaTem = pendentesPorCliente[idCli] ? pendentesPorCliente[idCli] : 0;
 
     // Tem livros em mãos e ainda não confirmou posse
@@ -703,7 +748,7 @@ $(document).ready(function () {
 
       var msg = 'Este cliente já possui ' + jaTem + ' livro(s) emprestado(s):\n' + lista + '\n\nO cliente está com esses livros em mãos?';
       if (confirm(msg)) {
-        // Confirmou posse — salva e submete
+        // Confirmou posse e sem multa — salva e submete
         $('#confirmaPosse').val('sim');
         $(this).submit();
       }

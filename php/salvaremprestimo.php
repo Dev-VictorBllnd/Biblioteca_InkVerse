@@ -2,6 +2,27 @@
 session_start();
 include('conexao.php');
 
+// ---------------------------------------------------------------------------
+// Retorna true se o cliente tem multa a pagar:
+//  - multa congelada de livro já devolvido e não paga, OU
+//  - livro ainda em mãos e atrasado (multa em formação)
+// ---------------------------------------------------------------------------
+function clienteTemMulta($conn, $cliente) {
+    $cliente = (int)$cliente;
+    if ($cliente <= 0) return false;
+    $q = mysqli_query($conn, "
+        SELECT COUNT(*) AS qtd
+        FROM emprestimo e
+        INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+        WHERE e.idCliente = $cliente
+          AND (
+                (ehe.multa > 0 AND ehe.multa_paga = 'N')
+             OR (ehe.Data_devolucao IS NULL AND ehe.data_prevista < CURDATE() AND (ehe.multa IS NULL OR ehe.multa = 0))
+          )
+    ");
+    return ($q) ? ((int)mysqli_fetch_assoc($q)['qtd'] > 0) : false;
+}
+
 if (isset($_GET['funcao'])) {
     $funcao = $_GET['funcao'];
 
@@ -32,6 +53,12 @@ if (isset($_GET['funcao'])) {
 
         if (($jaTem + count($exemplares)) > $LIMITE_CLIENTE) {
             header("Location: ../emprestimo.php?erro=limite");
+            exit;
+        }
+
+        // Bloqueia novo empréstimo se o cliente tiver multa a pagar
+        if (clienteTemMulta($conn, $cliente)) {
+            header("Location: ../emprestimo.php?erro=multa");
             exit;
         }
 
@@ -94,6 +121,14 @@ if (isset($_GET['funcao'])) {
             exit;
         }
 
+        // Descobre o cliente deste empréstimo e bloqueia se tiver multa a pagar
+        $qCli    = mysqli_query($conn, "SELECT idCliente FROM emprestimo WHERE idEmprestimo = $idEmprestimo LIMIT 1");
+        $cliente = ($qCli && mysqli_num_rows($qCli)) ? (int)mysqli_fetch_assoc($qCli)['idCliente'] : 0;
+        if (clienteTemMulta($conn, $cliente)) {
+            header("Location: ../emprestimo.php?erro=multa");
+            exit;
+        }
+
         mysqli_query($conn, "
             UPDATE emprestimo_has_exemplar
             SET data_prevista = '$dataPrevista'
@@ -106,14 +141,43 @@ if (isset($_GET['funcao'])) {
 
     // =========================================================================
     // 3. DEVOLVER EXEMPLAR INDIVIDUAL (Função D)
+    //    Se estiver atrasado, congela a multa (grava o valor atual e marca
+    //    como NÃO paga) para que ela permaneça registrada e não aumente mais.
     // =========================================================================
     if ($funcao == 'D') {
         $idEmprestimo = (int)($_POST['idEmprestimo'] ?? 0);
         $idExemplar   = (int)($_POST['idExemplar']   ?? 0);
 
+        // Busca a data prevista e a multa atual para congelar, se houver atraso
+        $q = mysqli_query($conn, "
+            SELECT data_prevista, multa
+            FROM emprestimo_has_exemplar
+            WHERE idEmprestimo = $idEmprestimo AND idExemplar = $idExemplar
+            LIMIT 1
+        ");
+        $row = ($q) ? mysqli_fetch_assoc($q) : null;
+
+        $multaCongelada = 0.0;
+        if ($row) {
+            $hoje       = date('Y-m-d');
+            $prevista   = substr($row['data_prevista'], 0, 10);
+            $multaAtual = (float)$row['multa'];
+
+            if ($prevista < $hoje && $multaAtual == 0) {
+                // Ainda não tinha multa gravada → calcula e congela agora
+                $dias = (int)floor((strtotime($hoje) - strtotime($prevista)) / 86400);
+                $multaCongelada = $dias * 1.00;
+            } else {
+                // Mantém o valor que já existia (0 se estava no prazo)
+                $multaCongelada = $multaAtual;
+            }
+        }
+
         mysqli_query($conn, "
             UPDATE emprestimo_has_exemplar
-            SET Data_devolucao = NOW()
+            SET Data_devolucao = NOW(),
+                multa      = $multaCongelada,
+                multa_paga = 'N'
             WHERE idEmprestimo = '$idEmprestimo' AND idExemplar = '$idExemplar'
         ");
         mysqli_query($conn, "UPDATE exemplar SET Emprestado = 'nao' WHERE idExemplar = '$idExemplar'");
@@ -124,16 +188,18 @@ if (isset($_GET['funcao'])) {
 
     // =========================================================================
     // 4. PAGAR MULTA (Função M) — grava multa APENAS no exemplar específico
+    //    e marca como PAGA.
     // =========================================================================
     if ($funcao == 'M') {
         $idEmprestimo = (int)($_POST['idEmprestimo'] ?? 0);
         $idExemplar   = (int)($_POST['idExemplar']   ?? 0);
         $valorMulta   = (float)($_POST['nValorMulta'] ?? 0);
 
-        // Grava multa e devolução SOMENTE neste exemplar — não afeta os outros
+        // Grava multa (paga) e devolução SOMENTE neste exemplar — não afeta os outros
         mysqli_query($conn, "
             UPDATE emprestimo_has_exemplar
-            SET multa = $valorMulta,
+            SET multa      = $valorMulta,
+                multa_paga = 'S',
                 Data_devolucao = NOW()
             WHERE idEmprestimo = $idEmprestimo AND idExemplar = $idExemplar
         ");
