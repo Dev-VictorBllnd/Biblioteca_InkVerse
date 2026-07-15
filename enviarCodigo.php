@@ -2,6 +2,7 @@
 session_start();
 
 require_once("php/conexao.php");
+require_once("php/funcoes.php");
 
 error_reporting(E_ALL);
 ini_set("display_errors",1);
@@ -147,21 +148,63 @@ if(!$stmt->execute()){
 
 /*
 |--------------------------------------------------------------------------
+| Busca o nome do funcionário (para personalizar o e-mail)
+|--------------------------------------------------------------------------
+*/
+
+$stmtNome = $conn->prepare("SELECT Nome FROM funcionario WHERE Email=?");
+$stmtNome->bind_param("s", $email);
+$stmtNome->execute();
+$dadosFuncionario = $stmtNome->get_result()->fetch_assoc();
+$nomeFuncionario  = $dadosFuncionario['Nome'] ?? '';
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Envia o código por e-mail (PHPMailer)
+|--------------------------------------------------------------------------
+*/
+
+$assunto = 'Código de Recuperação de Senha - InkVerse';
+
+$msg = "
+    <h3>Olá, {$nomeFuncionario}!</h3>
+    <p>Recebemos um pedido para redefinir a sua senha no sistema InkVerse.</p>
+    <p>Use o código abaixo para continuar (válido por 15 minutos):</p>
+    <p style='font-size:24px; font-weight:bold; letter-spacing:4px;'>{$codigo}</p>
+    <p><small>Se não foi você quem solicitou, ignore este e-mail.</small></p>
+";
+
+$enviado = enviarEmail($email, $msg, $assunto, $nomeFuncionario);
+
+
+
+/*
+|--------------------------------------------------------------------------
 | Redireciona para validar código
 |--------------------------------------------------------------------------
 */
 
-echo "
+if ($enviado) {
 
-<script>
+    echo "
+    <script>
+    alert('Código enviado com sucesso para o seu e-mail.');
+    window.location='verificar-codigo.php';
+    </script>
+    ";
 
-alert('Código enviado com sucesso.');
+} else {
 
-window.location='verificar-codigo.php';
+    echo "
+    <script>
+    alert('Não foi possível enviar o e-mail com o código. Tente novamente mais tarde.');
+    window.location='Esqueci-Senha.php';
+    </script>
+    ";
 
-</script>
-
-";
+}
 
 exit();
 
