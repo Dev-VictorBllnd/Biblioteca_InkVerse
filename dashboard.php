@@ -38,9 +38,9 @@ $c_labels = []; $c_valores = [];
 $qTopClientes = mysqli_query($conn, "SELECT c.Nome, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo JOIN cliente c ON e.idCliente = c.idCliente GROUP BY c.idCliente ORDER BY total DESC LIMIT 5");
 while($r = mysqli_fetch_assoc($qTopClientes)) { $c_labels[] = $r['Nome']; $c_valores[] = (int)$r['total']; }
 
-$f_labels = []; $f_valores = [];
-$qTopFunc = mysqli_query($conn, "SELECT f.Nome, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN emprestimo e ON ehe.idEmprestimo = e.idEmprestimo JOIN funcionario f ON e.idFuncionario = f.idFuncionario GROUP BY f.idFuncionario");
-while($r = mysqli_fetch_assoc($qTopFunc)) { $f_labels[] = $r['Nome']; $f_valores[] = (int)$r['total']; }
+$fl_labels = []; $fl_valores = [];
+$qTopLivros = mysqli_query($conn, "SELECT l.Titulo, COUNT(ehe.idEmprestimo_controler) AS total FROM emprestimo_has_exemplar ehe JOIN exemplar ex ON ehe.idExemplar = ex.idExemplar JOIN livro l ON ex.idLivro = l.idLivro GROUP BY l.idLivro ORDER BY total DESC LIMIT 5");
+while($r = mysqli_fetch_assoc($qTopLivros)) { $fl_labels[] = $r['Titulo']; $fl_valores[] = (int)$r['total']; }
 
 $a_labels = []; $a_valores = [];
 $qAnosLivros = mysqli_query($conn, "SELECT ano, COUNT(*) as total FROM livro GROUP BY ano ORDER BY ano ASC LIMIT 6");
@@ -278,8 +278,8 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                     </div>
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-id-card mr-1"></i> Envios por Funcionário</h3></div>
-                            <div class="card-body"><canvas id="graficoFuncionarios" style="height: 220px;"></canvas></div>
+                        <div class="card-header"><h3 class="card-title" style="color: #0b1a2c; font-weight:600;"><i class="fas fa-book mr-1"></i> Ranking de Livros Mais Emprestados</h3></div>
+                        <div class="card-body"><canvas id="graficoLivros" style="height: 220px;"></canvas></div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -834,33 +834,31 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    new Chart(document.getElementById('graficoFuncionarios').getContext('2d'), {
-        type: 'radar',
-        data: {
-            labels: <?php echo json_encode($f_labels); ?>,
-            datasets: [{  data: <?php echo json_encode($f_valores); ?>, borderColor: azulSistema, backgroundColor: 'rgba(11, 26, 44, 0.15)', borderWidth: 2 }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                r: {
-                    grid: { color: '#e2e8f0' },
-                    angleLines: { color: '#e2e8f0' },
+    new Chart(document.getElementById('graficoLivros').getContext('2d'), {
+    type: 'bar',
+    data: {
+        labels: <?php echo json_encode($fl_labels); ?>,
+        datasets: [{ label: 'Total de Empréstimos', data: <?php echo json_encode($fl_valores); ?>, backgroundColor: '#2e4f77', borderRadius: 4 }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { display: false },
+        scales: {
+            yAxes: [{
+                ticks: {
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1,
-                        callback: function(value) {
-                            if (Math.floor(value) === value) {
-                                return value;
-                            }
+                    stepSize: 1,
+                    callback: function(value) {
+                        if (Math.floor(value) === value) {
+                            return value;
                         }
                     }
                 }
-            }
+            }]
         }
-    });
+    }
+});
 
     new Chart(document.getElementById('graficoAnos').getContext('2d'), {
     type: 'bar',
