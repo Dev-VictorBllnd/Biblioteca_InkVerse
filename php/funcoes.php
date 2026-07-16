@@ -33,46 +33,52 @@ function proximoID($tabela, $id){
     return $prox + 1;
 }
 
-//Função que envia o e-mail (ex: código de recuperação de senha) para o usuário
-//Retorna true se o e-mail foi enviado com sucesso, ou false se houve falha
+//Função que envia o e-mail com a nova senha para o usuário
 function enviarEmail($email,$msg,$assunto,$nome){
 
-    require_once __DIR__ . '/../libs/PHPMailer/Exception.php';
-    require_once __DIR__ . '/../libs/PHPMailer/PHPMailer.php';
-    require_once __DIR__ . '/../libs/PHPMailer/SMTP.php';
+    require '../PHPMailer/vendor/autoload.php';
 	$mail = new PHPMailer(true);
 
     try {
         //Server settings
         $mail->isSMTP();                                            // Set mailer to use SMTP
-        //$mail->SMTPDebug  = 3;                                    // Enable verbose debug output (usar apenas para testes)
-        $mail->Host       = 'smtp.gmail.com';                       // Servidor SMTP do Gmail
+        //$mail->SMTPDebug  = 3;                                    // Enable verbose debug output
+        $mail->Host       = 'smtp.hostinger.com.br';                // Specify main and backup SMTP servers
         $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
-        $mail->Username   = 'inkversebiblioteca@gmail.com';         // TROCAR: e-mail da empresa criado no Gmail
-        $mail->Password   = 'uqlqgoonwafzemkz';                     // TROCAR: senha de app de 16 dígitos (sem espaços, sem aspas)
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Gmail usa STARTTLS
-        $mail->Port       = 587;                                    // Porta padrão do Gmail com STARTTLS
+        $mail->Username   = 'sa@alphatechsolucoes.com.br';          // SMTP username
+        $mail->Password   = 'Senai@2024';                           // SMTP password
+        $mail->SMTPSecure = 'ssl';                                  // Enable TLS encryption, `ssl` also accepted
+        $mail->Port       = 465;                                    // TCP port to connect to    
         $mail->CharSet    = 'UTF-8';
+        
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        ));
 
         //Recipients
-        $mail->setFrom('inkversebiblioteca@gmail.com', 'InkVerse'); // TROCAR: mesmo e-mail da empresa
-        $mail->addAddress($email, $nome);
+        $mail->setFrom('sa@alphatechsolucoes.com.br', 'SA - SENAI');
+        $mail->addAddress($email, $nome);                   
 
         // Content
-        $mail->isHTML(true);
+        $mail->isHTML(true);                                      
         $mail->Subject = $assunto;
         $mail->Body    = $msg;
-        $mail->AltBody = strip_tags($msg);
+        $mail->AltBody = 'SA';
 
-        $mail->send();
-        return true;
+        //$mail->send();
+        if ($mail->send()){
+            header('location:../');
+        }
+        
 
     } catch (Exception $e) {
 
-        //Para depurar o erro real durante os testes, descomente a linha abaixo:
         //$_SESSION['msg-senha'] = $mail->ErrorInfo;
-        $_SESSION['msg-senha'] = 'Houve uma falha no envio do e-mail. Verifique com seu administrador.';
-        return false;
+        $_SESSION['msg-senha'] = 'Houve uma falha no envio da nova senha. Verifique com seu administrador.';
+        header('location: '.$_SERVER['HTTP_REFERER']);
     }
 }
 

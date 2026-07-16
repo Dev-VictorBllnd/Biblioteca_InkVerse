@@ -1,11 +1,12 @@
 <?php
 session_start();
 
+
 require_once("php/conexao.php");
-require_once("php/funcoes.php");
 
 error_reporting(E_ALL);
 ini_set("display_errors",1);
+
 
 
 /*
@@ -26,8 +27,7 @@ if(isset($_POST["email"])){
         alert('Informe o e-mail.');
         window.location='Esqueci-Senha.php';
         </script>";
-
-        exit();
+         exit();
 
     }
 
@@ -148,64 +148,158 @@ if(!$stmt->execute()){
 
 /*
 |--------------------------------------------------------------------------
-| Busca o nome do funcionário (para personalizar o e-mail)
-|--------------------------------------------------------------------------
-*/
-
-$stmtNome = $conn->prepare("SELECT Nome FROM funcionario WHERE Email=?");
-$stmtNome->bind_param("s", $email);
-$stmtNome->execute();
-$dadosFuncionario = $stmtNome->get_result()->fetch_assoc();
-$nomeFuncionario  = $dadosFuncionario['Nome'] ?? '';
-
-
-
-/*
-|--------------------------------------------------------------------------
-| Envia o código por e-mail (PHPMailer)
-|--------------------------------------------------------------------------
-*/
-
-$assunto = 'Código de Recuperação de Senha - InkVerse';
-
-$msg = "
-    <h3>Olá, {$nomeFuncionario}!</h3>
-    <p>Recebemos um pedido para redefinir a sua senha no sistema InkVerse.</p>
-    <p>Use o código abaixo para continuar (válido por 15 minutos):</p>
-    <p style='font-size:24px; font-weight:bold; letter-spacing:4px;'>{$codigo}</p>
-    <p><small>Se não foi você quem solicitou, ignore este e-mail.</small></p>
-";
-
-$enviado = enviarEmail($email, $msg, $assunto, $nomeFuncionario);
-
-
-
-/*
-|--------------------------------------------------------------------------
 | Redireciona para validar código
 |--------------------------------------------------------------------------
 */
 
-if ($enviado) {
+?>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    echo "
-    <script>
-    alert('Código enviado com sucesso para o seu e-mail.');
-    window.location='verificar-codigo.php';
-    </script>
-    ";
+<title>Código Enviado</title>
 
-} else {
+<style>
 
-    echo "
-    <script>
-    alert('Não foi possível enviar o e-mail com o código. Tente novamente mais tarde.');
-    window.location='Esqueci-Senha.php';
-    </script>
-    ";
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#0b1a2c,#16395e);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.notificacao{
+
+    width:430px;
+    background:#fff;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,.35);
+    animation:aparecer .4s;
 
 }
 
+.topo{
+    height:8px;
+    background:#198754;
+}
+
+.conteudo{
+
+    padding:40px;
+    text-align:center;
+
+}
+
+.icone{
+
+    width:90px;
+    height:90px;
+    background:#198754;
+    color:#fff;
+    border-radius:50%;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:45px;
+
+}
+
+h2{
+
+    color:#0b1a2c;
+    margin-top:25px;
+    margin-bottom:15px;
+
+}
+
+p{
+
+    color:#666;
+    font-size:16px;
+    line-height:26px;
+
+}
+
+.botao{
+
+    display:inline-block;
+    margin-top:30px;
+    padding:14px 35px;
+    background:#0b1a2c;
+    color:#fff;
+    text-decoration:none;
+    border-radius:8px;
+    transition:.3s;
+
+}
+
+.botao:hover{
+
+    background:#16395e;
+    transform:translateY(-2px);
+
+}
+
+@keyframes aparecer{
+
+    from{
+        opacity:0;
+        transform:translateY(-30px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="notificacao">
+
+<div class="topo"></div>
+
+<div class="conteudo">
+
+<div class="icone">
+✓
+</div>
+
+<h2>Código Enviado!</h2>
+
+<p>
+O código de recuperação foi enviado com sucesso para seu e-mail.
+Agora clique em <strong>Continuar</strong> para informar o código recebido.
+</p>
+
+<a href="verificar-codigo.php" class="botao">
+Continuar
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
+<?php
 exit();
 
 ?>

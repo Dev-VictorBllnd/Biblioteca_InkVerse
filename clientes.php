@@ -257,8 +257,8 @@ $(document).ready(function () {
         initComplete: function () {
 
             var filtro =
-            '<div class="btn-group btn-group-sm mr-2" role="group" style="vertical-align: middle;">' +
-                '<button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown">' +
+            '<div class="btn-group mr-2">' +
+                '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">' +
                     '<i class="fas fa-filter"></i> ' + rotulos[filtroAtual] +
                 '</button>' +
                 '<div class="dropdown-menu">' +
