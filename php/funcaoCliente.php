@@ -1,17 +1,66 @@
 <?php
 // Função para listar todos os clientes e gerar os Modais de Edição e Exclusão
-function listaClientes($filtro = 'ativos'){
+function listaClientes($status = 'ativos', $multa = ''){
 
     include("conexao.php");
   
  // Filtro pelo status do cliente
- if ($filtro == 'inativos') {
-    $where = "WHERE c.Ativo = 'N'";
-} elseif ($filtro == 'todos') {
-    $where = "";
-} else { // ativos (padrão)
-    $where = "WHERE (c.Ativo IS NULL OR c.Ativo != 'N')";
-}
+ $where = [];
+
+ // STATUS
+ if ($status == 'ativos') {
+ 
+     $where[] = "(c.Ativo IS NULL OR c.Ativo != 'N')";
+ 
+ } elseif ($status == 'inativos') {
+ 
+     $where[] = "c.Ativo = 'N'";
+ 
+ }
+ 
+ // MULTA
+ if ($multa == 'com_multa') {
+ 
+     $where[] = "(
+         (
+             SELECT COALESCE(SUM(e.multa),0)
+             FROM emprestimo e
+             WHERE e.idCliente = c.idCliente
+         ) +
+         (
+             SELECT COALESCE(SUM((DATEDIFF(CURDATE(), ehe.data_prevista)+1)*1.00),0)
+             FROM emprestimo e
+             INNER JOIN emprestimo_has_exemplar ehe
+                 ON e.idEmprestimo = ehe.idEmprestimo
+             WHERE e.idCliente = c.idCliente
+               AND ehe.Data_devolucao IS NULL
+               AND ehe.data_prevista < CURDATE()
+         )
+     ) > 0";
+ 
+ }
+ elseif ($multa == 'sem_multa') {
+ 
+     $where[] = "(
+         (
+             SELECT COALESCE(SUM(e.multa),0)
+             FROM emprestimo e
+             WHERE e.idCliente = c.idCliente
+         ) +
+         (
+             SELECT COALESCE(SUM((DATEDIFF(CURDATE(), ehe.data_prevista)+1)*1.00),0)
+             FROM emprestimo e
+             INNER JOIN emprestimo_has_exemplar ehe
+                 ON e.idEmprestimo = ehe.idEmprestimo
+             WHERE e.idCliente = c.idCliente
+               AND ehe.Data_devolucao IS NULL
+               AND ehe.data_prevista < CURDATE()
+         )
+     ) = 0";
+ 
+ }
+ 
+ $where = count($where) ? "WHERE ".implode(" AND ", $where) : "";
 
 $sql = "SELECT c.*, 
         (

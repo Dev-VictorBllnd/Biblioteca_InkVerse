@@ -3,9 +3,16 @@
  include('php/funcoes.php');
 
  // Filtro de exibição: ativos (padrão), inativos ou todos
- $filtroCliente = $_GET['filtro'] ?? 'ativos';
- if(!in_array($filtroCliente, ['ativos','inativos','todos'])){ $filtroCliente = 'ativos'; }
+ $status = $_GET['status'] ?? 'ativos';
+ $multa = $_GET['multa'] ?? '';
 
+if (!in_array($status, ['ativos', 'inativos', 'todos'])) {
+    $status = 'ativos';
+}
+
+if (!in_array($multa, ['todos', 'com_multa', 'sem_multa'])) {
+    $multa = 'todos';
+}
 ?>
 
 <!DOCTYPE html>
@@ -75,7 +82,7 @@
                   </thead>
                   <tbody>
 
-                  <?php echo listaClientes($filtroCliente); ?>
+                  <?php echo listaClientes($status, $multa); ?>
                   
                   </tbody>
                   
@@ -233,13 +240,16 @@
 <script>
 $(document).ready(function () {
 
-    var filtroAtual = '<?php echo $filtroCliente; ?>';
+  var statusAtual = '<?php echo $status; ?>';
+  var multaAtual  = '<?php echo $multa; ?>';
 
     var rotulos = {
-        ativos: 'Ativos',
-        inativos: 'Inativos',
-        todos: 'Todos'
-    };
+    ativos: 'Ativos',
+    inativos: 'Inativos',
+    todos: 'Todos',
+    com_multa: 'Com Multa',
+    sem_multa: 'Sem Multa'
+};
 
     var tabela = $('#tabela').DataTable({
         paging: true,
@@ -256,19 +266,35 @@ $(document).ready(function () {
 
         initComplete: function () {
 
-            var filtro =
-            '<div class="btn-group mr-2">' +
-                '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">' +
-                    '<i class="fas fa-filter"></i> ' + rotulos[filtroAtual] +
-                '</button>' +
-                '<div class="dropdown-menu">' +
-                    '<a class="dropdown-item" href="clientes.php?filtro=ativos">Somente Ativos</a>' +
-                    '<a class="dropdown-item" href="clientes.php?filtro=inativos">Somente Inativos</a>' +
-                    '<a class="dropdown-item" href="clientes.php?filtro=todos">Todos</a>' +
-                '</div>' +
-            '</div>';
+          var filtro =
+'<div class="btn-group btn-group-sm mr-2" role="group" style="vertical-align: middle;">' +
+    '<button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown">' +
+        '<i class="fas fa-filter"></i> ' + rotulos[statusAtual] + ' | ' + rotulos[multaAtual] +
+    '</button>' +
+   '<div class="dropdown-menu">' +
 
-            $('#tabela_filter label').before(filtro);
+'<h6 class="dropdown-header">Status</h6>' +
+
+'<a class="dropdown-item" href="clientes.php?status=ativos&multa=' + multaAtual + '">Ativos</a>' +
+'<a class="dropdown-item" href="clientes.php?status=inativos&multa=' + multaAtual + '">Inativos</a>' +
+'<a class="dropdown-item" href="clientes.php?status=todos&multa=' + multaAtual + '">Todos</a>' +
+
+'<div class="dropdown-divider"></div>' +
+
+'<h6 class="dropdown-header">Multas</h6>' +
+
+'<a class="dropdown-item text-danger" href="clientes.php?status=' + statusAtual + '&multa=com_multa">' +
+'<i class="fas fa-exclamation-circle"></i> Com Multa</a>' +
+
+'<a class="dropdown-item" href="clientes.php?status=' + statusAtual + '&multa=sem_multa">' +
+'<i class="fas fa-check-circle text-success"></i> Sem Multa</a>' +
+
+'<a class="dropdown-item" href="clientes.php?status=' + statusAtual + '&multa=todos">' +
+'Todas</a>' +
+
+'</div>';
+
+$('#tabela_filter label').before(filtro);
 
         }
 
