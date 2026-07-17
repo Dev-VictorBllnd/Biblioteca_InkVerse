@@ -112,21 +112,28 @@ $sql = "SELECT c.*,
                 .'<td align="center" class="text-danger font-weight-bold">'.$valorMultaFormatado.'</td>' /* NOVA COLUNA DA MULTA AQUI */
                 .'<td align="center">'.$icone.'</td>'
                 .'<td>'
-                    .'<div class="row" align="center">'
-                        .'<div class="col-6">'
-                            .'<a href="#modalEditCliente'.$coluna["idCliente"].'" data-toggle="modal">'
-                                .'<h6><i class="fas fa-edit text-info" data-toggle="tooltip" title="Alterar cliente"></i></h6>'
-                            .'</a>'
-                        .'</div>'
-                        
-                        .'<div class="col-6">'
-                            .'<a href="#modalDeleteCliente'.$coluna["idCliente"].'" data-toggle="modal">'
-                                .'<h6><i class="fas fa-trash text-danger" data-toggle="tooltip" title="Excluir cliente"></i></h6>'
-                            .'</a>'
-                        .'</div>'
-                    .'</div>'
-                .'</td>'
-            .'</tr>'
+    .'<div class="row text-center">'
+
+        .'<div class="col-4">'
+            .'<a href="#modalEditCliente'.$coluna["idCliente"].'" data-toggle="modal">'
+                .'<h6><i class="fas fa-edit text-info" title="Alterar Cliente"></i></h6>'
+            .'</a>'
+        .'</div>'
+
+        .'<div class="col-4">'
+            .'<a href="#modalMultaCliente'.$coluna["idCliente"].'" data-toggle="modal">'
+                .'<h6><i class="fas fa-dollar-sign text-success" title="Pagar Multa"></i></h6>'
+            .'</a>'
+        .'</div>'
+
+        .'<div class="col-4">'
+            .'<a href="#modalDeleteCliente'.$coluna["idCliente"].'" data-toggle="modal">'
+                .'<h6><i class="fas fa-trash text-danger" title="Excluir Cliente"></i></h6>'
+            .'</a>'
+        .'</div>'
+
+    .'</div>'
+.'</td>'
             
             // MODAL DE EDIÇÃO
             .'<div class="modal fade" id="modalEditCliente'.$coluna["idCliente"].'">'
@@ -246,6 +253,50 @@ $sql = "SELECT c.*,
                     .'</div>'
                 .'</div>'
             .'</div>' // Fim modal edição
+
+            // MODAL DE PAGAMENTO DE MULTA
+.'<div class="modal fade" id="modalMultaCliente'.$coluna["idCliente"].'">'
+.'<div class="modal-dialog modal-lg">'
+    .'<div class="modal-content">'
+
+        .'<div class="modal-header bg-success text-white">'
+            .'<h4 class="modal-title">'
+                .'<i class="fas fa-dollar-sign"></i> Pagamento de Multa'
+            .'</h4>'
+
+            .'<button type="button" class="close text-white" data-dismiss="modal">'
+                .'<span>&times;</span>'
+            .'</button>'
+        .'</div>'
+
+        .'<div class="modal-body">'
+
+            .'<h5>Cliente</h5>'
+            .'<p><strong>'.$coluna["Nome"].'</strong></p>'
+
+            .'<hr>'
+
+            .'<h5>Total de multas</h5>'
+            .'<h3 class="text-danger">'.$valorMultaFormatado.'</h3>'
+
+            .'<div class="alert alert-info mt-3">'
+                .'Aqui serão exibidos os livros com multa para pagamento.'
+            .'</div>'
+
+        .'</div>'
+
+        .'<div class="modal-footer">'
+            .'<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>'
+
+            .'<button type="button" class="btn btn-success">'
+                .'<i class="fas fa-dollar-sign"></i> Pagar Multa'
+            .'</button>'
+
+        .'</div>'
+
+    .'</div>'
+.'</div>'
+.'</div>'
             
             // MODAL DE EXCLUSÃO
             .'<div class="modal fade" id="modalDeleteCliente'.$coluna["idCliente"].'">'
