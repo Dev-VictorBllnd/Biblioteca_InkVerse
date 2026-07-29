@@ -6,5 +6,11 @@
     </ul>
 
     <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="#" id="toggle-dark-mode" title="Alternar modo escuro">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </a>
+        </li>
     </ul>
 </nav>

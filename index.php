@@ -6,11 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Biblioteca</title>
 
-    <link rel="stylesheet" href="dist/css/login-index.css">
+    <link rel="stylesheet" href="dist/css/Login-index.css">
+    <!-- Font Awesome (ícones sol/lua) -->
+    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+    <!-- Modo escuro (paleta Claude) -->
+    <link rel="stylesheet" href="dist/css/login-dark-claude.css">
+
+    <!-- Aplica o modo escuro ANTES da página renderizar, evitando o "flash" de tela clara -->
+    <script>
+        (function () {
+            if (localStorage.getItem('inkverse-dark-mode') === '1') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
 
 </head>
 
 <body class="tela-login">
+
+    <a href="#" id="toggle-dark-mode-login" title="Alternar modo escuro">
+        <i class="fas fa-moon"></i>
+        <i class="fas fa-sun"></i>
+    </a>
 
     <!-- Lado esquerdo -->
     <div class="lado-esquerdo">
@@ -95,6 +113,9 @@
             senha.type = this.checked ? "text" : "password";
         });
     </script>
+
+    <!-- Modo escuro (paleta Claude) -->
+    <script src="dist/js/dark-mode.js"></script>
 
 </body>
 </html>

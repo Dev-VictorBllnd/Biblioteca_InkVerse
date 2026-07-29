@@ -52,6 +52,8 @@
 <script src="plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 <!-- JS Novo -->
 <script src="dist/js/uteis.js"></script>
+<!-- Modo escuro (paleta Claude) -->
+<script src="dist/js/dark-mode.js"></script>
 
 <script>
   $(document).ready(function() {

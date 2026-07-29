@@ -1,0 +1,206 @@
+html.dark-mode {
+    --im-bg: #262624;            
+    --im-bg-alt: #1f1e1d;       
+    --im-surface: #30302e;       
+    --im-surface-2: #3a3a37;       
+    --im-border: #43423e;         
+    --im-text: #f4f0e8;            
+    --im-text-muted: #b8b2a5;     
+    --im-accent: #2563eb;          
+    --im-accent-hover: #1d4ed8;
+    --im-accent-soft: rgba(37, 99, 235, .18);
+}
+
+/* ---------- Base ---------- */
+html.dark-mode,
+html.dark-mode .content-wrapper {
+    background-color: var(--im-bg) !important;
+    color: var(--im-text) !important;
+}
+
+html.dark-mode .content-wrapper .content-header,
+html.dark-mode h1, html.dark-mode h2, html.dark-mode h3,
+html.dark-mode h4, html.dark-mode h5, html.dark-mode h6 {
+    color: var(--im-text) !important;
+}
+
+html.dark-mode .text-muted { color: var(--im-text-muted) !important; }
+
+/* ---------- Navbar (topo) ---------- */
+html.dark-mode .main-header.navbar {
+    background-color: var(--im-surface) !important;
+    border-bottom: 1px solid var(--im-border) !important;
+}
+html.dark-mode .main-header .nav-link,
+html.dark-mode .main-header .nav-link.text-dark {
+    color: var(--im-text) !important;
+}
+html.dark-mode .main-header .nav-link:hover {
+    color: var(--im-accent) !important;
+}
+
+/* ---------- Sidebar (menu lateral) ---------- */
+html.dark-mode .main-sidebar {
+    background-color: var(--im-bg-alt) !important;
+}
+html.dark-mode .nav-sidebar > .nav-item > .nav-link.active,
+html.dark-mode .nav-sidebar .nav-treeview > .nav-item > .nav-link.active {
+    background-color: var(--im-accent) !important;
+    color: #fff !important;
+}
+html.dark-mode .nav-sidebar .nav-link:hover {
+    background-color: var(--im-surface-2) !important;
+}
+html.dark-mode .brand-link {
+    border-bottom: 1px solid var(--im-border) !important;
+}
+
+/* ---------- Cards ---------- */
+html.dark-mode .card {
+    background-color: var(--im-surface) !important;
+    color: var(--im-text) !important;
+    border-color: var(--im-border) !important;
+}
+html.dark-mode .card .card {
+    background-color: var(--im-surface-2) !important;
+}
+html.dark-mode .card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .card-footer {
+    background-color: rgba(0, 0, 0, .2) !important;
+    border-top: 1px solid var(--im-border) !important;
+}
+/* cabeçalhos coloridos (card-primary, card-info etc.) ganham o azul do sistema */
+html.dark-mode .card-primary:not(.card-outline) > .card-header,
+html.dark-mode .card-info:not(.card-outline) > .card-header {
+    background-color: var(--im-accent) !important;
+    color: #fff !important;
+}
+
+/* ---------- Tabelas ---------- */
+html.dark-mode .table {
+    color: var(--im-text) !important;
+}
+html.dark-mode .table td,
+html.dark-mode .table th {
+    border-top-color: var(--im-border) !important;
+}
+html.dark-mode .table thead th {
+    border-bottom-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-hover tbody tr:hover {
+    background-color: var(--im-surface-2) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-bordered,
+html.dark-mode .table-bordered td,
+html.dark-mode .table-bordered th {
+    border-color: var(--im-border) !important;
+}
+
+/* ---------- Formulários ---------- */
+html.dark-mode .form-control,
+html.dark-mode .custom-select,
+html.dark-mode .input-group-text,
+html.dark-mode .select2-container--bootstrap4 .select2-selection {
+    background-color: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .form-control:focus {
+    border-color: var(--im-accent) !important;
+    box-shadow: 0 0 0 .2rem var(--im-accent-soft) !important;
+}
+html.dark-mode label { color: var(--im-text) !important; }
+html.dark-mode .form-control::placeholder { color: var(--im-text-muted) !important; }
+
+/* ---------- Botões ---------- */
+html.dark-mode .btn-primary {
+    background-color: var(--im-accent) !important;
+    border-color: var(--im-accent) !important;
+}
+html.dark-mode .btn-primary:hover {
+    background-color: var(--im-accent-hover) !important;
+    border-color: var(--im-accent-hover) !important;
+}
+html.dark-mode .btn-default,
+html.dark-mode .btn-outline-secondary {
+    background-color: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+
+/* ---------- Modais ---------- */
+html.dark-mode .modal-content {
+    background-color: var(--im-surface) !important;
+    color: var(--im-text) !important;
+    border-color: var(--im-border) !important;
+}
+html.dark-mode .modal-header,
+html.dark-mode .modal-footer {
+    border-color: var(--im-border) !important;
+}
+
+/* ---------- Dropdowns ---------- */
+html.dark-mode .dropdown-menu {
+    background-color: var(--im-surface) !important;
+    color: var(--im-text) !important;
+    border-color: var(--im-border) !important;
+}
+html.dark-mode .dropdown-item { color: var(--im-text) !important; }
+html.dark-mode .dropdown-item:hover {
+    background-color: var(--im-surface-2) !important;
+}
+
+/* ---------- DataTables / paginação ---------- */
+html.dark-mode .dataTables_wrapper .dataTables_length,
+html.dark-mode .dataTables_wrapper .dataTables_filter,
+html.dark-mode .dataTables_wrapper .dataTables_info,
+html.dark-mode .dataTables_wrapper .dataTables_paginate {
+    color: var(--im-text) !important;
+}
+html.dark-mode .page-link {
+    background-color: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .page-item.active .page-link {
+    background-color: var(--im-accent) !important;
+    border-color: var(--im-accent) !important;
+}
+
+/* ---------- Tela de login (index.php / Nova-senha.php) ---------- */
+html.dark-mode .tela-login {
+    background-color: var(--im-bg) !important;
+}
+html.dark-mode .tela-login .card,
+html.dark-mode .tela-login .card-body {
+    background-color: var(--im-surface) !important;
+    color: var(--im-text) !important;
+}
+
+/* ---------- Foto de perfil ---------- */
+html.dark-mode .foto-perfil {
+    background-color: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+}
+
+/* ---------- Scrollbar (opcional, estética) ---------- */
+html.dark-mode ::-webkit-scrollbar { width: 10px; height: 10px; }
+html.dark-mode ::-webkit-scrollbar-track { background: var(--im-bg-alt); }
+html.dark-mode ::-webkit-scrollbar-thumb { background: var(--im-border); border-radius: 5px; }
+html.dark-mode ::-webkit-scrollbar-thumb:hover { background: var(--im-surface-2); }
+
+/* ---------- Botão de alternância (sol/lua) ---------- */
+#toggle-dark-mode {
+    cursor: pointer;
+}
+#toggle-dark-mode .fa-sun { display: none; }
+#toggle-dark-mode .fa-moon { display: inline-block; }
+html.dark-mode #toggle-dark-mode .fa-sun { display: inline-block; }
+html.dark-mode #toggle-dark-mode .fa-moon { display: none; }
+html.dark-mode #toggle-dark-mode .fa-sun { color: var(--im-accent); }

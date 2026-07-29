@@ -1,0 +1,107 @@
+/* ==========================================================================
+   MODO ESCURO — tela de login (index.php)
+   Paleta em tons de azul (mesmo azul já usado no sistema: #0b1a2c, #2563eb).
+   Ativado via classe "dark-mode" em <html>.
+   Carregar DEPOIS de Login-index.css.
+   ========================================================================== */
+
+html.dark-mode {
+    --im-bg: #262624;            
+    --im-bg-alt: #1f1e1d;       
+    --im-surface: #30302e;       
+    --im-surface-2: #3a3a37;       
+    --im-border: #43423e;         
+    --im-text: #f4f0e8;            
+    --im-text-muted: #b8b2a5;     
+    --im-accent: #2563eb;          
+    --im-accent-hover: #1d4ed8;
+    --im-accent-soft: rgba(37, 99, 235, .18);
+}
+
+/* O lado esquerdo (#0b1a2c) já é escuro e já usa o azul do sistema — mantém */
+html.dark-mode .lado-esquerdo {
+    background: var(--im-bg-alt) !important;
+}
+
+/* Lado direito (formulário) — este é o que muda de verdade */
+html.dark-mode .lado-direito {
+    background: var(--im-surface) !important;
+}
+
+html.dark-mode .login-box h2 {
+    color: var(--im-text) !important;
+}
+
+html.dark-mode .subtitulo {
+    color: var(--im-text-muted) !important;
+}
+
+html.dark-mode .campo label {
+    color: var(--im-text) !important;
+}
+
+html.dark-mode .campo input {
+    background: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+
+html.dark-mode .campo input::placeholder {
+    color: var(--im-text-muted) !important;
+}
+
+html.dark-mode .campo input:focus {
+    outline: none;
+    border-color: var(--im-accent) !important;
+    box-shadow: 0 0 0 3px var(--im-accent-soft) !important;
+}
+
+html.dark-mode .mostrar-senha label {
+    color: var(--im-text-muted) !important;
+}
+
+html.dark-mode .opcoes a {
+    color: var(--im-accent) !important;
+}
+
+html.dark-mode .btn-login {
+    background: var(--im-accent) !important;
+    color: #fff !important;
+}
+
+html.dark-mode .btn-login:hover {
+    background: var(--im-accent-hover) !important;
+}
+
+/* Botão de alternância (sol/lua) no canto do formulário */
+#toggle-dark-mode-login {
+    position: fixed;
+    z-index: 10;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    background: rgba(0, 0, 0, .05);
+    color: #444;
+    transition: background .2s ease;
+}
+#toggle-dark-mode-login:hover {
+    background: rgba(0, 0, 0, .1);
+}
+#toggle-dark-mode-login .fa-sun { display: none; }
+
+html.dark-mode #toggle-dark-mode-login {
+    background: var(--im-surface-2);
+    color: var(--im-accent);
+}
+html.dark-mode #toggle-dark-mode-login:hover {
+    background: var(--im-border);
+}
+html.dark-mode #toggle-dark-mode-login .fa-sun { display: inline-block; }
+html.dark-mode #toggle-dark-mode-login .fa-moon { display: none; }

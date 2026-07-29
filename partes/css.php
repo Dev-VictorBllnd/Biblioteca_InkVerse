@@ -26,4 +26,15 @@
   <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- CSS Novo -->  
   <link rel="stylesheet" href="dist/css/style.css">
+  <!-- Modo escuro (paleta Claude) -->
+  <link rel="stylesheet" href="dist/css/dark-claude.css">
+
+  <!-- Aplica o modo escuro ANTES da página renderizar, evitando o "flash" de tela clara -->
+  <script>
+    (function () {
+      if (localStorage.getItem('inkverse-dark-mode') === '1') {
+        document.documentElement.classList.add('dark-mode');
+      }
+    })();
+  </script>
   
