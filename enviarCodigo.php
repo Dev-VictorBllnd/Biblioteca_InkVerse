@@ -3,6 +3,7 @@ session_start();
 
 
 require_once("php/conexao.php");
+require_once("php/funcoes.php");
 
 error_reporting(E_ALL);
 ini_set("display_errors",1);
@@ -148,6 +149,52 @@ if(!$stmt->execute()){
 
 /*
 |--------------------------------------------------------------------------
+| Busca o nome do funcionário (para personalizar o e-mail)
+|--------------------------------------------------------------------------
+*/
+
+$stmtNome = $conn->prepare("SELECT Nome FROM funcionario WHERE Email=?");
+$stmtNome->bind_param("s", $email);
+$stmtNome->execute();
+$dadosFuncionario = $stmtNome->get_result()->fetch_assoc();
+$nomeFuncionario  = $dadosFuncionario['Nome'] ?? '';
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Envia o código por e-mail (PHPMailer)
+|--------------------------------------------------------------------------
+*/
+
+$assunto = 'Código de Recuperação de Senha - InkVerse';
+
+$msg = "
+    <h3>Olá, {$nomeFuncionario}!</h3>
+    <p>Recebemos um pedido para redefinir a sua senha no sistema InkVerse.</p>
+    <p>Use o código abaixo para continuar (válido por 15 minutos):</p>
+    <p style='font-size:24px; font-weight:bold; letter-spacing:4px;'>{$codigo}</p>
+    <p><small>Se não foi você quem solicitou, ignore este e-mail.</small></p>
+";
+
+$enviado = enviarEmail($email, $msg, $assunto, $nomeFuncionario);
+
+if (!$enviado) {
+
+    echo "
+    <script>
+    alert('Não foi possível enviar o e-mail com o código. Tente novamente mais tarde.');
+    window.location='Esqueci-Senha.php';
+    </script>";
+
+    exit();
+
+}
+
+
+
+/*
+|--------------------------------------------------------------------------
 | Redireciona para validar código
 |--------------------------------------------------------------------------
 */
@@ -268,9 +315,28 @@ p{
 
 </style>
 
+<!-- Font Awesome (ícones sol/lua) -->
+<link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+<!-- Modo escuro (paleta Claude + azul) -->
+<link rel="stylesheet" href="dist/css/login-dark-claude.css">
+
+<!-- Aplica o modo escuro ANTES da página renderizar, evitando o "flash" de tela clara -->
+<script>
+    (function () {
+        if (localStorage.getItem('inkverse-dark-mode') === '1') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    })();
+</script>
+
 </head>
 
 <body>
+
+<a href="#" id="toggle-dark-mode-login" title="Alternar modo escuro">
+    <i class="fas fa-moon"></i>
+    <i class="fas fa-sun"></i>
+</a>
 
 <div class="notificacao">
 
@@ -296,6 +362,9 @@ Continuar
 </div>
 
 </div>
+
+<!-- Modo escuro (paleta Claude + azul) -->
+<script src="dist/js/dark-mode.js"></script>
 
 </body>
 </html>

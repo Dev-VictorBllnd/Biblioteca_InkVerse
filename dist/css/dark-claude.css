@@ -1,12 +1,19 @@
+/* ==========================================================================
+   MODO ESCURO — paleta em tons de azul (mesmo azul já usado no sistema:
+   sidebar #0b1a2c, destaque do perfil #2563eb, etc.)
+   Ativado adicionando a classe "dark-mode" na tag <html>.
+   Este arquivo deve ser carregado DEPOIS de adminlte.min.css e style.css.
+   ========================================================================== */
+
 html.dark-mode {
-    --im-bg: #262624;            
-    --im-bg-alt: #1f1e1d;       
-    --im-surface: #30302e;       
-    --im-surface-2: #3a3a37;       
-    --im-border: #43423e;         
-    --im-text: #f4f0e8;            
-    --im-text-muted: #b8b2a5;     
-    --im-accent: #2563eb;          
+    --im-bg: #262624;              /* fundo principal (cinza-escuro/preto, estilo Claude) */
+    --im-bg-alt: #1f1e1d;          /* fundo mais profundo (sidebar) */
+    --im-surface: #30302e;         /* cards, navbar, modais */
+    --im-surface-2: #3a3a37;       /* elementos aninhados, hover */
+    --im-border: #43423e;          /* bordas e divisores */
+    --im-text: #f4f0e8;            /* texto principal */
+    --im-text-muted: #b8b2a5;      /* texto secundário */
+    --im-accent: #2563eb;          /* azul já usado no destaque do perfil */
     --im-accent-hover: #1d4ed8;
     --im-accent-soft: rgba(37, 99, 235, .18);
 }
@@ -95,6 +102,20 @@ html.dark-mode .table thead th {
 html.dark-mode .table-hover tbody tr:hover {
     background-color: var(--im-surface-2) !important;
     color: var(--im-text) !important;
+}
+
+/* Linha destacada do funcionário logado (funcionarios.php) — tinha
+   background-color: #f0f4f8 fixo no PHP, que ficava ilegível no escuro */
+html.dark-mode .linha-usuario-logado {
+    background-color: var(--im-accent-soft) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .linha-usuario-logado td {
+    color: var(--im-text) !important;
+    border-color: var(--im-border) !important;
+}
+html.dark-mode .linha-usuario-logado:hover {
+    background-color: var(--im-surface-2) !important;
 }
 html.dark-mode .table-bordered,
 html.dark-mode .table-bordered td,

@@ -127,7 +127,7 @@
                     <div class="col-5">
                       <div class="form-group">
                         <label for="iCpf">CPF:</label>
-                        <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="Apenas números" maxlength="11" required>
+                        <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="000.000.000-00" maxlength="14" required>
                       </div>
                     </div>
 
@@ -255,6 +255,8 @@
     const senhaModal = document.getElementById("iSenhaModal");
     const confirmaModal = document.getElementById("iConfirmarSenhaModal");
     const formNovoUser = document.getElementById("formNovoFuncionario");
+    const cpfModal = document.getElementById("iCpf");
+    const telefoneModal = document.getElementById("iTelefone");
 
     // Lógica para mostrar/ocultar senha no modal
     if (checkModal) {
@@ -262,6 +264,31 @@
         const tipo = this.checked ? "text" : "password";
         senhaModal.type = tipo;
         confirmaModal.type = tipo;
+      });
+    }
+
+    // ============ MÁSCARA DO CPF (000.000.000-00) ============
+    if (cpfModal) {
+      cpfModal.addEventListener("input", function () {
+        let valor = this.value.replace(/\D/g, "").slice(0, 11);
+        valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+        valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+        valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        this.value = valor;
+      });
+    }
+
+    // ============ MÁSCARA DO TELEFONE ((00) 00000-0000) ============
+    if (telefoneModal) {
+      telefoneModal.addEventListener("input", function () {
+        let valor = this.value.replace(/\D/g, "").slice(0, 11);
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        if (valor.length > 10) {
+          valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+        } else {
+          valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+        }
+        this.value = valor;
       });
     }
 
@@ -285,6 +312,12 @@
           e.preventDefault(); // Impede o envio
           alert("Atenção: A senha e a confirmação de senha não coincidem!");
           confirmaModal.focus();
+          return;
+        }
+
+        // 3. Remove a formatação do CPF antes de enviar (mantém só os números no banco)
+        if (cpfModal) {
+          cpfModal.value = cpfModal.value.replace(/\D/g, "");
         }
       });
     }
@@ -314,4 +347,4 @@
 </script>
 
 </body>
-</html> 
+</html>

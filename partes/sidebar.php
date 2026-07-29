@@ -6,7 +6,7 @@
     </div>
 
     <div class="sidebar" style="flex-grow: 1; overflow-y: auto; overflow-x: hidden;">
-      
+
       <?php
         $isPerfil = (isset($_SESSION['menu-n2']) && $_SESSION['menu-n2'] == 'perfil');
         $estiloPerfil = $isPerfil 
@@ -29,16 +29,16 @@
         <?php echo montaMenu($_SESSION['menu-n1'], $_SESSION['menu-n2']); ?>
       </div>
 
-      <ul class="nav nav-pills nav-sidebar flex-column mt-2" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
-          <li class="nav-item">
-              <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
-                  <i class="nav-icon fas fa-sign-out-alt"></i>
-                  <p>Sair do Sistema</p>
-              </a>
-          </li>
-      </ul>
-
     </div>
+
+    <ul class="nav nav-pills nav-sidebar flex-column mt-2" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; flex-shrink: 0;">
+        <li class="nav-item">
+            <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
+                <i class="nav-icon fas fa-sign-out-alt"></i>
+                <p>Sair do Sistema</p>
+            </a>
+        </li>
+    </ul>
 
 </aside>
 

@@ -78,9 +78,28 @@ if (
 
 </style>
 
+<!-- Font Awesome (ícones sol/lua) -->
+<link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+<!-- Modo escuro (paleta Claude + azul) -->
+<link rel="stylesheet" href="dist/css/login-dark-claude.css">
+
+<!-- Aplica o modo escuro ANTES da página renderizar, evitando o "flash" de tela clara -->
+<script>
+    (function () {
+        if (localStorage.getItem('inkverse-dark-mode') === '1') {
+            document.documentElement.classList.add('dark-mode');
+        }
+    })();
+</script>
+
 </head>
 
 <body class="tela-login">
+
+<a href="#" id="toggle-dark-mode-login" title="Alternar modo escuro">
+    <i class="fas fa-moon"></i>
+    <i class="fas fa-sun"></i>
+</a>
 
 <div class="lado-esquerdo">
 
@@ -247,6 +266,9 @@ form.addEventListener("submit", function(e){
 });
 
 </script>
+
+<!-- Modo escuro (paleta Claude + azul) -->
+<script src="dist/js/dark-mode.js"></script>
 
 </body>
 </html>

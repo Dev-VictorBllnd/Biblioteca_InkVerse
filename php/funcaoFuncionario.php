@@ -61,7 +61,7 @@ function listaUsuario($filtro = 'ativos')
             $isUsuarioLogado = ($coluna["idFuncionario"] == $idSessaoAtiva);
             
             // 4. Aplica estilo levemente destacado e evento de duplo clique se for o próprio usuário
-            $estiloLinha = $isUsuarioLogado ? 'style="background-color: #f0f4f8; cursor: pointer;" title="Dê um duplo clique para acessar seu Perfil" ondblclick="window.location.href=\'perfil.php\'"' : '';
+            $estiloLinha = $isUsuarioLogado ? 'class="linha-usuario-logado" style="background-color: #f0f4f8; cursor: pointer;" title="Dê um duplo clique para acessar seu Perfil" ondblclick="window.location.href=\'perfil.php\'"' : '';
 
             $lista .= 
             '<tr '.$estiloLinha.'>'

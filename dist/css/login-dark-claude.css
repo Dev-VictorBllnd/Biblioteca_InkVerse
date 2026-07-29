@@ -6,14 +6,13 @@
    ========================================================================== */
 
 html.dark-mode {
-    --im-bg: #262624;            
-    --im-bg-alt: #1f1e1d;       
-    --im-surface: #30302e;       
-    --im-surface-2: #3a3a37;       
-    --im-border: #43423e;         
-    --im-text: #f4f0e8;            
-    --im-text-muted: #b8b2a5;     
-    --im-accent: #2563eb;          
+    --im-bg-alt: #1f1e1d;
+    --im-surface: #30302e;
+    --im-surface-2: #3a3a37;
+    --im-border: #43423e;
+    --im-text: #f4f0e8;
+    --im-text-muted: #b8b2a5;
+    --im-accent: #2563eb;
     --im-accent-hover: #1d4ed8;
     --im-accent-soft: rgba(37, 99, 235, .18);
 }
@@ -62,6 +61,40 @@ html.dark-mode .mostrar-senha label {
 
 html.dark-mode .opcoes a {
     color: var(--im-accent) !important;
+}
+
+html.dark-mode .cadastro a {
+    color: var(--im-accent) !important;
+}
+
+/* Caixa "sua senha deve conter" (Nova-senha.php) */
+html.dark-mode .requisitos {
+    background: var(--im-surface-2) !important;
+    border-color: var(--im-border) !important;
+}
+html.dark-mode .requisitos h4 {
+    color: var(--im-text) !important;
+}
+
+/* Tela de confirmação "Código Enviado!" (enviarCodigo.php) */
+html.dark-mode body {
+    background: linear-gradient(135deg, var(--im-bg-alt), #16395e) !important;
+}
+html.dark-mode .notificacao {
+    background: var(--im-surface) !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, .5) !important;
+}
+html.dark-mode .notificacao h2 {
+    color: var(--im-text) !important;
+}
+html.dark-mode .notificacao p {
+    color: var(--im-text-muted) !important;
+}
+html.dark-mode .botao {
+    background: var(--im-accent) !important;
+}
+html.dark-mode .botao:hover {
+    background: var(--im-accent-hover) !important;
 }
 
 html.dark-mode .btn-login {
