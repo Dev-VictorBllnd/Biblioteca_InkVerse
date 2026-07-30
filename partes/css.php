@@ -1,6 +1,4 @@
-
-
-  <!-- Google Font: Source Sans Pro -->
+<!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
@@ -25,9 +23,9 @@
   <link rel="stylesheet" href="plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
   <link rel="stylesheet" href="plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
   <!-- CSS Novo -->  
-  <link rel="stylesheet" href="dist/css/style.css">
+  <link rel="stylesheet" href="dist/css/style.css?v=<?php echo @filemtime(__DIR__.'/../dist/css/style.css'); ?>">
   <!-- Modo escuro (paleta Claude) -->
-  <link rel="stylesheet" href="dist/css/dark-claude.css">
+  <link rel="stylesheet" href="dist/css/dark-claude.css?v=<?php echo @filemtime(__DIR__.'/../dist/css/dark-claude.css'); ?>">
 
   <!-- Aplica o modo escuro ANTES da página renderizar, evitando o "flash" de tela clara -->
   <script>
@@ -37,4 +35,3 @@
       }
     })();
   </script>
-  

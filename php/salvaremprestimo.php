@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('autenticacao.php');
 include('conexao.php');
 
 if (isset($_GET['funcao'])) {

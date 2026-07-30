@@ -123,13 +123,65 @@ html.dark-mode .table-bordered th {
     border-color: var(--im-border) !important;
 }
 
+/* Cabeçalho "thead-light" do Bootstrap (fundo cinza claro fixo) —
+   ficava com texto claro (da regra acima) em cima de fundo também claro */
+html.dark-mode .thead-light th {
+    background-color: var(--im-surface-2) !important;
+    color: var(--im-text) !important;
+    border-color: var(--im-border) !important;
+}
+
+/* Linhas/células contextuais do Bootstrap (table-danger, table-warning,
+   table-success, table-info, table-secondary) — vinham com fundo claro
+   fixo; escurecemos mantendo o tom de cada cor, com texto sempre claro */
+html.dark-mode .table-danger,
+html.dark-mode .table-danger > td,
+html.dark-mode .table-danger > th {
+    background-color: #4a1620 !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-warning,
+html.dark-mode .table-warning > td,
+html.dark-mode .table-warning > th {
+    background-color: rgba(255, 193, 7, .25) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-success,
+html.dark-mode .table-success > td,
+html.dark-mode .table-success > th {
+    background-color: rgba(40, 167, 69, .25) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-info,
+html.dark-mode .table-info > td,
+html.dark-mode .table-info > th {
+    background-color: rgba(23, 162, 184, .25) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode .table-secondary,
+html.dark-mode .table-secondary > td,
+html.dark-mode .table-secondary > th {
+    background-color: var(--im-surface-2) !important;
+    color: var(--im-text) !important;
+}
+/* Hover em cima de uma linha contextual não pode "clarear" de novo */
+html.dark-mode .table-hover .table-danger:hover,
+html.dark-mode .table-hover .table-danger:hover > td {
+    background-color: #5c1a26 !important;
+}
+
 /* ---------- Formulários ---------- */
 html.dark-mode .form-control,
 html.dark-mode .custom-select,
+html.dark-mode select,
 html.dark-mode .input-group-text,
 html.dark-mode .select2-container--bootstrap4 .select2-selection {
     background-color: var(--im-surface-2) !important;
     border-color: var(--im-border) !important;
+    color: var(--im-text) !important;
+}
+html.dark-mode select option {
+    background-color: var(--im-surface-2) !important;
     color: var(--im-text) !important;
 }
 html.dark-mode .form-control:focus {

@@ -1,5 +1,5 @@
 <?php 
- session_start();
+ include('php/autenticacao.php');
  include('php/funcoes.php');
 
  // Filtro de exibição: ativos (padrão), inativos ou todos

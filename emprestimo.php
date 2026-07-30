@@ -1,5 +1,5 @@
 <?php
-  session_start();
+  include('php/autenticacao.php');
   include('php/conexao.php');
   include('php/funcoes.php');
 ?>

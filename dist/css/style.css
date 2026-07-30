@@ -115,3 +115,35 @@
   cursor: not-allowed !important;
   opacity: 0.6; /* Deixa o menu meio apagadinho */
 }
+
+/* ==========================================================================
+   Correções do modo "sidebar mini" (ícone apenas, sidebar recolhida)
+   ========================================================================== */
+
+/* O botão "Sair do Sistema" fica FORA da div .sidebar (de propósito, pra
+   ficar fixo embaixo). Por isso a regra padrão do AdminLTE que esconde o
+   texto no modo recolhido (.sidebar-mini.sidebar-collapse .sidebar
+   .nav-sidebar .nav-link p) não alcança ele. Repetimos a mesma regra aqui,
+   sem exigir que esteja dentro de .sidebar. */
+.sidebar-mini.sidebar-collapse .nav-sidebar-sair .nav-link p {
+    display: none !important;
+}
+.sidebar-mini.sidebar-collapse .nav-sidebar-sair .nav-link {
+    text-align: center !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+.sidebar-mini.sidebar-collapse .nav-sidebar-sair .nav-link .nav-icon {
+    margin-right: 0 !important;
+}
+
+/* A foto de perfil (.user-panel) usa display:flex, e não o layout padrão do
+   AdminLTE (que usa float) — por isso a foto não centraliza sozinha no modo
+   recolhido. Centralizamos manualmente e removemos o espaço reservado pelo
+   nome do usuário (que fica invisível, mas ainda ocupava espaço). */
+.sidebar-mini.sidebar-collapse .user-panel {
+    justify-content: center;
+}
+.sidebar-mini.sidebar-collapse .user-panel > .info {
+    display: none !important;
+}

@@ -1,5 +1,5 @@
 <?php 
-  session_start();
+  include('php/autenticacao.php');
   include('php/funcoes.php');
 
   // Consulta os dados do usuário atualmente logado no banco de dados

@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('autenticacao.php');
 
 // Como este arquivo já está dentro da pasta 'php', a conexão está no mesmo diretório
 include('conexao.php');

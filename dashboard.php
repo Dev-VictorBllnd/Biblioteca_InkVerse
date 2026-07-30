@@ -1,5 +1,5 @@
 <?php
-session_start();
+include('php/autenticacao.php');
 
 include('php/conexao.php');
 include('php/funcaoFuncionario.php');
@@ -122,6 +122,26 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
         .btn-aplicar-filtro:hover { background: #0b1a2c; color:#fff; }
         .link-cancelar-filtro { margin-left: 14px; color: #dc3545; font-size: .88rem; font-weight: 500; }
         .link-cancelar-filtro:hover { color: #a71d2a; text-decoration: none; }
+
+        /* ===== Modo escuro do filtro de período ===== */
+        html.dark-mode .filtro-toggle-btn {
+            background: var(--im-surface-2) !important;
+            border-color: var(--im-border) !important;
+            color: var(--im-text) !important;
+        }
+        html.dark-mode .filtro-painel {
+            background: var(--im-surface) !important;
+            box-shadow: 0 6px 24px rgba(0,0,0,.5) !important;
+        }
+        html.dark-mode .filtro-tabs { border-bottom-color: var(--im-border) !important; }
+        html.dark-mode .filtro-tabs button { color: var(--im-text-muted) !important; }
+        html.dark-mode .filtro-tabs button.active {
+            color: var(--im-accent) !important;
+            border-bottom-color: var(--im-accent) !important;
+        }
+        html.dark-mode .filtro-tab-pane label { color: var(--im-text-muted) !important; }
+        html.dark-mode #inputFiltroPeriodo { background: var(--im-surface-2) !important; }
+        html.dark-mode .content-header h1 { color: var(--im-text) !important; }
 
         /* daterangepicker - alinhar à identidade visual do sistema */
         .daterangepicker td.active, .daterangepicker td.active:hover { background-color: #0b1a2c; }

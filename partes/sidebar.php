@@ -31,7 +31,7 @@
 
     </div>
 
-    <ul class="nav nav-pills nav-sidebar flex-column mt-2" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; flex-shrink: 0;">
+    <ul class="nav nav-pills nav-sidebar nav-sidebar-sair flex-column mt-2" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; flex-shrink: 0;">
         <li class="nav-item">
             <a href="#" class="nav-link text-danger font-weight-bold m-0" data-toggle="modal" data-target="#modalLogout">
                 <i class="nav-icon fas fa-sign-out-alt"></i>

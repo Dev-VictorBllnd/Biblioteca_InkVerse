@@ -1,3 +1,10 @@
+<?php
+// Impede que o navegador guarde esta página em cache com os campos
+// preenchidos (evita que a senha digitada reapareça ao voltar/deslogar)
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -77,6 +84,7 @@
                         id="iSenha"
                         name="nSenha"
                         placeholder="Digite sua senha"
+                        autocomplete="new-password"
                         required>
                 </div>
 
@@ -111,6 +119,17 @@
 
         check.addEventListener("change", function () {
             senha.type = this.checked ? "text" : "password";
+        });
+
+        // Reforço de segurança: se o navegador ainda assim restaurar esta
+        // página do cache local (voltar/avançar), limpa a senha digitada
+        // e desmarca "Mostrar senha", em vez de deixá-la visível no campo.
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted) {
+                senha.value = "";
+                senha.type = "password";
+                if (check) check.checked = false;
+            }
         });
     </script>
 

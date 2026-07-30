@@ -1,9 +1,10 @@
 <?php
-    // Inicia a sessão para garantir a proteção de autoexclusão no backend
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    $idSessaoAtiva = $_SESSION['idLogin'] ?? 1;
+    // Inicia a sessão e garante que só um usuário logado acesse este script.
+    // Como a guarda já bloqueia quem não está logado, idLogin sempre existe
+    // aqui — por isso não usamos mais o "?? 1" (que assumia o funcionário
+    // de ID 1 como fallback perigoso quando não havia sessão).
+    include('autenticacao.php');
+    $idSessaoAtiva = $_SESSION['idLogin'];
 
     include('funcoes.php');
 
