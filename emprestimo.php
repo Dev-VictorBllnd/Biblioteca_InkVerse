@@ -102,20 +102,8 @@
               }
             }
 
-            // Clientes com multa a pagar (congelada de livro devolvido OU atraso em mãos)
-            $clientesComMulta = array();
-            $qMulta = mysqli_query($conn, "
-              SELECT DISTINCT e.idCliente
-              FROM emprestimo e
-              INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
-              WHERE (ehe.multa > 0 AND ehe.multa_paga = 'N')
-                 OR (ehe.Data_devolucao IS NULL AND ehe.data_prevista < '$hoje' AND (ehe.multa IS NULL OR ehe.multa = 0))
-            ");
-            if($qMulta){
-              while($m = mysqli_fetch_assoc($qMulta)){
-                $clientesComMulta[(int)$m['idCliente']] = true;
-              }
-            }
+            // Clientes com multa a pagar (saldo confirmado no cadastro OU atraso em mãos ainda não processado)
+            $clientesComMulta = mapaClientesComMulta();
 
             $emprestimos = array();
             $qEmp = mysqli_query($conn, "
@@ -248,14 +236,6 @@
                     </td>
                   </tr>
                   <?php endforeach; ?>
-
-                  <?php if(empty($emprestimos)): ?>
-                    <tr>
-                      <td colspan="5" class="text-center text-muted py-3">
-                        <i class="fas fa-book-open mr-2"></i>Nenhum empréstimo ativo no momento.
-                      </td>
-                    </tr>
-                  <?php endif; ?>
 
                   </tbody>
                 </table>
@@ -653,7 +633,10 @@ document.querySelectorAll('[id^="painelAcoes"]').forEach(function(modal) {
 $(document).ready(function () {
   $('#tabela').DataTable({
     "order": [[0, "asc"]],
-    "language": { "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json" }
+    "language": {
+      "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Portuguese-Brasil.json",
+      "emptyTable": "Nenhum empréstimo ativo no momento."
+    }
   });
 
   $('#iCliente').select2({

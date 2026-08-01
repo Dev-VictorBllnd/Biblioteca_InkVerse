@@ -300,6 +300,30 @@ $('#tabela_filter label').before(filtro);
 
     });
 
+    // Botão "Pagar Multa" no modal do cliente — quita todas as multas em aberto dele
+    $(document).on('click', '.btn-pagar-multa', function () {
+        var $btn      = $(this);
+        var idCliente = $btn.data('cliente');
+
+        if (!confirm('Confirmar quitação de todas as multas em aberto deste cliente?\nIsso liberará o cliente para novos empréstimos.')) {
+            return;
+        }
+
+        $btn.prop('disabled', true);
+
+        var fd = new FormData();
+        fd.append('nCliente', idCliente);
+        fd.append('ajax', '1');
+
+        fetch('php/salvarEmprestimo.php?funcao=P', { method: 'POST', body: fd })
+            .then(function (r) { return r.json(); })
+            .then(function () { location.reload(); })
+            .catch(function () {
+                alert('Não foi possível quitar a multa. Tente novamente.');
+                $btn.prop('disabled', false);
+            });
+    });
+
 });
 </script>
 

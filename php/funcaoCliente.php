@@ -22,11 +22,7 @@ function listaClientes($status = 'ativos', $multa = ''){
  if ($multa == 'com_multa') {
  
      $where[] = "(
-         (
-             SELECT COALESCE(SUM(e.multa),0)
-             FROM emprestimo e
-             WHERE e.idCliente = c.idCliente
-         ) +
+         c.multa +
          (
              SELECT COALESCE(SUM((DATEDIFF(CURDATE(), ehe.data_prevista)+1)*1.00),0)
              FROM emprestimo e
@@ -42,11 +38,7 @@ function listaClientes($status = 'ativos', $multa = ''){
  elseif ($multa == 'sem_multa') {
  
      $where[] = "(
-         (
-             SELECT COALESCE(SUM(e.multa),0)
-             FROM emprestimo e
-             WHERE e.idCliente = c.idCliente
-         ) +
+         c.multa +
          (
              SELECT COALESCE(SUM((DATEDIFF(CURDATE(), ehe.data_prevista)+1)*1.00),0)
              FROM emprestimo e
@@ -63,12 +55,7 @@ function listaClientes($status = 'ativos', $multa = ''){
  $where = count($where) ? "WHERE ".implode(" AND ", $where) : "";
 
 $sql = "SELECT c.*, 
-        (
-            SELECT COALESCE(SUM(e.multa), 0) 
-            FROM emprestimo e 
-            WHERE e.idCliente = c.idCliente
-        ) 
-        + 
+        COALESCE(c.multa, 0) AS MultaConfirmada,
         (
             SELECT COALESCE(SUM( (DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00), 0)
             FROM emprestimo e
@@ -76,6 +63,17 @@ $sql = "SELECT c.*,
             WHERE e.idCliente = c.idCliente
               AND ehe.Data_devolucao IS NULL 
               AND ehe.data_prevista < CURDATE()
+        ) AS MultaEmAndamento,
+        (
+            COALESCE(c.multa, 0) +
+            (
+                SELECT COALESCE(SUM( (DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00), 0)
+                FROM emprestimo e
+                INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+                WHERE e.idCliente = c.idCliente
+                  AND ehe.Data_devolucao IS NULL 
+                  AND ehe.data_prevista < CURDATE()
+            )
         ) AS TotalMulta
         
         FROM cliente c
@@ -277,10 +275,10 @@ $sql = "SELECT c.*,
             .'<hr>'
 
             .'<h5>Total de multas</h5>'
-            .'<h3 class="text-danger">'.$valorMultaFormatado.'</h3>'
+            .'<h3 class="text-danger valor-multa-cliente">'.$valorMultaFormatado.'</h3>'
 
             .'<div class="alert alert-info mt-3">'
-                .'Aqui serão exibidos os livros com multa para pagamento.'
+                .'Ao confirmar, todas as multas em aberto deste cliente serão quitadas e ele poderá realizar novos empréstimos novamente.'
             .'</div>'
 
         .'</div>'
@@ -288,7 +286,8 @@ $sql = "SELECT c.*,
         .'<div class="modal-footer">'
             .'<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>'
 
-            .'<button type="button" class="btn btn-success">'
+            .'<button type="button" class="btn btn-success btn-pagar-multa" data-cliente="'.$coluna["idCliente"].'" '
+                .($coluna["MultaConfirmada"] > 0 ? '' : 'disabled').'>'
                 .'<i class="fas fa-dollar-sign"></i> Pagar Multa'
             .'</button>'
 
@@ -392,4 +391,78 @@ function qtdClientesAtivos(){
         $qtd = mysqli_num_rows($result);
     }
     return $qtd;
+}
+
+// =========================================================
+// Fonte única de verdade para multa do cliente.
+// emprestimo.php e salvarEmprestimo.php devem usar isso
+// em vez de calcular multa com SQL solto.
+// =========================================================
+
+// Status de multa de UM cliente
+function statusMultaCliente($idCliente){
+    $idCliente = (int)$idCliente;
+    include("conexao.php");
+
+    $sql = "SELECT
+                COALESCE(c.multa, 0) AS MultaConfirmada,
+                COALESCE((
+                    SELECT SUM((DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00)
+                    FROM emprestimo e
+                    INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+                    WHERE e.idCliente = c.idCliente
+                      AND ehe.Data_devolucao IS NULL
+                      AND ehe.data_prevista < CURDATE()
+                ), 0) AS MultaEmAndamento
+            FROM cliente c
+            WHERE c.idCliente = $idCliente";
+
+    $result = mysqli_query($conn, $sql);
+    mysqli_close($conn);
+
+    $confirmada = 0; $andamento = 0;
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $confirmada = (float)$row['MultaConfirmada'];
+        $andamento  = (float)$row['MultaEmAndamento'];
+    }
+    $total = $confirmada + $andamento;
+
+    return [
+        'confirmada' => $confirmada,
+        'andamento'  => $andamento,
+        'total'      => $total,
+        'tem_multa'  => $total > 0,
+    ];
+}
+
+// Mapa [idCliente => true] de TODOS os clientes com multa pendente
+// (usado em emprestimo.php para pintar/bloquear a lista inteira de uma vez)
+function mapaClientesComMulta(){
+    include("conexao.php");
+
+    $sql = "SELECT c.idCliente
+            FROM cliente c
+            WHERE (
+                COALESCE(c.multa, 0) +
+                COALESCE((
+                    SELECT SUM((DATEDIFF(CURDATE(), ehe.data_prevista) + 1) * 1.00)
+                    FROM emprestimo e
+                    INNER JOIN emprestimo_has_exemplar ehe ON e.idEmprestimo = ehe.idEmprestimo
+                    WHERE e.idCliente = c.idCliente
+                      AND ehe.Data_devolucao IS NULL
+                      AND ehe.data_prevista < CURDATE()
+                ), 0)
+            ) > 0";
+
+    $result = mysqli_query($conn, $sql);
+    mysqli_close($conn);
+
+    $mapa = [];
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $mapa[(int)$row['idCliente']] = true;
+        }
+    }
+    return $mapa;
 }
