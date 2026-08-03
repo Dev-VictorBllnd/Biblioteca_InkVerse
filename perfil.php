@@ -118,14 +118,14 @@
                                     <div class="col-5">
                                       <div class="form-group">
                                         <label for="iNovaSenha">Nova Senha</label>
-                                        <input name="nNovaSenha" id="iNovaSenha" type="password" maxlength="50" class="form-control" placeholder="Deixe em branco para manter a atual">
+                                        <input name="nNovaSenha" id="iNovaSenha" type="password" maxlength="50" minlength="8" class="form-control" placeholder="Deixe em branco para manter a atual">
                                       </div>
                                     </div>
 
                                     <div class="col-5">
                                       <div class="form-group">
                                         <label for="iConfirmarSenha">Confirmar Nova Senha</label>
-                                        <input name="nConfirmarSenha" id="iConfirmarSenha" type="password" maxlength="50" class="form-control" placeholder="Confirme a senha">
+                                        <input name="nConfirmarSenha" id="iConfirmarSenha" type="password" maxlength="50" minlength="8" class="form-control" placeholder="Confirme a senha">
                                       </div>
                                     </div>
 
@@ -188,9 +188,19 @@
       });
     }
 
+    // Regra da senha: mínimo 8 caracteres, 1 minúscula, 1 maiúscula, 1 número e 1 caractere especial.
+    // Igual à regra usada no cadastro/edição de funcionário (funcionarios.php).
+    const regraSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
     // Validação antes de enviar o formulário
     $('form').on('submit', function (e) {
       if (senha.value !== "" || confirma.value !== "") {
+        if (!regraSenha.test(senha.value)) {
+          e.preventDefault(); // Bloqueia o envio do form
+          alert("Atenção: A nova senha deve conter obrigatoriamente:\n- No mínimo 8 caracteres\n- Pelo menos uma letra minúscula\n- Pelo menos uma letra maiúscula\n- Pelo menos um número\n- Pelo menos um caractere especial (!, @, #, $, etc.)");
+          senha.focus();
+          return;
+        }
         if (senha.value !== confirma.value) {
           e.preventDefault(); // Bloqueia o envio do form
           alert("Atenção: A nova senha e a confirmação não coincidem!");
