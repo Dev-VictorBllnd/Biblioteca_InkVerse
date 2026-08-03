@@ -31,6 +31,10 @@
     $telefone    = $_POST["nTelefone"] ?? '';
     $ativo       = $_POST["nAtivo"] ?? 'S';
 
+    // Defesa extra no servidor: garante que o CPF seja gravado só com dígitos
+    // mesmo que, por algum motivo, chegue formatado (ex.: JS desabilitado no navegador).
+    $cpf = preg_replace('/\D/', '', $cpf);
+
     include("conexao.php");
 
     // ==========================================
@@ -44,7 +48,11 @@
             $filtroProprioUsuario = " AND idFuncionario != $idUsuario";
         }
 
-        $sqlVerificaCpf = "SELECT idFuncionario FROM funcionario WHERE Cpf = '$cpf' $filtroProprioUsuario;";
+        // Remove pontos e traço também do lado do banco antes de comparar:
+        // assim a checagem funciona mesmo se algum registro mais antigo
+        // ainda estiver salvo com CPF formatado (ex.: dados de seed antigos).
+        $sqlVerificaCpf = "SELECT idFuncionario FROM funcionario "
+                         . "WHERE REPLACE(REPLACE(Cpf, '.', ''), '-', '') = '$cpf' $filtroProprioUsuario;";
         $resultadoCpf = mysqli_query($conn, $sqlVerificaCpf);
 
         // Se encontrou algum registro, o CPF já está em uso
@@ -71,9 +79,7 @@
               ."'$ativo');";
               
         $result = mysqli_query($conn, $sql);
-        
-        // CORREÇÃO CRÍTICA: Pega o ID que o banco de dados acabou de gerar para esse novo funcionário
-        // Precisamos disso para que o código da foto (lá embaixo) saiba em qual ID salvar a imagem!
+
         $idUsuario = mysqli_insert_id($conn);
 
     } elseif($funcao == "A") {
@@ -93,7 +99,7 @@
               ." Telefone = '$telefone', "
               ." Ativo = '$ativo', "
               .$setSenha 
-              ." idFuncionario = idFuncionario " // Truque técnico para gerir a vírgula
+              ." idFuncionario = idFuncionario " 
               ." WHERE idFuncionario = $idUsuario;";
               
         $result = mysqli_query($conn, $sql);

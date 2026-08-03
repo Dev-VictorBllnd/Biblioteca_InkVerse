@@ -371,8 +371,8 @@ if __name__ == "__main__":
     print("--- AUTOMAÇÃO DE CADASTRO DE FUNCIONÁRIOS - INKVERSE ---")
 
     URL_LOCAL = "http://localhost/Biblioteca_InkVerse"
-    LOGIN_EMAIL = "admin@teste.com"     # <-- ajuste para um usuário administrador válido
-    LOGIN_SENHA = "SuaSenha@123"        # <-- ajuste para a senha correspondente
+    LOGIN_EMAIL = "admin@gmail.com"   
+    LOGIN_SENHA = "Admin123@"      
 
     try:
         qtd = int(input("Quantos funcionários você deseja cadastrar hoje? "))

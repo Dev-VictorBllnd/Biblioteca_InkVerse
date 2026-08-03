@@ -1,4 +1,21 @@
 <?php
+
+function formatarCpf($cpf){
+    $digitos = preg_replace('/\D/', '', (string)$cpf);
+    if (strlen($digitos) != 11) return $cpf; // valor inesperado: devolve como veio
+    return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $digitos);
+}
+
+function formatarTelefone($telefone){
+    $digitos = preg_replace('/\D/', '', (string)$telefone);
+    if (strlen($digitos) == 11) {
+        return preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $digitos);
+    } elseif (strlen($digitos) == 10) {
+        return preg_replace('/(\d{2})(\d{4})(\d{4})/', '($1) $2-$3', $digitos);
+    }
+    return $telefone; // valor inesperado: devolve como veio
+}
+
 // Função para listar todos os usuários e gerar os Modais de Edição e Exclusão
 function listaUsuario($filtro = 'ativos')
 {
@@ -115,7 +132,7 @@ function listaUsuario($filtro = 'ativos')
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form method="POST" action="php/salvarFuncionario.php?funcao=A&codigo='.$coluna["idFuncionario"].'" enctype="multipart/form-data">
+                                <form method="POST" action="php/salvarFuncionario.php?funcao=A&codigo='.$coluna["idFuncionario"].'" class="form-funcionario" enctype="multipart/form-data">
                                     <div class="row">
                                         <div class="col-8">
                                             <div class="form-group">
@@ -147,13 +164,13 @@ function listaUsuario($filtro = 'ativos')
                                         <div class="col-4">
                                             <div class="form-group">
                                                 <label>CPF:</label>
-                                                <input type="text" value="'.$coluna["Cpf"].'" class="form-control" name="nCpf" maxlength="11" required>
+                                                <input type="text" value="'.formatarCpf($coluna["Cpf"]).'" class="form-control mask-cpf" name="nCpf" placeholder="000.000.000-00" maxlength="14" required>
                                             </div>
                                         </div>
                                         <div class="col-4">
                                             <div class="form-group">
                                                 <label>Telefone:</label>
-                                                <input type="text" value="'.$coluna["Telefone"].'" class="form-control" name="nTelefone" maxlength="15" required>
+                                                <input type="text" value="'.formatarTelefone($coluna["Telefone"]).'" class="form-control mask-telefone" name="nTelefone" placeholder="(00) 00000-0000" maxlength="15" required>
                                             </div>
                                         </div>
                                         <div class="col-4">

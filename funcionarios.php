@@ -97,7 +97,7 @@
                 </button>
               </div>
               <div class="modal-body">
-                <form method="POST" action="php/salvarFuncionario.php?funcao=I" id="formNovoFuncionario" enctype="multipart/form-data">              
+                <form method="POST" action="php/salvarFuncionario.php?funcao=I" id="formNovoFuncionario" class="form-funcionario" enctype="multipart/form-data">              
                   
                   <div class="row">
                     <div class="col-8">
@@ -127,14 +127,14 @@
                     <div class="col-5">
                       <div class="form-group">
                         <label for="iCpf">CPF:</label>
-                        <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="000.000.000-00" maxlength="14" required>
+                        <input type="text" class="form-control mask-cpf" id="iCpf" name="nCpf" placeholder="000.000.000-00" maxlength="14" required>
                       </div>
                     </div>
 
                     <div class="col-6">
                       <div class="form-group">
                         <label for="iTelefone">Telefone:</label>
-                        <input type="text" class="form-control" id="iTelefone" name="nTelefone" placeholder="(00) 00000-0000" maxlength="15" required>
+                        <input type="text" class="form-control mask-telefone" id="iTelefone" name="nTelefone" placeholder="(00) 00000-0000" maxlength="15" required>
                       </div>
                     </div>
 
@@ -251,76 +251,79 @@
   });
 
   $(function () {
+    // Lógica para mostrar/ocultar senha — só existe no modal de Novo Funcionário
     const checkModal = document.getElementById("mostrarSenhaModal");
-    const senhaModal = document.getElementById("iSenhaModal");
-    const confirmaModal = document.getElementById("iConfirmarSenhaModal");
-    const formNovoUser = document.getElementById("formNovoFuncionario");
-    const cpfModal = document.getElementById("iCpf");
-    const telefoneModal = document.getElementById("iTelefone");
-
-    // Lógica para mostrar/ocultar senha no modal
     if (checkModal) {
       checkModal.addEventListener("change", function () {
         const tipo = this.checked ? "text" : "password";
-        senhaModal.type = tipo;
-        confirmaModal.type = tipo;
+        document.getElementById("iSenhaModal").type = tipo;
+        document.getElementById("iConfirmarSenhaModal").type = tipo;
       });
     }
 
     // ============ MÁSCARA DO CPF (000.000.000-00) ============
-    if (cpfModal) {
-      cpfModal.addEventListener("input", function () {
-        let valor = this.value.replace(/\D/g, "").slice(0, 11);
-        valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
-        valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
-        valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-        this.value = valor;
-      });
-    }
+    // Delegação de evento: funciona no modal de Novo Funcionário E em
+    // TODOS os modais de Editar (um por funcionário), sem precisar de ID único.
+    document.addEventListener("input", function (e) {
+      if (!e.target.matches(".mask-cpf")) return;
+      let valor = e.target.value.replace(/\D/g, "").slice(0, 11);
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      e.target.value = valor;
+    });
 
     // ============ MÁSCARA DO TELEFONE ((00) 00000-0000) ============
-    if (telefoneModal) {
-      telefoneModal.addEventListener("input", function () {
-        let valor = this.value.replace(/\D/g, "").slice(0, 11);
-        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
-        if (valor.length > 10) {
-          valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
-        } else {
-          valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
-        }
-        this.value = valor;
-      });
-    }
+    document.addEventListener("input", function (e) {
+      if (!e.target.matches(".mask-telefone")) return;
+      let valor = e.target.value.replace(/\D/g, "").slice(0, 11);
+      valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+      if (valor.length > 10) {
+        valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+      } else {
+        valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+      }
+      e.target.value = valor;
+    });
 
-    // Validação antes de enviar o formulário para criar usuário
-    if (formNovoUser) {
-      formNovoUser.addEventListener('submit', function (e) {
-        
-        // Regra da senha: Mínimo 1 minúscula, 1 maiúscula, 1 número e 1 caractere especial
-        const regraSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
+    // ============ VALIDAÇÃO ANTES DE ENVIAR (Novo E Editar) ============
+    // Delegação de evento no submit: pega tanto o form de "Novo Funcionário"
+    // quanto cada form de "Editar" gerado dinamicamente pelo PHP.
+    document.addEventListener("submit", function (e) {
+      const form = e.target;
+      if (!form.matches(".form-funcionario")) return;
 
-        // 1. Valida a força da senha
-        if (!regraSenha.test(senhaModal.value)) {
-          e.preventDefault(); // Impede o envio
-          alert("Atenção: A senha deve conter obrigatoriamente:\n- Pelo menos uma letra minúscula\n- Pelo menos uma letra maiúscula\n- Pelo menos um número\n- Pelo menos um caractere especial (!, @, #, $, etc.)");
-          senhaModal.focus();
-          return; // Para a execução do script aqui até que ele corrija
-        }
+      const senha = form.querySelector('[name="nSenha"]');
+      const confirmaSenha = form.querySelector('[name="nConfirmarSenha"]'); // só existe no modal de Novo
+      const cpf = form.querySelector(".mask-cpf");
 
-        // 2. Valida se as senhas coincidem
-        if (senhaModal.value !== confirmaModal.value) {
-          e.preventDefault(); // Impede o envio
-          alert("Atenção: A senha e a confirmação de senha não coincidem!");
-          confirmaModal.focus();
-          return;
-        }
+      // Regra da senha: mínimo 1 minúscula, 1 maiúscula, 1 número e 1 caractere especial.
+      // No modal de Editar a senha é opcional (vazio = não altera), então só valida
+      // a força/confirmação se o usuário realmente digitou algo nesse campo.
+      const regraSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
+      const precisaValidarSenha = senha && (confirmaSenha ? true : senha.value !== "");
 
-        // 3. Remove a formatação do CPF antes de enviar (mantém só os números no banco)
-        if (cpfModal) {
-          cpfModal.value = cpfModal.value.replace(/\D/g, "");
-        }
-      });
-    }
+      if (senha && senha.value !== "" && !regraSenha.test(senha.value)) {
+        e.preventDefault();
+        alert("Atenção: A senha deve conter obrigatoriamente:\n- Pelo menos uma letra minúscula\n- Pelo menos uma letra maiúscula\n- Pelo menos um número\n- Pelo menos um caractere especial (!, @, #, $, etc.)");
+        senha.focus();
+        return;
+      }
+
+      if (confirmaSenha && senha.value !== confirmaSenha.value) {
+        e.preventDefault();
+        alert("Atenção: A senha e a confirmação de senha não coincidem!");
+        confirmaSenha.focus();
+        return;
+      }
+
+      // Remove a formatação do CPF antes de enviar (mantém só os números no banco) —
+      // é essa etapa que faltava no modal de Editar, e é o que garante que a
+      // verificação de CPF duplicado no servidor compare "número com número".
+      if (cpf) {
+        cpf.value = cpf.value.replace(/\D/g, "");
+      }
+    });
   });
 
   $(function () {
