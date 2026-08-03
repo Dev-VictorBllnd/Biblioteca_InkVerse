@@ -272,7 +272,7 @@ class TesteClientes:
 
 if __name__ == "__main__":
     # --- CONFIGURAÇÃO: ajuste aqui antes de rodar ---
-    URL_BASE = "http://localhost/Biblioteca_InkVerse"   # ajuste para a sua URL local
+    URL_BASE = "http://localhost:8080/Biblioteca_InkVerse"   # ajuste para a sua URL local
     LOGIN_EMAIL = "admin@gmail.com"
     LOGIN_SENHA = "Admin123@"
 
