@@ -158,7 +158,7 @@ function listaUsuario($filtro = 'ativos')
                                         <div class="col-4">
                                             <div class="form-group">
                                                 <label>Senha: (Deixe em branco para não alterar)</label>
-                                                <input type="password" class="form-control" name="nSenha" maxlength="50">
+                                                <input type="password" class="form-control" name="nSenha" maxlength="50" minlength="8">
                                             </div>
                                         </div>
                                         <div class="col-4">

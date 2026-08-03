@@ -149,7 +149,7 @@
                     <div class="col-5">
                       <div class="form-group">
                         <label for="iSenhaModal">Senha:</label>
-                        <input type="password" class="form-control" id="iSenhaModal" name="nSenha" maxlength="50" required>
+                        <input type="password" class="form-control" id="iSenhaModal" name="nSenha" maxlength="50" minlength="8" required>
                       </div>
                     </div>
 
@@ -300,12 +300,12 @@
       // Regra da senha: mínimo 1 minúscula, 1 maiúscula, 1 número e 1 caractere especial.
       // No modal de Editar a senha é opcional (vazio = não altera), então só valida
       // a força/confirmação se o usuário realmente digitou algo nesse campo.
-      const regraSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/;
+      const regraSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
       const precisaValidarSenha = senha && (confirmaSenha ? true : senha.value !== "");
 
       if (senha && senha.value !== "" && !regraSenha.test(senha.value)) {
         e.preventDefault();
-        alert("Atenção: A senha deve conter obrigatoriamente:\n- Pelo menos uma letra minúscula\n- Pelo menos uma letra maiúscula\n- Pelo menos um número\n- Pelo menos um caractere especial (!, @, #, $, etc.)");
+        alert("Atenção: A senha deve conter obrigatoriamente:\n- No mínimo 8 caracteres\n- Pelo menos uma letra minúscula\n- Pelo menos uma letra maiúscula\n- Pelo menos um número\n- Pelo menos um caractere especial (!, @, #, $, etc.)");
         senha.focus();
         return;
       }
