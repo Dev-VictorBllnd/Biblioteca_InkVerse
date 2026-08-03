@@ -108,7 +108,7 @@ if (isset($_GET['funcao'])) {
     $idEmprestimo = (int)($_POST['idEmprestimo'] ?? 0);
     $idExemplar   = (int)($_POST['idExemplar']   ?? 0);
     $hoje = date('Y-m-d');
-    $TAXA_MULTA_DIA = 1.00; // mesma regra já usada na tela (R$/dia)
+    $TAXA_MULTA_DIA = 0.50; // mesma regra já usada na tela (R$/dia)
 
     // Nunca confia no valor calculado no navegador — recalcula no servidor
     $qItem = mysqli_query($conn, "
@@ -150,7 +150,8 @@ if (isset($_GET['funcao'])) {
 }
 
     // =========================================================================
-    // 4. PAGAR MULTA (Função M) — grava multa no exemplar E credita no saldo do cliente
+    // 4. PAGAR MULTA (Função M) — grava multa no exemplar JÁ QUITADA,
+    //    sem afetar o saldo de multa do cliente (foi paga na hora da devolução)
     // =========================================================================
     if ($funcao == 'M') {
     $idEmprestimo = (int)($_POST['idEmprestimo'] ?? 0);
@@ -160,19 +161,14 @@ if (isset($_GET['funcao'])) {
     mysqli_query($conn, "
         UPDATE emprestimo_has_exemplar
         SET multa = $valorMulta,
+            multa_paga = 'S',
             Data_devolucao = NOW()
         WHERE idEmprestimo = $idEmprestimo AND idExemplar = $idExemplar
     ");
     mysqli_query($conn, "UPDATE exemplar SET Emprestado = 'nao' WHERE idExemplar = '$idExemplar'");
 
-    if ($valorMulta > 0) {
-        mysqli_query($conn, "
-            UPDATE cliente c
-            INNER JOIN emprestimo e ON e.idCliente = c.idCliente
-            SET c.multa = COALESCE(c.multa, 0) + $valorMulta
-            WHERE e.idEmprestimo = $idEmprestimo
-        ");
-    }
+    // Não soma em cliente.multa: o valor já foi pago neste momento,
+    // então não deve ficar pendente no perfil do cliente.
 
     header("Location: ../emprestimo.php?sucesso=multa");
     exit;

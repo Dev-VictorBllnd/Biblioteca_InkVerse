@@ -144,7 +144,7 @@
                   'data_prevista'   => $r['data_prevista'],
                   'atrasado'        => ($r['data_prevista'] < $hoje && !$multaPaga),
                   'diasAtraso'      => $diasAtr,
-                  'valorMulta'      => $diasAtr * 1.00,
+                  'valorMulta'      => $diasAtr * 0.50,
                   'multaPaga'       => $multaPaga,
                 ];
               }
