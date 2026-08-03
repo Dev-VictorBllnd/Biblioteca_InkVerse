@@ -93,7 +93,7 @@
 
     } elseif($funcao == "D") {
         // EXCLUSÃO
-        $sql = "DELETE FROM cliente WHERE idCliente = $idCliente;";
+        $sql = "UPDATE cliente SET Ativo = 'N' WHERE idCliente = $idCliente;";
         $result = mysqli_query($conn, $sql);
     }
 
