@@ -103,7 +103,7 @@ if (!in_array($multa, ['todos', 'com_multa', 'sem_multa'])) {
               </button>
             </div>
             <div class="modal-body">
-              <form method="POST" action="php/salvarCliente.php?funcao=I" enctype="multipart/form-data">              
+              <form id="formNovoCliente" method="POST" action="php/salvarCliente.php?funcao=I" enctype="multipart/form-data">              
                 
               <h5 class="mb-3 text-info border-bottom pb-2">Dados Pessoais</h5>
 
@@ -118,7 +118,7 @@ if (!in_array($multa, ['todos', 'com_multa', 'sem_multa'])) {
                   <div class="col-md-4">
                     <div class="form-group">
                       <label for="iCpf">CPF:</label>
-                      <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="000.000.000-00" maxlength="11" required>
+                      <input type="text" class="form-control" id="iCpf" name="nCpf" placeholder="000.000.000-00" maxlength="14" required>
                     </div>
                   </div>
 
@@ -324,6 +324,51 @@ $('#tabela_filter label').before(filtro);
             });
     });
 
+});
+
+// =========================================================================
+// BLOCO DE MÁSCARAS E VALIDAÇÕES DO FORMULÁRIO (CPF E TELEFONE)
+// =========================================================================
+$(function () {
+  const formNovoCliente = document.getElementById("formNovoCliente");
+  const cpfModal = document.getElementById("iCpf");
+  const telefoneModal = document.getElementById("iTelefone");
+
+  // ============ MÁSCARA DO CPF (000.000.000-00) ============
+  if (cpfModal) {
+    cpfModal.addEventListener("input", function () {
+      let valor = this.value.replace(/\D/g, "").slice(0, 11);
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+      valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+      this.value = valor;
+    });
+  }
+
+  // ============ MÁSCARA DO TELEFONE ((00) 00000-0000) ============
+  if (telefoneModal) {
+    telefoneModal.addEventListener("input", function () {
+      let valor = this.value.replace(/\D/g, "").slice(0, 11);
+      valor = valor.replace(/^(\d{2})(\d)/g, '($1) $2'); // Coloca parênteses no DDD e espaço
+      valor = valor.replace(/(\d)(\d{4})$/, '$1-$2');    // Coloca o traço antes dos últimos 4 dígitos
+      this.value = valor;
+    });
+  }
+
+  // Tratamento no momento do envio do formulário
+  if (formNovoCliente) {
+    formNovoCliente.addEventListener('submit', function (e) {
+      // Remove a formatação do CPF antes de enviar, para salvar só os números no banco
+      if (cpfModal) {
+        cpfModal.value = cpfModal.value.replace(/\D/g, "");
+      }
+      
+      // Opcional: Se quiser remover a formatação do telefone para salvar apenas números, descomente as linhas abaixo:
+      // if (telefoneModal) {
+      //   telefoneModal.value = telefoneModal.value.replace(/\D/g, "");
+      // }
+    });
+  }
 });
 </script>
 
