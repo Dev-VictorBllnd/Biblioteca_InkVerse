@@ -15,7 +15,10 @@ $totalLivros = mysqli_fetch_assoc($qLivros)['total'];
 $qClientes = mysqli_query($conn,"SELECT COUNT(*) total FROM cliente");
 $totalClientes = mysqli_fetch_assoc($qClientes)['total'];
 
-$qEmprestimos = mysqli_query($conn,"SELECT COUNT(*) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
+$qEmprestimos = mysqli_query($conn,"SELECT COUNT(DISTINCT e.idEmprestimo) AS total
+    FROM emprestimo e
+    INNER JOIN emprestimo_has_exemplar ehe ON ehe.idEmprestimo = e.idEmprestimo
+    WHERE ehe.Data_devolucao IS NULL");
 $totalEmprestimos = mysqli_fetch_assoc($qEmprestimos)['total'];
 
 $qExemplares = mysqli_query($conn,"SELECT COUNT(DISTINCT idExemplar) total FROM emprestimo_has_exemplar WHERE Data_devolucao IS NULL");
@@ -641,7 +644,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ==================================================================
-    // NOVO FILTRO DE PERÍODO (Período / Mensal / Anual) - dropdown custom
+    // NOVO FILTRO DE PERÍODO (Período / Mensal / Anual)
     // ==================================================================
     let filtroAtivo = { tipo: 'anual', ano: '2026', mes: null, inicio: null, fim: null };
 
