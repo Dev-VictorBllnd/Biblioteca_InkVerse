@@ -370,7 +370,7 @@ class TesteAutomatizadoFuncionario:
 if __name__ == "__main__":
     print("--- AUTOMAÇÃO DE CADASTRO DE FUNCIONÁRIOS - INKVERSE ---")
 
-    URL_LOCAL = "http://localhost/Biblioteca_InkVerse"
+    URL_LOCAL = "http://localhost:8080/Biblioteca_InkVerse"
     LOGIN_EMAIL = "admin@gmail.com"   
     LOGIN_SENHA = "Admin123@"      
 
