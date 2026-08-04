@@ -44,6 +44,14 @@ if (!in_array($multa, ['todos', 'com_multa', 'sem_multa'])) {
               O CPF informado já está cadastrado no sistema. Por favor, verifique os dados.
             </div>
             <?php endif; ?>
+
+            <?php if(isset($_GET['erro']) && $_GET['erro'] == 'multa'): ?>
+            <div class="alert alert-danger alert-dismissible">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+              <h5><i class="icon fas fa-exclamation-triangle"></i> Multa em aberto!</h5>
+              Este cliente possui multa(s) em aberto e não pode ser excluído/inativado. Quite a multa antes de continuar.
+            </div>
+            <?php endif; ?>
             
     <section class="content">
       <div class="container-fluid">

@@ -94,6 +94,9 @@ $sql = "SELECT c.*,
             // Formata o valor da multa para o padrão brasileiro (R$ 0,00)
             $valorMultaFormatado = 'R$ ' . number_format($coluna["TotalMulta"], 2, ',', '.');
 
+            // Cliente com multa pendente (mesmo critério do filtro "Com Multa" acima) não pode ser excluído/inativado
+            $temMulta = ((float)$coluna["TotalMulta"]) > 0;
+
             if ($coluna["Ativo"] == 'S') {
                 $icone = '<h5><span class="badge text-white" style="background-color: #2563eb;"><i class="fas fa-check"></i> Ativo</span></h5>';
             } else {
@@ -125,9 +128,12 @@ $sql = "SELECT c.*,
         .'</div>'
 
         .'<div class="col-4">'
-            .'<a href="#modalDeleteCliente'.$coluna["idCliente"].'" data-toggle="modal">'
-                .'<h6><i class="fas fa-trash text-danger" title="Excluir Cliente"></i></h6>'
-            .'</a>'
+            . ($temMulta
+                ? '<h6><i class="fas fa-trash text-muted" style="cursor:not-allowed;" title="Cliente com multa pendente: quite a multa antes de excluir/inativar"></i></h6>'
+                : '<a href="#modalDeleteCliente'.$coluna["idCliente"].'" data-toggle="modal">'
+                    .'<h6><i class="fas fa-trash text-danger" title="Excluir Cliente"></i></h6>'
+                  .'</a>'
+              )
         .'</div>'
 
     .'</div>'
@@ -308,11 +314,14 @@ $sql = "SELECT c.*,
                             .'</button>'
                         .'</div>'
                         .'<div class="modal-body">'
-                            .'<p>Deseja realmente excluir o cliente <strong>'.$coluna["Nome"].'</strong>?</p>'
+                            . ($temMulta
+                                ? '<p>O cliente <strong>'.$coluna["Nome"].'</strong> possui multa pendente (<strong>'.$valorMultaFormatado.'</strong>) e não pode ser excluído/inativado. Quite a multa antes de continuar.</p>'
+                                : '<p>Deseja realmente excluir o cliente <strong>'.$coluna["Nome"].'</strong>?</p>'
+                              )
                         .'</div>'
                         .'<div class="modal-footer justify-content-between">'
-                            .'<button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancelar</button>'
-                            .'<a href="php/salvarCliente.php?funcao=D&codigo='.$coluna["idCliente"].'" class="btn btn-outline-light">Excluir</a>'
+                            .'<button type="button" class="btn btn-outline-light" data-dismiss="modal">'.($temMulta ? 'Fechar' : 'Cancelar').'</button>'
+                            . ($temMulta ? '' : '<a href="php/salvarCliente.php?funcao=D&codigo='.$coluna["idCliente"].'" class="btn btn-outline-light">Excluir</a>')
                         .'</div>'
                     .'</div>'
                 .'</div>'

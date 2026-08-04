@@ -92,6 +92,16 @@
         $result = mysqli_query($conn, $sql);
 
     } elseif($funcao == "D") {
+
+        // Bloqueio real no servidor: cliente com multa pendente não pode ser excluído/inativado por aqui
+        // (mesma fonte de verdade usada em clientes.php e salvaremprestimo.php)
+        $statusMulta = statusMultaCliente($idCliente);
+        if ($statusMulta['tem_multa']) {
+            mysqli_close($conn);
+            header("location: ../clientes.php?erro=multa");
+            exit;
+        }
+
         // EXCLUSÃO (padrão try/except do livro)
         // 1º TENTA excluir de verdade (hard delete).
         // Se o cliente nunca fez empréstimo, a FK deixa passar numa boa.
