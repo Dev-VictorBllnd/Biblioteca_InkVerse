@@ -106,7 +106,7 @@
 
     } elseif($funcao == "D") {
         // EXCLUSÃO
-        $sql = "DELETE FROM funcionario WHERE idFuncionario = $idUsuario;";
+        $sql = "UPDATE funcionario SET Ativo = 'N' WHERE idFuncionario = $idUsuario;";
         $result = mysqli_query($conn, $sql);
     }
 
