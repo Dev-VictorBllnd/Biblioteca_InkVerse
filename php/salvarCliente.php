@@ -92,9 +92,28 @@
         $result = mysqli_query($conn, $sql);
 
     } elseif($funcao == "D") {
-        // EXCLUSÃO
-        $sql = "UPDATE cliente SET Ativo = 'N' WHERE idCliente = $idCliente;";
-        $result = mysqli_query($conn, $sql);
+        // EXCLUSÃO (padrão try/except do livro)
+        // 1º TENTA excluir de verdade (hard delete).
+        // Se o cliente nunca fez empréstimo, a FK deixa passar numa boa.
+        // Se já tiver histórico em `emprestimo`, o MySQL recusa (erro 1451 -
+        // violação de chave estrangeira) e caímos no catch, que faz o
+        // mesmo soft delete de sempre (Ativo = 'N').
+        mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+        try {
+            $sql = "DELETE FROM cliente WHERE idCliente = $idCliente;";
+            $result = mysqli_query($conn, $sql);
+        } catch (mysqli_sql_exception $e) {
+            if ($e->getCode() == 1451) {
+                // Tem empréstimo vinculado -> não dá pra excluir, então inativa
+                $sql = "UPDATE cliente SET Ativo = 'N' WHERE idCliente = $idCliente;";
+                $result = mysqli_query($conn, $sql);
+            } else {
+                // Outro erro qualquer (não é o de FK) -> não mascara, relança
+                mysqli_report(MYSQLI_REPORT_OFF);
+                throw $e;
+            }
+        }
+        mysqli_report(MYSQLI_REPORT_OFF);
     }
 
     mysqli_close($conn);
