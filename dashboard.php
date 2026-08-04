@@ -247,13 +247,13 @@ while($r = mysqli_fetch_assoc($qAnosLivros)) { $a_labels[] = $r['ano']; $a_valor
                 <div class="row">
                     <div class="col-lg-2 col-md-4 col-6">
                         <a href="livros.php" class="card-sistema" style="cursor: pointer;">
-                            <div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Livros</p></div>
+                            <div class="inner"><h3><?php echo $totalLivros; ?></h3><p>Total Livros</p></div>
                             <div class="icon"><i class="fas fa-book"></i></div>
                         </a>
                     </div>
                     <div class="col-lg-2 col-md-4 col-6">
                         <a href="clientes.php" class="card-sistema" style="cursor: pointer;">
-                            <div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Clientes</p></div>
+                            <div class="inner"><h3><?php echo $totalClientes; ?></h3><p>Total Clientes</p></div>
                             <div class="icon"><i class="fas fa-users"></i></div>
                         </a>
                     </div>
