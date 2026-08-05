@@ -1,9 +1,3 @@
-"""
-TESTE AUTOMATIZADO - CADASTRO DE EDITORA (DASHBOARD)
-Sistema: Biblioteca InkVerse
-Ferramenta: Selenium WebDriver com Python
-"""
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,8 +15,6 @@ class TesteAutomatizadoEditora:
         self.login_email = login_email
         self.login_senha = login_senha
 
-        # Sempre cria a pasta de resultados ao lado do próprio arquivo .py,
-        # independente da pasta de onde o comando "python ..." foi executado.
         pasta_do_script = os.path.dirname(os.path.abspath(__file__))
         self.diretorio_teste = os.path.join(pasta_do_script, "TesteCadastroEditora")
 
@@ -39,9 +31,6 @@ class TesteAutomatizadoEditora:
 
         print("✓ Ambiente preparado e pasta 'TesteCadastroEditora' verificada!")
 
-    # ------------------------------------------------------------------
-    # LOGIN
-    # ------------------------------------------------------------------
     def fazer_login(self):
         print("🔐 Efetuando login...")
         self.driver.get(f"{self.url_base}/index.php")
@@ -54,15 +43,12 @@ class TesteAutomatizadoEditora:
         self.wait.until(lambda d: "index.php" not in d.current_url)
         print("✓ Login efetuado com sucesso!")
 
-    # ------------------------------------------------------------------
-    # GERADORES DE DADOS FAKE
-    # ------------------------------------------------------------------
     def gerar_telefone_fake(self):
         return f"(47) {random.randint(3000, 3999)}-{random.randint(1000, 9999)}"
 
     def gerar_nome_editora(self):
         prefixos = [
-            "Editora", "Grupo Editorial", "Livraria", "Publicações",
+            "Editora", "Grupo Editorial", "Livraria", "Publicacoes",
         ]
         nucleos = [
             "Aurora", "Bellatrix", "Nova Página", "Horizonte", "Prisma",
@@ -71,12 +57,12 @@ class TesteAutomatizadoEditora:
             "Nébula", "Tessitura", "Alicerce", "Cerrado", "Litoral",
         ]
         sufixos = ["", " Ltda", " Editorial", " & Cia"]
-        sufixo_unico = str(int(time.time() * 1000))[-4:]  # evita nome duplicado
+        sufixo_unico = str(int(time.time() * 1000))[-4:]
         return f"{random.choice(prefixos)} {random.choice(nucleos)} {sufixo_unico}{random.choice(sufixos)}"
 
     def gerar_dados_aleatorios(self):
         nome = self.gerar_nome_editora()
-        sufixo_unico = str(int(time.time() * 1000))[-6:]  # evita e-mail duplicado
+        sufixo_unico = str(int(time.time() * 1000))[-6:]
         nome_email = (
             nome.lower()
             .replace(" ", ".")
@@ -95,9 +81,6 @@ class TesteAutomatizadoEditora:
             "telefone": self.gerar_telefone_fake(),
         }
 
-    # ------------------------------------------------------------------
-    # SCREENSHOT E RELATÓRIO
-    # ------------------------------------------------------------------
     def tirar_screenshot(self, nome_arquivo):
         caminho = os.path.join(self.diretorio_teste, nome_arquivo)
         self.driver.save_screenshot(caminho)
@@ -179,9 +162,6 @@ class TesteAutomatizadoEditora:
 
         return caminho_html
 
-    # ------------------------------------------------------------------
-    # FLUXO PRINCIPAL DE CADASTRO
-    # ------------------------------------------------------------------
     def executar_teste_completo(self, quantidade):
         self.fazer_login()
 
