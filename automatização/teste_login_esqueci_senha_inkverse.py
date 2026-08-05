@@ -1,7 +1,7 @@
 """
-TESTE AUTOMATIZADO - ESQUECI MINHA SENHA
+TESTE AUTOMATIZADO - RECUPERAÇÃO DE SENHA
 Sistema: Biblioteca InkVerse
-Ferramenta: Selenium WebDriver com Python
+Ferramenta: Selenium WebDriver + MySQL
 """
 
 from selenium import webdriver
@@ -10,53 +10,458 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 
+import mysql.connector
 import os
 import time
+import string
+import random
 import webbrowser
 
 
-class TesteEsqueciSenha:
+class TesteRecuperacaoSenha:
 
-    def __init__(self, url_base):
+
+    def __init__(self, url_base, email):
 
         self.url_base = url_base.rstrip("/")
+        self.email = email
 
-        pasta_script = os.path.dirname(os.path.abspath(__file__))
-        self.pasta_resultados = os.path.join(
-            pasta_script,
-            "TesteEsqueciSenha"
+        pasta = os.path.dirname(os.path.abspath(__file__))
+
+        self.pasta_resultado = os.path.join(
+            pasta,
+            "TesteRecuperacaoSenha"
         )
 
-        os.makedirs(self.pasta_resultados, exist_ok=True)
-
-        self.resultados = []
+        os.makedirs(
+            self.pasta_resultado,
+            exist_ok=True
+        )
 
         chrome = Options()
         chrome.add_argument("--start-maximized")
 
-        self.driver = webdriver.Chrome(options=chrome)
-        self.wait = WebDriverWait(self.driver, 10)
+        self.driver = webdriver.Chrome(
+            options=chrome
+        )
 
-        print("✓ Ambiente preparado!")
+        self.wait = WebDriverWait(
+            self.driver,
+            15
+        )
 
-    #########################################################
+        self.resultado = {}
 
-    def screenshot(self, nome):
+        print("✓ Ambiente preparado")
 
-        caminho = os.path.join(self.pasta_resultados, nome)
 
-        self.driver.save_screenshot(caminho)
+    # -------------------------------------------------
+
+    def conectar_banco(self):
+
+        return mysql.connector.connect(
+
+            host="localhost",
+            user="root",
+            password="",
+            database="biblioteca"
+
+        )
+
+
+    # -------------------------------------------------
+
+    def buscar_codigo(self):
+
+        conexao = self.conectar_banco()
+
+        cursor = conexao.cursor()
+
+        cursor.execute(
+
+            """
+            SELECT CodigoRecuperacao
+            FROM funcionario
+            WHERE Email=%s
+            """,
+
+            (self.email,)
+
+        )
+
+
+        dado = cursor.fetchone()
+
+        conexao.close()
+
+
+        if dado:
+
+            return str(dado[0])
+
+
+        return None
+
+
+
+    # -------------------------------------------------
+
+    def gerar_senha(self):
+
+        return (
+
+            random.choice(string.ascii_uppercase)
+
+            +
+
+            random.choice(string.ascii_lowercase)
+
+            +
+
+            random.choice(string.digits)
+
+            +
+
+            "@Ink2026"
+
+        )
+
+
+
+    # -------------------------------------------------
+
+    def screenshot(self,nome):
+
+        caminho = os.path.join(
+
+            self.pasta_resultado,
+
+            nome
+
+        )
+
+        self.driver.save_screenshot(
+            caminho
+        )
 
         return nome
 
-    #########################################################
+
+
+    # -------------------------------------------------
+
+    def executar(self):
+
+
+        status="Falha"
+        detalhe=""
+
+
+        try:
+
+
+            print("Abrindo login")
+
+
+            self.driver.get(
+
+                self.url_base +
+
+                "/index.php"
+
+            )
+
+
+            # -----------------------------
+            # Esqueci senha
+            # -----------------------------
+
+
+            self.wait.until(
+
+                EC.element_to_be_clickable(
+
+                    (
+                    By.LINK_TEXT,
+                    "Esqueci minha senha"
+                    )
+
+                )
+
+            ).click()
+
+
+
+            print("Tela recuperação aberta")
+
+
+
+            # -----------------------------
+            # Email
+            # -----------------------------
+
+
+            campo_email = self.wait.until(
+
+                EC.presence_of_element_located(
+
+                    (
+                    By.NAME,
+                    "email"
+                    )
+
+                )
+
+            )
+
+
+            campo_email.send_keys(
+                self.email
+            )
+
+
+            self.driver.find_element(
+
+                By.CSS_SELECTOR,
+
+                "button.btn-login"
+
+            ).click()
+
+
+
+            time.sleep(2)
+
+
+
+            # -----------------------------
+            # Confirma envio
+            # -----------------------------
+
+
+            self.wait.until(
+
+                EC.presence_of_element_located(
+
+                    (
+                    By.XPATH,
+                    "//*[contains(text(),'Código Enviado')]"
+                    )
+
+                )
+
+            )
+
+
+            print("✓ Código enviado")
+
+
+
+            # -----------------------------
+            # Continuar
+            # -----------------------------
+
+
+            self.wait.until(
+
+                EC.element_to_be_clickable(
+
+                    (
+                    By.LINK_TEXT,
+                    "Continuar"
+                    )
+
+                )
+
+            ).click()
+
+
+
+            # -----------------------------
+            # Código
+            # -----------------------------
+
+
+            codigo=None
+
+
+            for tentativa in range(15):
+
+                codigo=self.buscar_codigo()
+
+
+                if codigo:
+
+                    break
+
+
+                time.sleep(1)
+
+
+
+            if codigo is None:
+
+                raise Exception(
+                    "Código não encontrado no banco"
+                )
+
+
+            print(
+                "Código encontrado:",
+                codigo
+            )
+
+
+
+            campo_codigo=self.wait.until(
+
+                EC.presence_of_element_located(
+
+                    (
+                    By.NAME,
+                    "codigo"
+                    )
+
+                )
+
+            )
+
+
+            campo_codigo.send_keys(
+                codigo
+            )
+
+
+
+            self.driver.find_element(
+
+                By.CSS_SELECTOR,
+
+                "button.btn-login"
+
+            ).click()
+
+
+
+            time.sleep(2)
+
+
+
+            # -----------------------------
+            # Nova senha
+            # -----------------------------
+
+
+            nova=self.gerar_senha()
+
+
+            senha=self.wait.until(
+
+                EC.presence_of_element_located(
+
+                    (
+                    By.NAME,
+                    "nSenha"
+                    )
+
+                )
+
+            )
+
+
+            senha.send_keys(
+                nova
+            )
+
+
+            confirmar=self.driver.find_element(
+
+                By.NAME,
+
+                "nConfirmarSenha"
+
+            )
+
+
+            confirmar.send_keys(
+                nova
+            )
+
+
+
+            self.driver.find_element(
+
+                By.CSS_SELECTOR,
+
+                "button.btn-login"
+
+            ).click()
+
+
+
+            time.sleep(3)
+
+
+
+            status="Sucesso"
+
+            detalhe=(
+
+                "Senha alterada com sucesso. "
+
+                "Nova senha: "
+
+                + nova
+
+            )
+
+
+
+        except Exception as erro:
+
+
+            detalhe=str(erro)
+
+
+
+        self.resultado={
+
+            "email":self.email,
+
+            "status":status,
+
+            "detalhe":detalhe,
+
+            "print":self.screenshot(
+                "resultado.png"
+            )
+
+        }
+
+
+        self.gerar_relatorio()
+
+
+        self.driver.quit()
+
+
+
+    # -------------------------------------------------
 
     def gerar_relatorio(self):
 
-        sucessos = len([x for x in self.resultados if x["status"] == "Sucesso"])
-        falhas = len(self.resultados) - sucessos
 
-        html = f"""
+        caminho=os.path.join(
+
+            self.pasta_resultado,
+
+            "dashboard.html"
+
+        )
+
+
+        html=f"""
+
         <!DOCTYPE html>
 
         <html>
@@ -65,197 +470,101 @@ class TesteEsqueciSenha:
 
         <meta charset="UTF-8">
 
-        <title>Teste Esqueci Senha</title>
-
-        <style>
-
-        body{{font-family:Arial;background:#f4f4f4;padding:20px;}}
-
-        table{{width:100%;border-collapse:collapse;}}
-
-        th,td{{border:1px solid #ccc;padding:10px;}}
-
-        th{{background:#0b1a2c;color:white;}}
-
-        .ok{{color:green;}}
-
-        .erro{{color:red;}}
-
-        </style>
+        <title>
+        Teste Recuperação Senha
+        </title>
 
         </head>
 
+
         <body>
 
-        <h1>Relatório - Recuperação de Senha</h1>
 
-        <h2>Total: {len(self.resultados)}</h2>
+        <h1>
+        Recuperação de Senha InkVerse
+        </h1>
 
-        <h2>Sucesso: {sucessos}</h2>
 
-        <h2>Falhas: {falhas}</h2>
+        <table border="1"
+        cellpadding="10">
 
-        <table>
 
         <tr>
-
-        <th>ID</th>
 
         <th>Email</th>
 
         <th>Status</th>
 
-        <th>Detalhes</th>
-
-        <th>Print</th>
+        <th>Detalhe</th>
 
         </tr>
+
+
+        <tr>
+
+        <td>
+        {self.resultado['email']}
+        </td>
+
+
+        <td>
+        {self.resultado['status']}
+        </td>
+
+
+        <td>
+        {self.resultado['detalhe']}
+        </td>
+
+
+        </tr>
+
+
+        </table>
+
+
+        </body>
+
+        </html>
+
         """
 
-        for r in self.resultados:
 
-            cor = "ok" if r["status"] == "Sucesso" else "erro"
+        with open(
 
-            html += f"""
+            caminho,
 
-            <tr>
+            "w",
 
-            <td>{r["id"]}</td>
+            encoding="utf-8"
 
-            <td>{r["email"]}</td>
+        ) as arquivo:
 
-            <td class="{cor}">{r["status"]}</td>
-
-            <td>{r["detalhe"]}</td>
-
-            <td>
-
-            <a href="{r["print"]}" target="_blank">
-
-            Abrir
-
-            </a>
-
-            </td>
-
-            </tr>
-
-            """
-
-        html += "</table></body></html>"
-
-        caminho = os.path.join(self.pasta_resultados, "dashboard.html")
-
-        with open(caminho, "w", encoding="utf8") as f:
-            f.write(html)
-
-        return caminho
-
-    #########################################################
-
-    def executar(self, email):
-
-        print("Abrindo Login...")
-
-        self.driver.get(f"{self.url_base}/index.php")
-
-        status = "Falha"
-        detalhe = ""
-
-        try:
-
-            self.wait.until(
-                EC.element_to_be_clickable(
-                    (By.LINK_TEXT, "Esqueci minha senha")
-                )
-            ).click()
-
-            self.wait.until(
-                EC.presence_of_element_located(
-                    (By.NAME, "email")
-                )
-            ).send_keys(email)
-
-            self.screenshot("01_email_digitado.png")
-
-            self.driver.find_element(
-                By.CSS_SELECTOR,
-                "button.btn-login"
-            ).click()
-
-            time.sleep(2)
-
-            self.screenshot("02_resultado.png")
-
-            url = self.driver.current_url
-
-            if "sucesso" in url.lower():
-
-                status = "Sucesso"
-                detalhe = "Solicitação enviada."
-
-            else:
-
-                try:
-
-                    texto = self.driver.find_element(
-                        By.TAG_NAME,
-                        "body"
-                    ).text
-
-                    if "link" in texto.lower():
-
-                        status = "Sucesso"
-                        detalhe = "Link gerado."
-
-                    elif "email enviado" in texto.lower():
-
-                        status = "Sucesso"
-                        detalhe = "Email enviado."
-
-                    elif "não encontrado" in texto.lower():
-
-                        detalhe = "Email inexistente."
-
-                    else:
-
-                        detalhe = "Resposta não identificada."
-
-                except:
-
-                    detalhe = "Não foi possível validar."
-
-        except Exception as e:
-
-            detalhe = str(e)
-
-        self.resultados.append({
-
-            "id": 1,
-            "email": email,
-            "status": status,
-            "detalhe": detalhe,
-            "print": "02_resultado.png"
-
-        })
-
-        caminho = self.gerar_relatorio()
-
-        self.driver.quit()
-
-        print("Relatório criado!")
-
-        webbrowser.open("file://" + os.path.realpath(caminho))
+            arquivo.write(html)
 
 
-#############################################################
 
-if __name__ == "__main__":
+        webbrowser.open(
 
-    URL = "http://localhost:8080/Biblioteca_InkVerse"
+            "file://" +
 
-    EMAIL = "admin@gmail.com"
+            os.path.realpath(caminho)
 
-    teste = TesteEsqueciSenha(URL)
+        )
 
-    teste.executar(EMAIL)
+
+
+
+if __name__=="__main__":
+
+
+    teste = TesteRecuperacaoSenha(
+
+        url_base="http://localhost:8080/Biblioteca_InkVerse",
+
+        email="fernanda@biblioteca.com"
+
+    )
+
+
+    teste.executar()
